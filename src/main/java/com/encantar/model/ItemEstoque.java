@@ -1,4 +1,4 @@
-ackage main.java.com.encantar.model;
+package main.java.com.encantar.model;
 
 import main.java.com.encantar.model.interfaces.IItemEstoque;
 
