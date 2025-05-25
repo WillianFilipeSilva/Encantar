@@ -1,9 +1,8 @@
-package main.java.com.encantar.model;
+package main.java.com.encantar.model.entidades;
 
-import main.java.com.encantar.model.interfaces.IUsuario;
+import main.java.com.encantar.model.interfaces.entidades.IUsuario;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class Usuario implements IUsuario {
     private Long id;
@@ -41,29 +40,4 @@ public class Usuario implements IUsuario {
     public LocalDateTime getCriadoEm() { return criadoEm; }
 
     public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
-
-    @Override
-    public void criar(Usuario usuario) {
-
-    }
-
-    @Override
-    public Usuario buscarPorLogin(String login) {
-        return null;
-    }
-
-    @Override
-    public List<Usuario> listarTodos() {
-        return List.of();
-    }
-
-    @Override
-    public void atualizar(Usuario usuario) {
-
-    }
-
-    @Override
-    public void deletar(String login) {
-
-    }
 }

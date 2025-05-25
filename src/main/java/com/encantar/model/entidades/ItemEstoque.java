@@ -1,8 +1,6 @@
-package main.java.com.encantar.model;
+package main.java.com.encantar.model.entidades;
 
-import main.java.com.encantar.model.interfaces.IItemEstoque;
-
-import java.util.List;
+import main.java.com.encantar.model.interfaces.entidades.IItemEstoque;
 
 public class ItemEstoque implements  IItemEstoque {
     private Long id;
@@ -28,29 +26,4 @@ public class ItemEstoque implements  IItemEstoque {
     public int getQuantidadeAtual() { return quantidadeAtual; }
 
     public void setQuantidadeAtual(int quantidadeAtual) { this.quantidadeAtual = quantidadeAtual; }
-
-    @Override
-    public void adicionarEntrada(ItemEstoque estoque) {
-
-    }
-
-    @Override
-    public void adicionarSaida(ItemEstoque estoque) {
-
-    }
-
-    @Override
-    public ItemEstoque buscarPorItemId(Long itemId) {
-        return null;
-    }
-
-    @Override
-    public List<ItemEstoque> listarTodos() {
-        return List.of();
-    }
-
-    @Override
-    public void ajustarQuantidade(Long itemId, int novaQuantidade) {
-
-    }
 }

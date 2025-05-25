@@ -1,8 +1,6 @@
-package main.java.com.encantar.model;
+package main.java.com.encantar.model.entidades;
 
-import main.java.com.encantar.model.interfaces.IItem;
-
-import java.util.List;
+import main.java.com.encantar.model.interfaces.entidades.IItem;
 
 public class Item implements IItem {
     private Long id;
@@ -28,29 +26,4 @@ public class Item implements IItem {
     public String getDescricao() { return descricao; }
 
     public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    @Override
-    public void criar(Item item) {
-
-    }
-
-    @Override
-    public Item buscarPorId(Long id) {
-        return null;
-    }
-
-    @Override
-    public List<Item> listarTodos() {
-        return List.of();
-    }
-
-    @Override
-    public void atualizar(Item item) {
-
-    }
-
-    @Override
-    public void deletar(Long id) {
-
-    }
 }
