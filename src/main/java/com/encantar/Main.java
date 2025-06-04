@@ -1,11 +1,11 @@
 package com.encantar;
 
-import com.encantar.view.LoginFrame;
+import com.encantar.view.LogoCarregamento;
 
 import javax.swing.*;
 
 public class Main {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
+        SwingUtilities.invokeLater(LogoCarregamento::new);
     }
 }

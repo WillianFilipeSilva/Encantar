@@ -3,20 +3,30 @@ package com.encantar.model;
 import com.encantar.model.enums.StatusEntrega;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Entrega {
     private Long id;
     private Beneficiario beneficiario;
-    private Item item;
-    private int quantidade;
     private LocalDate dataEntrega;
     private StatusEntrega status;
     private String descricao;
     private Rota rota;
+    private List<EntregaItem> items = new ArrayList<>();
+
+    public Entrega(Long id, Beneficiario beneficiario, String descricao, Rota rota) {
+        this.id = id;
+        this.beneficiario = beneficiario;
+        this.dataEntrega = LocalDate.now();
+        this.status = StatusEntrega.PENDENTE;
+        this.descricao = descricao;
+        this.rota = rota;
+    }
 
     public Entrega() {
-        this.status = StatusEntrega.PENDENTE;
         this.dataEntrega = LocalDate.now();
+        this.status = StatusEntrega.PENDENTE;
     }
 
     public Long getId() {
@@ -33,22 +43,6 @@ public class Entrega {
 
     public void setBeneficiario(Beneficiario beneficiario) {
         this.beneficiario = beneficiario;
-    }
-
-    public Item getItem() {
-        return item;
-    }
-
-    public void setItem(Item item) {
-        this.item = item;
-    }
-
-    public int getQuantidade() {
-        return quantidade;
-    }
-
-    public void setQuantidade(int quantidade) {
-        this.quantidade = quantidade;
     }
 
     public LocalDate getDataEntrega() {
@@ -83,12 +77,11 @@ public class Entrega {
         this.rota = rota;
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s - %s - %d %s",
-                beneficiario.getNome(),
-                item.getNome(),
-                quantidade,
-                status);
+    public List<EntregaItem> getItems() {
+        return items;
     }
-} 
+
+    public void setItems(List<EntregaItem> items) {
+        this.items = items != null ? items : new ArrayList<>();
+    }
+}

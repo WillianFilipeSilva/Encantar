@@ -79,23 +79,13 @@ public class EntregaController {
     }
 
     private void validar(Entrega entrega) {
-        if (entrega == null) {
-            throw new IllegalArgumentException("Entrega não pode ser nula");
-        }
-        if (entrega.getBeneficiario() == null) {
-            throw new IllegalArgumentException("Beneficiário é obrigatório");
-        }
-        if (entrega.getItem() == null) {
-            throw new IllegalArgumentException("Item é obrigatório");
-        }
-        if (entrega.getQuantidade() <= 0) {
+        if (entrega == null) throw new IllegalArgumentException("Entrega não pode ser nula");
+        if (entrega.getBeneficiario() == null) throw new IllegalArgumentException("Beneficiário é obrigatório");
+        if (entrega.getItems() == null || entrega.getItems().isEmpty())
+            throw new IllegalArgumentException("Itens são obrigatórios");
+        if (entrega.getItems().stream().anyMatch(e -> e.getQuantidade() == null || e.getQuantidade() <= 0))
             throw new IllegalArgumentException("Quantidade deve ser maior que zero");
-        }
-        if (entrega.getDataEntrega() == null) {
-            throw new IllegalArgumentException("Data é obrigatória");
-        }
-        if (entrega.getStatus() == null) {
-            throw new IllegalArgumentException("Status é obrigatório");
-        }
+        if (entrega.getDataEntrega() == null) throw new IllegalArgumentException("Data é obrigatória");
+        if (entrega.getStatus() == null) throw new IllegalArgumentException("Status é obrigatório");
     }
 } 

@@ -4,10 +4,7 @@ import com.encantar.controller.BeneficiarioController;
 import com.encantar.controller.EntregaController;
 import com.encantar.controller.ItemController;
 import com.encantar.controller.RotaController;
-import com.encantar.model.Beneficiario;
-import com.encantar.model.Entrega;
-import com.encantar.model.Item;
-import com.encantar.model.Rota;
+import com.encantar.model.*;
 import com.encantar.model.enums.StatusEntrega;
 
 import javax.swing.*;
@@ -25,7 +22,6 @@ public class EntregaPanel extends JPanel {
     private final DefaultTableModel tableModel;
     private final JTable table;
 
-    // Campos do formulário
     private final JComboBox<Beneficiario> cbBeneficiario;
     private final JComboBox<Item> cbItem;
     private final JSpinner spQuantidade;
@@ -34,11 +30,9 @@ public class EntregaPanel extends JPanel {
     private final JComboBox<Rota> cbRota;
     private final JTextArea taObs;
 
-    // Campos de busca
     private final JComboBox<StatusEntrega> cbBuscaStatus;
     private final JComboBox<Beneficiario> cbBuscaBeneficiario;
 
-    // Botões
     private final JButton btNovo = new JButton("Novo");
     private final JButton btSalvar = new JButton("Salvar");
     private final JButton btExcluir = new JButton("Excluir");
@@ -49,7 +43,6 @@ public class EntregaPanel extends JPanel {
     public EntregaPanel() {
         setLayout(new BorderLayout());
 
-        // Inicialização dos componentes
         cbBeneficiario = new JComboBox<>(beneficiarioController.buscar(null, false, null).toArray(new Beneficiario[0]));
         cbItem = new JComboBox<>(itemController.listarTodos().toArray(new Item[0]));
         spQuantidade = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
@@ -63,7 +56,6 @@ public class EntregaPanel extends JPanel {
         cbBuscaStatus = new JComboBox<>(StatusEntrega.values());
         cbBuscaBeneficiario = new JComboBox<>(beneficiarioController.buscar(null, false, null).toArray(new Beneficiario[0]));
 
-        // Painel de busca
         JPanel busca = new JPanel(new FlowLayout(FlowLayout.LEFT));
         busca.add(new JLabel("Status:"));
         busca.add(cbBuscaStatus);
@@ -71,7 +63,6 @@ public class EntregaPanel extends JPanel {
         busca.add(cbBuscaBeneficiario);
         busca.add(btBuscar);
 
-        // Painel de formulário
         JPanel form = new JPanel(new GridLayout(0, 2, 5, 5));
         form.add(new JLabel("Beneficiário:"));
         form.add(cbBeneficiario);
@@ -88,28 +79,24 @@ public class EntregaPanel extends JPanel {
         form.add(new JLabel("Descricao:"));
         form.add(new JScrollPane(taObs));
 
-        // Painel de botões
         JPanel botoes = new JPanel();
         botoes.add(btNovo);
         botoes.add(btSalvar);
         botoes.add(btExcluir);
 
-        // Painel esquerdo com form e botões
         JPanel left = new JPanel(new BorderLayout());
         left.add(form, BorderLayout.CENTER);
         left.add(botoes, BorderLayout.SOUTH);
 
-        // Tabela
         tableModel = new DefaultTableModel(
-                new Object[]{"ID", "Beneficiário", "Item", "Quantidade", "Data", "Status", "Rota"}, 0) {
+                new Object[]{"ID", "Beneficiário", "Itens", "Data", "Status", "Rota"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
         table = new JTable(tableModel);
 
-        // Layout principal
         add(busca, BorderLayout.NORTH);
         add(left, BorderLayout.WEST);
         add(new JScrollPane(table), BorderLayout.CENTER);
@@ -123,15 +110,15 @@ public class EntregaPanel extends JPanel {
 
         btSalvar.addActionListener(e -> {
             try {
-                if (entregaEmEdicao == null) {
-                    entregaEmEdicao = new Entrega();
-                }
+                if (entregaEmEdicao == null) entregaEmEdicao = new Entrega();
 
                 entregaEmEdicao.setBeneficiario((Beneficiario) cbBeneficiario.getSelectedItem());
-                entregaEmEdicao.setItem((Item) cbItem.getSelectedItem());
-                entregaEmEdicao.setQuantidade((Integer) spQuantidade.getValue());
-                entregaEmEdicao.setDataEntrega(LocalDate.parse(tfData.getText(),
-                        DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                Item itemSel = (Item) cbItem.getSelectedItem();
+                int qtd = (Integer) spQuantidade.getValue();
+                entregaEmEdicao.setItems(List.of(
+                        new EntregaItem(null, itemSel.getId(), itemSel, qtd)
+                ));
+                entregaEmEdicao.setDataEntrega(LocalDate.parse(tfData.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy")));
                 entregaEmEdicao.setStatus((StatusEntrega) cbStatus.getSelectedItem());
                 entregaEmEdicao.setRota((Rota) cbRota.getSelectedItem());
                 entregaEmEdicao.setDescricao(taObs.getText());
@@ -169,9 +156,7 @@ public class EntregaPanel extends JPanel {
             if (!e.getValueIsAdjusting() && table.getSelectedRow() != -1) {
                 Long id = (Long) table.getValueAt(table.getSelectedRow(), 0);
                 entregaEmEdicao = controller.buscarPorId(id);
-                if (entregaEmEdicao != null) {
-                    preencherFormulario(entregaEmEdicao);
-                }
+                if (entregaEmEdicao != null) preencherFormulario(entregaEmEdicao);
             }
         });
     }
@@ -190,8 +175,11 @@ public class EntregaPanel extends JPanel {
 
     private void preencherFormulario(Entrega entrega) {
         cbBeneficiario.setSelectedItem(entrega.getBeneficiario());
-        cbItem.setSelectedItem(entrega.getItem());
-        spQuantidade.setValue(entrega.getQuantidade());
+        if (!entrega.getItems().isEmpty()) {
+            EntregaItem ei = entrega.getItems().get(0);
+            cbItem.setSelectedItem(ei.getItem());
+            spQuantidade.setValue(ei.getQuantidade());
+        }
         tfData.setText(entrega.getDataEntrega().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         cbStatus.setSelectedItem(entrega.getStatus());
         cbRota.setSelectedItem(entrega.getRota());
@@ -201,25 +189,23 @@ public class EntregaPanel extends JPanel {
     private void atualizarTabela() {
         tableModel.setRowCount(0);
         List<Entrega> entregas;
-
-        StatusEntrega status = (StatusEntrega) cbBuscaStatus.getSelectedItem();
-        Beneficiario beneficiario = (Beneficiario) cbBuscaBeneficiario.getSelectedItem();
-
-        if (beneficiario != null) {
-            entregas = controller.buscarPorBeneficiario(beneficiario.getId());
-        } else if (status != null) {
-            entregas = controller.buscarPorStatus(status);
-        } else {
-            entregas = controller.listarTodos();
-        }
+        StatusEntrega st = (StatusEntrega) cbBuscaStatus.getSelectedItem();
+        Beneficiario ben = (Beneficiario) cbBuscaBeneficiario.getSelectedItem();
+        if (ben != null) entregas = controller.buscarPorBeneficiario(ben.getId());
+        else if (st != null) entregas = controller.buscarPorStatus(st);
+        else entregas = controller.listarTodos();
 
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         for (Entrega e : entregas) {
+            StringBuilder itens = new StringBuilder();
+            for (EntregaItem ei : e.getItems()) {
+                if (itens.length() > 0) itens.append(", ");
+                itens.append(ei.getQuantidade()).append("x ").append(ei.getItem().getNome());
+            }
             tableModel.addRow(new Object[]{
                     e.getId(),
                     e.getBeneficiario().getNome(),
-                    e.getItem().getNome(),
-                    e.getQuantidade(),
+                    itens.toString(),
                     e.getDataEntrega().format(fmt),
                     e.getStatus(),
                     e.getRota() != null ? e.getRota().getNome() : ""

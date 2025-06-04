@@ -3,6 +3,7 @@ package com.encantar.view;
 import com.encantar.controller.EntregaController;
 import com.encantar.controller.RotaController;
 import com.encantar.model.Entrega;
+import com.encantar.model.EntregaItem;
 import com.encantar.model.Rota;
 import com.encantar.model.enums.StatusEntrega;
 import com.itextpdf.text.Document;
@@ -76,9 +77,9 @@ public class RotaPanel extends JPanel {
 
         // Tabela de entregas
         entregasModel = new DefaultTableModel(
-                new Object[]{"ID", "Beneficiário", "Item", "Quantidade", "Status"}, 0) {
+                new Object[]{"ID", "Beneficiário", "Itens", "Status"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
@@ -165,9 +166,12 @@ public class RotaPanel extends JPanel {
                         document.add(new Paragraph("Beneficiário: " + entrega.getBeneficiario().getNome()));
                         document.add(new Paragraph("Endereço: " + entrega.getBeneficiario().getEndereco()));
                         document.add(new Paragraph("Telefone: " + entrega.getBeneficiario().getTelefone()));
-                        document.add(new Paragraph("Item: " + entrega.getItem().getNome()));
-                        document.add(new Paragraph("Quantidade: " + entrega.getQuantidade()));
                         document.add(new Paragraph("Descricao: " + entrega.getDescricao()));
+                        document.add(new Paragraph("\n"));
+                        for (EntregaItem ei : entrega.getItems()) {
+                            document.add(new Paragraph("Item: " + ei.getItem().getNome()));
+                            document.add(new Paragraph("Quantidade: " + ei.getQuantidade()));
+                        }
                         document.add(new Paragraph("\n"));
                     }
 
@@ -267,11 +271,15 @@ public class RotaPanel extends JPanel {
         entregasModel.setRowCount(0);
         if (rotaEmEdicao != null) {
             for (Entrega e : rotaEmEdicao.getEntregas()) {
+                StringBuilder itens = new StringBuilder();
+                for (EntregaItem ei : e.getItems()) {
+                    if (itens.length() > 0) itens.append(", ");
+                    itens.append(ei.getQuantidade()).append("x ").append(ei.getItem().getNome());
+                }
                 entregasModel.addRow(new Object[]{
                         e.getId(),
                         e.getBeneficiario().getNome(),
-                        e.getItem().getNome(),
-                        e.getQuantidade(),
+                        itens.toString(),
                         e.getStatus()
                 });
             }

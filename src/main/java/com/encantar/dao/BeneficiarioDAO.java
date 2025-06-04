@@ -11,107 +11,79 @@ import java.util.List;
 public class BeneficiarioDAO implements IBeneficiarioDAO {
     private final Conexao conexao = new Conexao();
 
-    public void criar(Beneficiario beneficiario) {
-        String sql = "INSERT INTO beneficiario (nome, endereco, telefone, descricao, status, data_inscricao) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            stmt.setString(1, beneficiario.getNome());
-            stmt.setString(2, beneficiario.getEndereco());
-            stmt.setString(3, beneficiario.getTelefone());
-            stmt.setString(4, beneficiario.getDescricao());
-            stmt.setString(5, beneficiario.getStatus().toString());
-            stmt.setDate(6, Date.valueOf(beneficiario.getDataInscricao()));
-
-            stmt.executeUpdate();
-
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                beneficiario.setId(rs.getLong(1));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao criar beneficiário: " + e.getMessage(), e);
-        }
+    public void criar(Beneficiario b) {
+        String sql = "INSERT INTO beneficiario (nome,endereco,telefone,descricao,status,data_inscricao) VALUES (?,?,?,?,?,?)";
+        try (Connection c = conexao.abrir();
+             PreparedStatement s = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            s.setString(1, b.getNome());
+            s.setString(2, b.getEndereco());
+            s.setString(3, b.getTelefone());
+            s.setString(4, b.getDescricao());
+            s.setString(5, b.getStatus().toString());
+            s.setDate  (6, Date.valueOf(b.getDataInscricao()));
+            s.executeUpdate();
+            ResultSet rs = s.getGeneratedKeys();
+            if (rs.next()) b.setId(rs.getLong(1));
+        } catch (SQLException e) { throw new RuntimeException(e); }
     }
 
-    @Override
     public Beneficiario buscarPorId(Long id) {
-        return null;
+        String sql = "SELECT * FROM beneficiario WHERE id = ?";
+        try (Connection c = conexao.abrir();
+             PreparedStatement s = c.prepareStatement(sql)) {
+            s.setLong(1, id);
+            ResultSet rs = s.executeQuery();
+            return rs.next() ? criarBeneficiario(rs) : null;
+        } catch (SQLException e) { throw new RuntimeException(e); }
     }
 
-    public void atualizar(Beneficiario beneficiario) {
-        String sql = "UPDATE beneficiario SET nome = ?, endereco = ?, telefone = ?, descricao = ?, status = ? WHERE id = ?";
-
-        try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, beneficiario.getNome());
-            stmt.setString(2, beneficiario.getEndereco());
-            stmt.setString(3, beneficiario.getTelefone());
-            stmt.setString(4, beneficiario.getDescricao());
-            stmt.setString(5, beneficiario.getStatus().toString());
-            stmt.setLong(6, beneficiario.getId());
-
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao atualizar beneficiário: " + e.getMessage(), e);
-        }
+    public void atualizar(Beneficiario b) {
+        String sql = "UPDATE beneficiario SET nome=?,endereco=?,telefone=?,descricao=?,status=? WHERE id=?";
+        try (Connection c = conexao.abrir();
+             PreparedStatement s = c.prepareStatement(sql)) {
+            s.setString(1, b.getNome());
+            s.setString(2, b.getEndereco());
+            s.setString(3, b.getTelefone());
+            s.setString(4, b.getDescricao());
+            s.setString(5, b.getStatus().toString());
+            s.setLong  (6, b.getId());
+            s.executeUpdate();
+        } catch (SQLException e) { throw new RuntimeException(e); }
     }
 
     public void deletar(Long id) {
-        String sql = "DELETE FROM beneficiario WHERE id = ?";
-
-        try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setLong(1, id);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao deletar beneficiário: " + e.getMessage(), e);
-        }
+        try (Connection c = conexao.abrir();
+             PreparedStatement s = c.prepareStatement("DELETE FROM beneficiario WHERE id=?")) {
+            s.setLong(1, id);
+            s.executeUpdate();
+        } catch (SQLException e) { throw new RuntimeException(e); }
     }
 
-    public List<Beneficiario> buscar(String texto, boolean buscarEmDescricao, StatusBeneficiario status) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT * FROM beneficiario WHERE status = ?");
-
+    public List<Beneficiario> buscar(String texto, boolean emDescricao, StatusBeneficiario status) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM beneficiario WHERE 1=1");
+        if (status != null) sql.append(" AND status = ?");
         if (texto != null && !texto.trim().isEmpty()) {
-            if (buscarEmDescricao) {
-                sql.append(" AND descricao LIKE ?");
-            } else {
-                sql.append(" AND (nome LIKE ? OR endereco LIKE ? OR telefone LIKE ?)");
-            }
+            sql.append(emDescricao ? " AND descricao LIKE ?" :
+                    " AND (nome LIKE ? OR endereco LIKE ? OR telefone LIKE ?)");
         }
 
-        List<Beneficiario> beneficiarios = new ArrayList<>();
+        List<Beneficiario> lista = new ArrayList<>();
+        try (Connection c = conexao.abrir();
+             PreparedStatement s = c.prepareStatement(sql.toString())) {
 
-        try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-
-            stmt.setString(1, status.toString());
-
+            int idx = 1;
+            if (status != null) s.setString(idx++, status.toString());
             if (texto != null && !texto.trim().isEmpty()) {
-                String parametro = "%" + texto + "%";
-                if (buscarEmDescricao) {
-                    stmt.setString(2, parametro);
-                } else {
-                    stmt.setString(2, parametro);
-                    stmt.setString(3, parametro);
-                    stmt.setString(4, parametro);
-                }
+                String p = '%' + texto + '%';
+                s.setString(idx++, p);
+                if (!emDescricao) { s.setString(idx++, p); s.setString(idx, p); }
             }
 
-            ResultSet rs = stmt.executeQuery();
+            ResultSet rs = s.executeQuery();
+            while (rs.next()) lista.add(criarBeneficiario(rs));
+        } catch (SQLException e) { throw new RuntimeException(e); }
 
-            while (rs.next()) {
-                beneficiarios.add(criarBeneficiario(rs));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar beneficiários: " + e.getMessage(), e);
-        }
-
-        return beneficiarios;
+        return lista;
     }
 
     private Beneficiario criarBeneficiario(ResultSet rs) throws SQLException {
@@ -125,4 +97,4 @@ public class BeneficiarioDAO implements IBeneficiarioDAO {
         b.setDataInscricao(rs.getDate("data_inscricao").toLocalDate());
         return b;
     }
-} 
+}

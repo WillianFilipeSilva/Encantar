@@ -41,10 +41,8 @@ public class LoginFrame extends JFrame {
         // Adiciona o painel ao frame
         add(panel);
 
-        // Configura eventos
         btEntrar.addActionListener(e -> fazerLogin());
 
-        // Permite login com ENTER
         KeyListener enterListener = new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -63,7 +61,7 @@ public class LoginFrame extends JFrame {
         String senha = new String(pfSenha.getPassword());
 
         try {
-            if (login.equals("admin") && senha.equals("admin")) {
+            if (Objects.equals(login, "admin") && senha.equals("admin")) {
                 new MainFrame().setVisible(true);
                 dispose();
             } else {
@@ -79,4 +77,4 @@ public class LoginFrame extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
         }
     }
-} 
+}

@@ -10,12 +10,20 @@ public class Beneficiario {
     private String endereco;
     private String telefone;
     private String descricao;
-    private StatusBeneficiario status  = StatusBeneficiario.ATIVO;
+    private StatusBeneficiario status;
     private LocalDate dataInscricao;
 
     public Beneficiario() {
-        this.status = StatusBeneficiario.ATIVO;
-        this.dataInscricao = LocalDate.now();
+    }
+
+    public Beneficiario(Long id, String nome, String endereco, String telefone, String descricao, StatusBeneficiario status, LocalDate dataInscricao) {
+        this.id = id;
+        this.nome = nome;
+        this.endereco = endereco;
+        this.telefone = telefone;
+        this.descricao = descricao;
+        this.status = status;
+        this.dataInscricao = dataInscricao;
     }
 
     public Long getId() {

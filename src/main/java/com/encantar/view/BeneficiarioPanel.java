@@ -80,7 +80,6 @@ public class BeneficiarioPanel extends JPanel {
         table = new JTable(tableModel);
         JScrollPane scroll = new JScrollPane(table);
 
-        // Layout principal
         add(busca, BorderLayout.NORTH);
         add(left, BorderLayout.WEST);
         add(scroll, BorderLayout.CENTER);

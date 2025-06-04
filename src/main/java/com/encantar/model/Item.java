@@ -1,10 +1,6 @@
 package com.encantar.model;
 
-import com.encantar.model.interfaces.IItem;
-
-import java.util.List;
-
-public class Item implements IItem {
+public class Item {
     private Long id;
     private String nome;
     private String descricao;
@@ -40,30 +36,5 @@ public class Item implements IItem {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
-    }
-
-    @Override
-    public void criar(Item item) {
-
-    }
-
-    @Override
-    public Item buscarPorId(Long id) {
-        return null;
-    }
-
-    @Override
-    public List<Item> listarTodos() {
-        return List.of();
-    }
-
-    @Override
-    public void atualizar(Item item) {
-
-    }
-
-    @Override
-    public void deletar(Long id) {
-
     }
 }

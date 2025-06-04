@@ -11,7 +11,13 @@ public class Rota {
     private List<Entrega> entregas;
 
     public Rota() {
-        this.data = LocalDate.now();
+        this.entregas = new ArrayList<>();
+    }
+
+    public Rota(Long id, String nome, LocalDate data) {
+        this.id = id;
+        this.nome = nome;
+        this.data = data;
         this.entregas = new ArrayList<>();
     }
 
@@ -44,7 +50,7 @@ public class Rota {
     }
 
     public void setEntregas(List<Entrega> entregas) {
-        this.entregas = entregas;
+        this.entregas = entregas != null ? entregas : new ArrayList<>();
     }
 
     public void adicionarEntrega(Entrega entrega) {
