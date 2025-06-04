@@ -1,15 +1,12 @@
-package main.java.com.encantar.model;
+package com.encantar.model;
 
-import main.java.com.encantar.model.interfaces.IItem;
-
-import java.util.List;
-
-public class Item implements IItem {
+public class Item {
     private Long id;
     private String nome;
     private String descricao;
 
-    public Item() {}
+    public Item() {
+    }
 
     public Item(Long id, String nome, String descricao) {
         this.id = id;
@@ -17,40 +14,27 @@ public class Item implements IItem {
         this.descricao = descricao;
     }
 
-    public Long getId() { return id; }
-
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getDescricao() { return descricao; }
-
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    @Override
-    public void criar(Item item) {
-
+    public Long getId() {
+        return id;
     }
 
-    @Override
-    public Item buscarPorId(Long id) {
-        return null;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    @Override
-    public List<Item> listarTodos() {
-        return List.of();
+    public String getNome() {
+        return nome;
     }
 
-    @Override
-    public void atualizar(Item item) {
-
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    @Override
-    public void deletar(Long id) {
+    public String getDescricao() {
+        return descricao;
+    }
 
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
     }
 }

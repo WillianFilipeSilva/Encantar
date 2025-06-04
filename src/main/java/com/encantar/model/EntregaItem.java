@@ -1,62 +1,65 @@
-package main.java.com.encantar.model;
+package com.encantar.model;
 
-import main.java.com.encantar.model.interfaces.IEntregaItem;
-
-import java.util.List;
-
-public class EntregaItem implements IEntregaItem {
-    private Long id;
+public class EntregaItem {
     private Long entregaId;
     private Long itemId;
-    private int quantidade;
+    private Item item;
+    private Integer quantidade;
 
-    public EntregaItem() {}
+    public EntregaItem() {
+    }
 
-    public EntregaItem(Long id, Long entregaId, Long itemId, int quantidade) {
-        this.id = id;
+    public EntregaItem(Long entregaId, Long itemId, Item item, Integer quantidade) {
         this.entregaId = entregaId;
         this.itemId = itemId;
+        this.item = item;
         this.quantidade = quantidade;
     }
 
-    public Long getId() { return id; }
+    public Long getEntregaId() {
+        return entregaId;
+    }
 
-    public void setId(Long id) { this.id = id; }
+    public void setEntregaId(Long entregaId) {
+        this.entregaId = entregaId;
+    }
 
-    public Long getEntregaId() { return entregaId; }
+    public Long getItemId() {
+        return itemId;
+    }
 
-    public void setEntregaId(Long entregaId) { this.entregaId = entregaId; }
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
+    }
 
-    public Long getItemId() { return itemId; }
+    public Item getItem() {
+        return item;
+    }
 
-    public void setItemId(Long itemId) { this.itemId = itemId; }
+    public void setItem(Item item) {
+        this.item = item;
+        this.itemId = item != null ? item.getId() : null;
+    }
 
-    public int getQuantidade() { return quantidade; }
+    public Integer getQuantidade() {
+        return quantidade;
+    }
 
-    public void setQuantidade(int quantidade) { this.quantidade = quantidade; }
-
-    @Override
-    public void criar(EntregaItem item) {
-
+    public void setQuantidade(Integer quantidade) {
+        this.quantidade = quantidade;
     }
 
     @Override
-    public EntregaItem buscarPorId(Long id) {
-        return null;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EntregaItem that = (EntregaItem) o;
+        return entregaId != null && entregaId.equals(that.entregaId)
+                && itemId != null && itemId.equals(that.itemId);
     }
 
     @Override
-    public List<EntregaItem> listarTodos() {
-        return List.of();
-    }
-
-    @Override
-    public void atualizar(EntregaItem item) {
-
-    }
-
-    @Override
-    public void deletar(Long id) {
-
+    public int hashCode() {
+        return java.util.Objects.hash(entregaId, itemId);
     }
 }
