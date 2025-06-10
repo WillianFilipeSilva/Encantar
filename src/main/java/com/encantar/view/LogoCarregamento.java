@@ -5,11 +5,11 @@ import java.net.URL;
 
 public class LogoCarregamento extends JWindow {
     public LogoCarregamento() {
-        URL url = getClass().getClassLoader().getResource("img/LogoEncantar.png");
-        JLabel label = (url != null)
-                ? new JLabel(new ImageIcon(url))
+        URL caminhoLogo = getClass().getClassLoader().getResource("img/LogoEncantar.png");
+        JLabel label = (caminhoLogo != null)
+                ? new JLabel(new ImageIcon(caminhoLogo))
                 : new JLabel("ENCANTAR", SwingConstants.CENTER);
-        if (url == null) label.setFont(label.getFont().deriveFont(32f));
+        if (caminhoLogo == null) label.setFont(label.getFont().deriveFont(32f));
 
         add(label);
         pack();
@@ -17,11 +17,11 @@ public class LogoCarregamento extends JWindow {
         setAlwaysOnTop(true);
         setVisible(true);
 
-        Timer t = new Timer(2000, e -> {
+        Timer tempoLogo = new Timer(2000, e -> {
             dispose();
             new LoginFrame().setVisible(true);
         });
-        t.setRepeats(false);
-        t.start();
+        tempoLogo.setRepeats(false);
+        tempoLogo.start();
     }
 }

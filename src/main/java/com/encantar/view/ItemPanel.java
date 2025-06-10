@@ -4,80 +4,93 @@ import com.encantar.controller.ItemController;
 import com.encantar.model.Item;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
 public class ItemPanel extends JPanel {
     private final ItemController controller = new ItemController();
-    private final DefaultTableModel tableModel;
-    private final JTable table;
+    private final DefaultTableModel tabelaPadrao;
+    private final JTable tabela;
 
-    // Campos do formulário
-    private final JTextField tfNome = new JTextField(20);
-    private final JTextArea taDescricao = new JTextArea(3, 20);
+    private final JTextField campoNome = new JTextField(20);
+    private final JTextField campoDescricao = new JTextField(20);
 
-    // Botões
-    private final JButton btNovo = new JButton("Novo");
-    private final JButton btSalvar = new JButton("Salvar");
-    private final JButton btExcluir = new JButton("Excluir");
+    private final JButton botaoLimpar = new JButton("Limpar");
+    private final JButton botaoSalvar = new JButton("Salvar");
+    private final JButton botaoExcluir = new JButton("Excluir");
 
     private Item itemEmEdicao;
 
     public ItemPanel() {
+        Border bordaArredondada = new LineBorder(Color.lightGray, 1, true);
+        int altura = 25;
+
         setLayout(new BorderLayout());
 
-        // Painel de formulário
-        JPanel form = new JPanel(new GridLayout(0, 1, 5, 5));
-        form.add(new JLabel("Nome:"));
-        form.add(tfNome);
-        form.add(new JLabel("Descrição:"));
-        taDescricao.setLineWrap(true);
-        taDescricao.setWrapStyleWord(true);
-        form.add(new JScrollPane(taDescricao));
+        campoNome.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
+        campoDescricao.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
+        campoNome.setBorder(bordaArredondada);
+        campoDescricao.setBorder(bordaArredondada);
 
-        // Painel de botões
+        JPanel painelFormulario = new JPanel();
+        painelFormulario.setLayout(new BoxLayout(painelFormulario, BoxLayout.Y_AXIS));
+
+        painelFormulario.add(new JLabel("Nome:"));
+        painelFormulario.add(campoNome);
+        painelFormulario.add(Box.createVerticalStrut(10));
+
+        painelFormulario.add(new JLabel("Descrição:"));
+        painelFormulario.add(campoDescricao);
+
         JPanel botoes = new JPanel();
-        botoes.add(btNovo);
-        botoes.add(btSalvar);
-        botoes.add(btExcluir);
+        botoes.add(botaoLimpar);
+        botoes.add(botaoSalvar);
+        botoes.add(botaoExcluir);
 
-        // Painel esquerdo com form e botões
-        JPanel left = new JPanel(new BorderLayout());
-        left.setPreferredSize(new Dimension(300, 350));
-        left.add(form, BorderLayout.CENTER);
-        left.add(botoes, BorderLayout.SOUTH);
+        JPanel painelEsquerdo = new JPanel(new BorderLayout());
+        painelEsquerdo.setPreferredSize(new Dimension(300, 400));
+        painelEsquerdo.add(painelFormulario, BorderLayout.CENTER);
+        painelEsquerdo.add(botoes, BorderLayout.SOUTH);
 
-        // Tabela
-        tableModel = new DefaultTableModel(
+        tabelaPadrao = new DefaultTableModel(
                 new Object[]{"ID", "Nome", "Descrição"}, 0) {
-            @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-        table = new JTable(tableModel);
-        JScrollPane scroll = new JScrollPane(table);
+        tabela = new JTable(tabelaPadrao);
+        JScrollPane rolagemTabela = new JScrollPane(tabela);
+        rolagemTabela.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
 
-        // Layout principal
-        add(left, BorderLayout.WEST);
-        add(scroll, BorderLayout.CENTER);
+        JPanel esquerdaComEspaco = new JPanel(new BorderLayout());
+        esquerdaComEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        esquerdaComEspaco.add(painelEsquerdo, BorderLayout.CENTER);
+
+        JPanel painelTabela = new JPanel(new BorderLayout());
+        painelTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
+        painelTabela.add(rolagemTabela, BorderLayout.CENTER);
+
+        add(esquerdaComEspaco, BorderLayout.WEST);
+        add(painelTabela, BorderLayout.CENTER);
 
         configurarEventos();
         atualizarTabela();
     }
 
     private void configurarEventos() {
-        btNovo.addActionListener(e -> limparFormulario());
+        botaoLimpar.addActionListener(e -> limparFormulario());
 
-        btSalvar.addActionListener(e -> {
+        botaoSalvar.addActionListener(e -> {
             try {
                 if (itemEmEdicao == null) {
                     itemEmEdicao = new Item();
                 }
 
-                itemEmEdicao.setNome(tfNome.getText());
-                itemEmEdicao.setDescricao(taDescricao.getText());
+                itemEmEdicao.setNome(campoNome.getText());
+                itemEmEdicao.setDescricao(campoDescricao.getText());
 
                 controller.salvar(itemEmEdicao);
                 limparFormulario();
@@ -88,7 +101,7 @@ public class ItemPanel extends JPanel {
             }
         });
 
-        btExcluir.addActionListener(e -> {
+        botaoExcluir.addActionListener(e -> {
             if (itemEmEdicao != null && itemEmEdicao.getId() != null) {
                 if (JOptionPane.showConfirmDialog(this,
                         "Deseja realmente excluir este item?",
@@ -106,9 +119,9 @@ public class ItemPanel extends JPanel {
             }
         });
 
-        table.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && table.getSelectedRow() != -1) {
-                Long id = (Long) table.getValueAt(table.getSelectedRow(), 0);
+        tabela.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
+                Long id = (Long) tabela.getValueAt(tabela.getSelectedRow(), 0);
                 itemEmEdicao = controller.buscarPorId(id);
                 if (itemEmEdicao != null) {
                     preencherFormulario(itemEmEdicao);
@@ -119,26 +132,29 @@ public class ItemPanel extends JPanel {
 
     private void limparFormulario() {
         itemEmEdicao = null;
-        tfNome.setText("");
-        taDescricao.setText("");
-        table.clearSelection();
+        campoNome.setText("");
+        campoDescricao.setText("");
+        tabela.clearSelection();
     }
 
     private void preencherFormulario(Item item) {
-        tfNome.setText(item.getNome());
-        taDescricao.setText(item.getDescricao());
+        campoNome.setText(item.getNome());
+        campoDescricao.setText(item.getDescricao());
     }
 
     private void atualizarTabela() {
-        tableModel.setRowCount(0);
+        tabelaPadrao.setRowCount(0);
         List<Item> itens = controller.listarTodos();
 
         for (Item item : itens) {
-            tableModel.addRow(new Object[]{
+            tabelaPadrao.addRow(new Object[]{
                     item.getId(),
                     item.getNome(),
                     item.getDescricao()
             });
         }
+
+        tabela.getColumnModel().getColumn(0).setMinWidth(0);
+        tabela.getColumnModel().getColumn(0).setMaxWidth(0);
     }
 }

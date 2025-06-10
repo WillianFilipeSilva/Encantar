@@ -5,6 +5,7 @@ import com.encantar.model.Beneficiario;
 import com.encantar.model.enums.StatusBeneficiario;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +20,8 @@ public class BeneficiarioDAO implements IBeneficiarioDAO {
             s.setString(2, b.getEndereco());
             s.setString(3, b.getTelefone());
             s.setString(4, b.getDescricao());
-            s.setString(5, b.getStatus().toString());
-            s.setDate  (6, Date.valueOf(b.getDataInscricao()));
+            s.setString(5, StatusBeneficiario.ATIVO.toString());
+            s.setDate  (6, Date.valueOf(LocalDate.now()));
             s.executeUpdate();
             ResultSet rs = s.getGeneratedKeys();
             if (rs.next()) b.setId(rs.getLong(1));

@@ -4,37 +4,53 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainFrame extends JFrame {
-    private final CardLayout card = new CardLayout();
-    private final JPanel centro = new JPanel(card);
+    private final CardLayout cartao = new CardLayout();
+    private final JPanel centro = new JPanel(cartao);
 
     public MainFrame() {
-        setTitle("Sistema Encantar");
+        setTitle("Encantar");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1024, 768);
+        setSize(1920, 1080);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         centro.add(new BeneficiarioPanel(), "Beneficiários");
         centro.add(new ItemPanel(), "Itens");
         centro.add(new EntregaPanel(), "Entregas");
         centro.add(new RotaPanel(), "Rotas");
 
-        JPanel nav = new JPanel();
-        nav.setLayout(new BoxLayout(nav, BoxLayout.Y_AXIS));
-        JButton btBen = new JButton("Beneficiários");
-        JButton btItem = new JButton("Itens");
-        JButton btEnt = new JButton("Entregas");
-        JButton btRot = new JButton("Rotas");
-        nav.add(btBen);
-        nav.add(btItem);
-        nav.add(btEnt);
-        nav.add(btRot);
+        JPanel barraLateral = new JPanel();
+        barraLateral.setLayout(new BoxLayout(barraLateral, BoxLayout.Y_AXIS));
+        barraLateral.setPreferredSize(new Dimension(150, 0));
 
-        btBen.addActionListener(e -> card.show(centro, "Beneficiários"));
-        btItem.addActionListener(e -> card.show(centro, "Itens"));
-        btEnt.addActionListener(e -> card.show(centro, "Entregas"));
-        btRot.addActionListener(e -> card.show(centro, "Rotas"));
+        JButton botaoBeneficiarios = criarBotao("Beneficiários");
+        JButton botaoItens = criarBotao("Itens");
+        JButton botaoEntregas = criarBotao("Entregas");
+        JButton botaoRotas = criarBotao("Rotas");
 
-        add(nav, BorderLayout.WEST);
+        barraLateral.add(botaoBeneficiarios);
+        barraLateral.add(Box.createVerticalStrut(10));
+        barraLateral.add(botaoItens);
+        barraLateral.add(Box.createVerticalStrut(10));
+        barraLateral.add(botaoEntregas);
+        barraLateral.add(Box.createVerticalStrut(10));
+        barraLateral.add(botaoRotas);
+
+        botaoBeneficiarios.addActionListener(e -> cartao.show(centro, "Beneficiários"));
+        botaoItens.addActionListener(e -> cartao.show(centro, "Itens"));
+        botaoEntregas.addActionListener(e -> cartao.show(centro, "Entregas"));
+        botaoRotas.addActionListener(e -> cartao.show(centro, "Rotas"));
+
+        add(barraLateral, BorderLayout.WEST);
         add(centro, BorderLayout.CENTER);
+    }
+
+    private JButton criarBotao(String texto) {
+        JButton botao = new JButton(texto);
+        botao.setAlignmentX(Component.CENTER_ALIGNMENT);
+        botao.setMaximumSize(new Dimension(130, 40));
+        botao.setFocusPainted(false);
+        botao.setBorder(BorderFactory.createLineBorder(Color.lightGray, 1, true));
+        return botao;
     }
 }

@@ -8,9 +8,9 @@ import java.awt.event.KeyListener;
 import java.util.Objects;
 
 public class LoginFrame extends JFrame {
-    private final JTextField tfLogin;
-    private final JPasswordField pfSenha;
-    private final JButton btEntrar;
+    private final JTextField campoLogin;
+    private final JPasswordField campoSenha;
+    private final JButton botaoEntrar;
 
     public LoginFrame() {
         super("Login - Sistema Encantar");
@@ -22,26 +22,26 @@ public class LoginFrame extends JFrame {
         setResizable(false);
 
         // Painel principal
-        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel painelPrincipal = new JPanel(new GridLayout(3, 2, 5, 5));
+        painelPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Componentes
-        panel.add(new JLabel("Login:"));
-        tfLogin = new JTextField();
-        panel.add(tfLogin);
+        painelPrincipal.add(new JLabel("Login:"));
+        campoLogin = new JTextField();
+        painelPrincipal.add(campoLogin);
 
-        panel.add(new JLabel("Senha:"));
-        pfSenha = new JPasswordField();
-        panel.add(pfSenha);
+        painelPrincipal.add(new JLabel("Senha:"));
+        campoSenha = new JPasswordField();
+        painelPrincipal.add(campoSenha);
 
-        panel.add(new JLabel("")); // Espaço vazio
-        btEntrar = new JButton("Entrar");
-        panel.add(btEntrar);
+        painelPrincipal.add(new JLabel(""));
+        botaoEntrar = new JButton("Entrar");
+        painelPrincipal.add(botaoEntrar);
 
         // Adiciona o painel ao frame
-        add(panel);
+        add(painelPrincipal);
 
-        btEntrar.addActionListener(e -> fazerLogin());
+        botaoEntrar.addActionListener(e -> fazerLogin());
 
         KeyListener enterListener = new KeyAdapter() {
             @Override
@@ -52,15 +52,16 @@ public class LoginFrame extends JFrame {
             }
         };
 
-        tfLogin.addKeyListener(enterListener);
-        pfSenha.addKeyListener(enterListener);
+        campoLogin.addKeyListener(enterListener);
+        campoSenha.addKeyListener(enterListener);
     }
 
     private void fazerLogin() {
-        String login = tfLogin.getText();
-        String senha = new String(pfSenha.getPassword());
+        String login = campoLogin.getText();
+        String senha = new String(campoSenha.getPassword());
 
         try {
+
             if (Objects.equals(login, "admin") && senha.equals("admin")) {
                 new MainFrame().setVisible(true);
                 dispose();
