@@ -35,6 +35,13 @@ public class ItemController {
         return dao.buscarPorId(id);
     }
 
+    public List<Item> buscarPorTexto(String texto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            throw new IllegalArgumentException("Texto de busca não pode ser nulo ou vazio");
+        }
+        return dao.buscarPorTexto(texto.trim());
+    }
+
     private void validar(Item item) {
         if (item == null) {
             throw new IllegalArgumentException("Item não pode ser nulo");

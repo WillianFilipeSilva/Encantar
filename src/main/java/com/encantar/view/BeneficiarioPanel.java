@@ -5,7 +5,6 @@ import com.encantar.model.Beneficiario;
 import com.encantar.model.enums.StatusBeneficiario;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -37,93 +36,83 @@ public class BeneficiarioPanel extends JPanel {
     private Beneficiario beneficiarioEmEdicao;
 
     public BeneficiarioPanel() {
-        Border bordaArredondada = new LineBorder(Color.lightGray, 1, true);
-        int altura = 25;
-
         setLayout(new BorderLayout());
+        int h = 25;
+        var borda = new LineBorder(Color.lightGray, 1, true);
 
-        // Painel de busca
+        // ---------- busca ----------
         JPanel busca = new JPanel(new FlowLayout(FlowLayout.LEFT));
         busca.add(new JLabel("Buscar:"));
-        campoDeBusca.setBorder(bordaArredondada);
-
+        campoDeBusca.setBorder(borda);
         busca.add(campoDeBusca);
         busca.add(buscarNaDescricao);
         busca.add(botaoBuscar);
 
-        campoNome.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoEndereco.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoTelefone.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoDescricao.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
+        // ---------- campos ----------
+        for (JComponent c : new JComponent[]{campoNome, campoEndereco, campoTelefone, campoDescricao}) {
+            c.setMaximumSize(new Dimension(Integer.MAX_VALUE, h));
+            c.setBorder(borda);
+            c.setAlignmentX(LEFT_ALIGNMENT);
+        }
 
-        campoNome.setBorder(bordaArredondada);
-        campoEndereco.setBorder(bordaArredondada);
-        campoTelefone.setBorder(bordaArredondada);
-        campoDescricao.setBorder(bordaArredondada);
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.add(lbl("Nome:"));
+        form.add(campoNome);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Endereço:"));
+        form.add(campoEndereco);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Telefone:"));
+        form.add(campoTelefone);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Descrição:"));
+        form.add(campoDescricao);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Status:"));
+        form.add(campoStatus);
 
-
-        // Painel de formulário
-        JPanel painelFormulario = new JPanel();
-        painelFormulario.setLayout(new BoxLayout(painelFormulario, BoxLayout.Y_AXIS));
-
-        painelFormulario.add(new JLabel("Nome:"));
-        painelFormulario.add(campoNome);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        painelFormulario.add(new JLabel("Endereço:"));
-        painelFormulario.add(campoEndereco);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        painelFormulario.add(new JLabel("Telefone:"));
-        painelFormulario.add(campoTelefone);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        painelFormulario.add(new JLabel("Descricao:"));
-        painelFormulario.add(campoDescricao);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        painelFormulario.add(new JLabel("Status:"));
-        painelFormulario.add(campoStatus);
-
-        // Painel de botões
         JPanel botoes = new JPanel();
         botoes.add(botaoLimpar);
         botoes.add(botaoSalvar);
         botoes.add(botaoExcluir);
 
-        // Painel esquerdo com formulário e botões
-        JPanel painelEsquerdo = new JPanel(new BorderLayout());
-        painelEsquerdo.setPreferredSize(new Dimension(300, 400));
-        painelEsquerdo.add(painelFormulario, BorderLayout.CENTER);
-        painelEsquerdo.add(botoes, BorderLayout.SOUTH);
+        JPanel blocoForm = new JPanel(new BorderLayout());
+        blocoForm.setPreferredSize(new Dimension(300, 400));
+        blocoForm.add(form, BorderLayout.CENTER);
+        blocoForm.add(botoes, BorderLayout.SOUTH);
 
-        // Tabela
+        // ---------- tabela ----------
         tabelaPadrao = new DefaultTableModel(
-                new Object[]{"Id", "Nome", "Descricao", "Telefone", "Endereco", "Status"}, 0) {
-            public boolean isCellEditable(int row, int column) {
+                new Object[]{"Id", "Nome", "Descrição", "Telefone", "Endereço", "Status"}, 0) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
         tabela = new JTable(tabelaPadrao);
-        JScrollPane rolagemTabela = new JScrollPane(tabela);
-        rolagemTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        rolagemTabela.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
-
-        add(busca, BorderLayout.NORTH);
-
-        JPanel esquerdaComEspaco = new JPanel(new BorderLayout());
-        esquerdaComEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        esquerdaComEspaco.add(painelEsquerdo, BorderLayout.CENTER);
-
-        add(esquerdaComEspaco, BorderLayout.WEST);
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
 
         JPanel painelTabela = new JPanel(new BorderLayout());
         painelTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
-        painelTabela.add(rolagemTabela, BorderLayout.CENTER);
+        painelTabela.add(scroll, BorderLayout.CENTER);
+
+        JPanel esquerda = new JPanel(new BorderLayout());
+        esquerda.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        esquerda.add(blocoForm, BorderLayout.CENTER);
+
+        add(busca, BorderLayout.NORTH);
+        add(esquerda, BorderLayout.WEST);
         add(painelTabela, BorderLayout.CENTER);
 
         configurarEventos();
         atualizarTabela();
+    }
+
+    private JLabel lbl(String t) {
+        JLabel l = new JLabel(t, SwingConstants.LEFT);
+        l.setAlignmentX(LEFT_ALIGNMENT);
+        return l;
     }
 
     private void configurarEventos() {

@@ -1,280 +1,270 @@
 package com.encantar.view;
 
-import com.encantar.controller.RotaController;
 import com.encantar.controller.EntregaController;
+import com.encantar.controller.RotaController;
 import com.encantar.model.Entrega;
-import com.encantar.model.EntregaItem;
 import com.encantar.model.Rota;
 import com.encantar.model.enums.StatusEntrega;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class RotaPanel extends JPanel {
     private final RotaController controller = new RotaController();
-    private final EntregaController entregaController = new EntregaController();
-    private final DefaultTableModel tabelaPadrao;
-    private final JTable tabela;
+    private final EntregaController entregaCtrl = new EntregaController();
 
-    private final JTextField campoNome = new JTextField(20);
-    private final JTextField campoData = new JTextField(10);
+    private final List<Rota> rotasVisiveis = new ArrayList<>();
+    private final List<Entrega> entregasVisiveis = new ArrayList<>();
 
-    private final DefaultTableModel tabelaEntregasPadrao;
-    private final JTable tabelaEntregas;
+    private final DefaultTableModel modeloRotas = new DefaultTableModel(new Object[]{"Nome", "Data", "Entregas"}, 0) {
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
+    };
+    private final JTable tabelaRotas = new JTable(modeloRotas);
 
-    private final JButton botaoLimpar = new JButton("Novo");
-    private final JButton botaoSalvar = new JButton("Salvar");
-    private final JButton botaoExcluir = new JButton("Excluir");
-    private final JButton botaoGerarPDF = new JButton("Gerar PDF");
-    private final JButton botaoAdicionarEntrega = new JButton("Adicionar Entrega");
-    private final JButton botaoRemoverEntrega = new JButton("Remover Entrega");
+    private final DefaultTableModel modeloEntregas = new DefaultTableModel(new Object[]{"Beneficiário", "Itens", "Descrição", "Status"}, 0) {
+        public boolean isCellEditable(int r, int c) {
+            return false;
+        }
+    };
+    private final JTable tabelaEntregas = new JTable(modeloEntregas);
 
-    private Rota rotaEmEdicao;
+    private final JTextField campoNome = new JTextField();
+    private final JTextField campoData = new JTextField();
+
+    private final JButton botaoNovo = new JButton("Novo"), 
+                         botaoSalvar = new JButton("Salvar"), 
+                         botaoExcluir = new JButton("Excluir"),
+                         botaoGerarPdf = new JButton("Gerar PDF"), 
+                         botaoAdicionarEntrega = new JButton("Adicionar Entrega"), 
+                         botaoRemoverEntrega = new JButton("Remover Entrega");
+
+    private Rota rotaSelecionada;
 
     public RotaPanel() {
-        Border bordaArredondada = new LineBorder(Color.lightGray, 1, true);
-        int altura = 25;
-
         setLayout(new BorderLayout());
-
-        campoNome.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoData.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoNome.setBorder(bordaArredondada);
-        campoData.setBorder(bordaArredondada);
-
         campoData.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        for (JTextField f : new JTextField[]{campoNome, campoData}) {
+            f.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+            f.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
+        }
 
         JPanel painelFormulario = new JPanel();
         painelFormulario.setLayout(new BoxLayout(painelFormulario, BoxLayout.Y_AXIS));
-
         painelFormulario.add(new JLabel("Nome:"));
         painelFormulario.add(campoNome);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
+        painelFormulario.add(Box.createVerticalStrut(8));
         painelFormulario.add(new JLabel("Data:"));
         painelFormulario.add(campoData);
 
-        JPanel botoes = new JPanel();
-        botoes.add(botaoLimpar);
-        botoes.add(botaoSalvar);
-        botoes.add(botaoExcluir);
-        botoes.add(botaoGerarPDF);
+        JPanel painelBotoes = new JPanel();
+        painelBotoes.add(botaoNovo);
+        painelBotoes.add(botaoSalvar);
+        painelBotoes.add(botaoExcluir);
 
         JPanel painelEsquerdo = new JPanel(new BorderLayout());
-        painelEsquerdo.setPreferredSize(new Dimension(300, 400));
+        painelEsquerdo.setPreferredSize(new Dimension(290, 400));
         painelEsquerdo.add(painelFormulario, BorderLayout.CENTER);
-        painelEsquerdo.add(botoes, BorderLayout.SOUTH);
+        painelEsquerdo.add(painelBotoes, BorderLayout.SOUTH);
 
-        tabelaPadrao = new DefaultTableModel(
-                new Object[]{"ID", "Nome", "Data", "Qtd. Entregas"}, 0) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        tabela = new JTable(tabelaPadrao);
-        JScrollPane rolagemTabela = new JScrollPane(tabela);
-        rolagemTabela.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        JScrollPane painelRolagemRotas = new JScrollPane(tabelaRotas);
+        painelRolagemRotas.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
+        JScrollPane painelRolagemEntregas = new JScrollPane(tabelaEntregas);
+        painelRolagemEntregas.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
 
-        tabelaEntregasPadrao = new DefaultTableModel(
-                new Object[]{"ID", "Beneficiário", "Itens", "Status"}, 0) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        tabelaEntregas = new JTable(tabelaEntregasPadrao);
-        JScrollPane rolagemEntregas = new JScrollPane(tabelaEntregas);
-        rolagemEntregas.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
+        JPanel painelBotoesEntrega = new JPanel();
+        painelBotoesEntrega.add(botaoAdicionarEntrega);
+        painelBotoesEntrega.add(botaoRemoverEntrega);
+        painelBotoesEntrega.add(botaoGerarPdf);
+        JPanel painelEntrega = new JPanel(new BorderLayout());
+        painelEntrega.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 15));
+        painelEntrega.add(new JLabel("Entregas da Rota:"), BorderLayout.NORTH);
+        painelEntrega.add(painelRolagemEntregas, BorderLayout.CENTER);
+        painelEntrega.add(painelBotoesEntrega, BorderLayout.SOUTH);
 
-        JPanel botoesEntregas = new JPanel();
-        botoesEntregas.add(botaoAdicionarEntrega);
-        botoesEntregas.add(botaoRemoverEntrega);
+        JSplitPane painelDividido = new JSplitPane(JSplitPane.VERTICAL_SPLIT, painelRolagemRotas, painelEntrega);
+        painelDividido.setDividerLocation(250);
 
-        JPanel painelEntregas = new JPanel(new BorderLayout());
-        painelEntregas.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 15));
-        painelEntregas.add(new JLabel("Entregas da Rota:"), BorderLayout.NORTH);
-        painelEntregas.add(rolagemEntregas, BorderLayout.CENTER);
-        painelEntregas.add(botoesEntregas, BorderLayout.SOUTH);
+        JPanel painelEsquerdoEspaco = new JPanel(new BorderLayout());
+        painelEsquerdoEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        painelEsquerdoEspaco.add(painelEsquerdo, BorderLayout.CENTER);
 
-        JPanel esquerdaComEspaco = new JPanel(new BorderLayout());
-        esquerdaComEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        esquerdaComEspaco.add(painelEsquerdo, BorderLayout.CENTER);
+        add(painelEsquerdoEspaco, BorderLayout.WEST);
+        add(painelDividido, BorderLayout.CENTER);
 
-        JPanel painelTabela = new JPanel(new BorderLayout());
-        painelTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15));
-        painelTabela.add(rolagemTabela, BorderLayout.CENTER);
-
-        JSplitPane painelCentral = new JSplitPane(JSplitPane.VERTICAL_SPLIT, painelTabela, painelEntregas);
-        painelCentral.setDividerLocation(250);
-
-        add(esquerdaComEspaco, BorderLayout.WEST);
-        add(painelCentral, BorderLayout.CENTER);
-
-        configurarEventos();
-        atualizarTabela();
+        eventos();
+        atualizarRotas();
     }
 
-    private void configurarEventos() {
-        botaoLimpar.addActionListener(e -> limparFormulario());
+    private void eventos() {
+        botaoNovo.addActionListener(e -> limpar());
 
         botaoSalvar.addActionListener(e -> {
             try {
-                if (rotaEmEdicao == null) rotaEmEdicao = new Rota();
-                rotaEmEdicao.setNome(campoNome.getText());
-                rotaEmEdicao.setData(LocalDate.parse(campoData.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-                controller.salvar(rotaEmEdicao);
-                limparFormulario();
-                atualizarTabela();
-                JOptionPane.showMessageDialog(this, "Rota salva com sucesso!");
+                if (rotaSelecionada == null) rotaSelecionada = new Rota();
+                rotaSelecionada.setNome(campoNome.getText());
+                rotaSelecionada.setData(LocalDate.parse(campoData.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                controller.salvar(rotaSelecionada);
+                limpar();
+                atualizarRotas();
+                mensagem("Rota salva com sucesso!");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+                mensagem("Erro ao salvar: " + ex.getMessage());
             }
         });
 
         botaoExcluir.addActionListener(e -> {
-            if (rotaEmEdicao != null && rotaEmEdicao.getId() != null) {
-                if (JOptionPane.showConfirmDialog(this, "Deseja realmente excluir esta rota?", "Confirmação", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                    try {
-                        controller.deletar(rotaEmEdicao.getId());
-                        limparFormulario();
-                        atualizarTabela();
-                        JOptionPane.showMessageDialog(this, "Rota excluída com sucesso!");
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
-                    }
+            if (rotaSelecionada != null && rotaSelecionada.getId() != null && confirma("Excluir rota?")) {
+                try {
+                    controller.deletar(rotaSelecionada.getId());
+                    limpar();
+                    atualizarRotas();
+                    mensagem("Rota excluída com sucesso!");
+                } catch (Exception ex) {
+                    mensagem("Erro ao excluir: " + ex.getMessage());
                 }
             }
         });
 
-        tabela.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
-                Long id = (Long) tabela.getValueAt(tabela.getSelectedRow(), 0);
-                rotaEmEdicao = controller.buscarPorId(id);
-                if (rotaEmEdicao != null) {
-                    preencherFormulario(rotaEmEdicao);
-                    atualizarTabelaEntregas();
-                }
+        botaoGerarPdf.addActionListener(e -> {
+            if (rotaSelecionada == null) {
+                mensagem("Selecione uma rota primeiro");
+                return;
+            }
+            try {
+                Path p = controller.gerarPdf(rotaSelecionada);
+                mensagem("PDF gerado com sucesso!\nSalvo em: " + p);
+            } catch (Exception ex) {
+                mensagem("Erro ao gerar PDF: " + ex.getMessage());
+            }
+        });
+
+        tabelaRotas.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tabelaRotas.getSelectedRow() != -1) {
+                rotaSelecionada = controller.buscarPorId(rotasVisiveis.get(tabelaRotas.getSelectedRow()).getId());
+                preencher();
+                atualizarEntregas();
             }
         });
 
         botaoAdicionarEntrega.addActionListener(e -> {
-            if (rotaEmEdicao != null) {
-                List<Entrega> entregasDisponiveis = entregaController.buscarPorStatus(StatusEntrega.PENDENTE);
-                if (!entregasDisponiveis.isEmpty()) {
-                    Entrega entrega = (Entrega) JOptionPane.showInputDialog(this, "Selecione a entrega para adicionar:", "Adicionar Entrega", JOptionPane.QUESTION_MESSAGE, null, entregasDisponiveis.toArray(), entregasDisponiveis.get(0));
-                    if (entrega != null) {
-                        try {
-                            controller.adicionarEntrega(rotaEmEdicao, entrega);
-                            atualizarTabelaEntregas();
-                            atualizarTabela();
-                        } catch (Exception ex) {
-                            JOptionPane.showMessageDialog(this, "Erro ao adicionar entrega: " + ex.getMessage());
-                        }
+            if (rotaSelecionada == null || rotaSelecionada.getId() == null) {
+                mensagem("Selecione uma rota primeiro");
+                return;
+            }
+            List<Entrega> pend = entregaCtrl.buscarPorStatus(StatusEntrega.PENDENTE);
+            if (pend.isEmpty()) {
+                mensagem("Não há entregas pendentes disponíveis");
+                return;
+            }
+
+            JComboBox<Entrega> cb = new JComboBox<>(pend.toArray(new Entrega[0]));
+            cb.setRenderer((l, v, i, s, c) -> {
+                JLabel lbl = new JLabel();
+                if (v != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(v.getBeneficiario().getNome());
+                    sb.append(" - ");
+                    sb.append(v.getDescricao());
+                    if (!v.getItems().isEmpty()) {
+                        sb.append(" (");
+                        sb.append(v.getItems().stream()
+                                .map(item -> item.getQuantidade() + "x " + item.getItem().getNome())
+                                .reduce((a, b) -> a + ", " + b)
+                                .orElse(""));
+                        sb.append(")");
                     }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Não há entregas disponíveis para adicionar");
+                    lbl.setText(sb.toString());
+                }
+                return lbl;
+            });
+            
+            int opt = JOptionPane.showConfirmDialog(this, cb, "Adicionar Entrega", JOptionPane.OK_CANCEL_OPTION);
+            if (opt == JOptionPane.OK_OPTION && cb.getSelectedItem() != null) {
+                Entrega es = (Entrega) cb.getSelectedItem();
+                try {
+                    controller.adicionarEntrega(rotaSelecionada, es);
+                    rotaSelecionada = controller.buscarPorId(rotaSelecionada.getId());
+                    atualizarEntregas();
+                    atualizarRotas();
+                    mensagem("Entrega adicionada com sucesso!");
+                } catch (Exception ex) {
+                    mensagem("Erro ao adicionar entrega: " + ex.getMessage());
                 }
             }
         });
 
         botaoRemoverEntrega.addActionListener(e -> {
-            if (rotaEmEdicao != null && tabelaEntregas.getSelectedRow() != -1) {
-                Long entregaId = (Long) tabelaEntregasPadrao.getValueAt(tabelaEntregas.getSelectedRow(), 0);
-                Entrega entrega = entregaController.buscarPorId(entregaId);
-                if (entrega != null) {
-                    try {
-                        controller.removerEntrega(rotaEmEdicao, entrega);
-                        atualizarTabelaEntregas();
-                        atualizarTabela();
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Erro ao remover entrega: " + ex.getMessage());
-                    }
-                }
+            if (rotaSelecionada == null || tabelaEntregas.getSelectedRow() == -1) {
+                mensagem("Selecione uma entrega para remover");
+                return;
             }
-        });
-
-        botaoGerarPDF.addActionListener(e -> {
-            if (rotaEmEdicao != null && rotaEmEdicao.getId() != null) {
+            Entrega ent = entregasVisiveis.get(tabelaEntregas.getSelectedRow());
+            if (confirma("Remover esta entrega da rota?")) {
                 try {
-                    String nomeArquivo = "Rota_" + rotaEmEdicao.getId() + ".pdf";
-                    com.itextpdf.text.Document document = new com.itextpdf.text.Document();
-                    com.itextpdf.text.pdf.PdfWriter.getInstance(document, new java.io.FileOutputStream(nomeArquivo));
-                    document.open();
-                    document.add(new com.itextpdf.text.Paragraph("Rota: " + rotaEmEdicao.getNome()));
-                    document.add(new com.itextpdf.text.Paragraph("Data: " + rotaEmEdicao.getData().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))));
-                    document.add(new com.itextpdf.text.Paragraph("\n"));
-                    for (Entrega entrega : rotaEmEdicao.getEntregas()) {
-                        document.add(new com.itextpdf.text.Paragraph("Beneficiário: " + entrega.getBeneficiario().getNome()));
-                        document.add(new com.itextpdf.text.Paragraph("Endereço: " + entrega.getBeneficiario().getEndereco()));
-                        document.add(new com.itextpdf.text.Paragraph("Telefone: " + entrega.getBeneficiario().getTelefone()));
-                        document.add(new com.itextpdf.text.Paragraph("Descricao: " + entrega.getDescricao()));
-                        document.add(new com.itextpdf.text.Paragraph("\n"));
-                        for (EntregaItem ei : entrega.getItems()) {
-                            document.add(new com.itextpdf.text.Paragraph("Item: " + ei.getItem().getNome()));
-                            document.add(new com.itextpdf.text.Paragraph("Quantidade: " + ei.getQuantidade()));
-                        }
-                        document.add(new com.itextpdf.text.Paragraph("\n"));
-                    }
-                    document.close();
-                    JOptionPane.showMessageDialog(this, "PDF gerado com sucesso: " + nomeArquivo);
+                    controller.removerEntrega(rotaSelecionada, ent);
+                    rotaSelecionada = controller.buscarPorId(rotaSelecionada.getId());
+                    atualizarEntregas();
+                    atualizarRotas();
+                    mensagem("Entrega removida com sucesso!");
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Erro ao gerar PDF: " + ex.getMessage());
+                    mensagem("Erro ao remover entrega: " + ex.getMessage());
                 }
             }
         });
     }
 
-    private void limparFormulario() {
-        rotaEmEdicao = null;
+    private void limpar() {
+        rotaSelecionada = null;
         campoNome.setText("");
         campoData.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        tabela.clearSelection();
-        tabelaEntregasPadrao.setRowCount(0);
+        tabelaRotas.clearSelection();
+        modeloEntregas.setRowCount(0);
     }
 
-    private void preencherFormulario(Rota rota) {
-        campoNome.setText(rota.getNome());
-        campoData.setText(rota.getData().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+    private void preencher() {
+        campoNome.setText(rotaSelecionada.getNome());
+        campoData.setText(rotaSelecionada.getData().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
     }
 
-    private void atualizarTabela() {
-        tabelaPadrao.setRowCount(0);
-        List<Rota> rotas = controller.listarTodos();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        for (Rota r : rotas) {
-            tabelaPadrao.addRow(new Object[]{
-                    r.getId(),
-                    r.getNome(),
-                    r.getData().format(fmt),
-                    r.getEntregas().size()
-            });
+    private void atualizarRotas() {
+        rotasVisiveis.clear();
+        modeloRotas.setRowCount(0);
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        for (Rota r : controller.listarTodos()) {
+            rotasVisiveis.add(r);
+            modeloRotas.addRow(new Object[]{r.getNome(), r.getData().format(f), r.getEntregas().size()});
         }
     }
 
-    private void atualizarTabelaEntregas() {
-        tabelaEntregasPadrao.setRowCount(0);
-        if (rotaEmEdicao != null) {
-            for (Entrega e : rotaEmEdicao.getEntregas()) {
-                StringBuilder itens = new StringBuilder();
-                for (EntregaItem ei : e.getItems()) {
-                    if (itens.length() > 0) itens.append(", ");
-                    itens.append(ei.getQuantidade()).append("x ").append(ei.getItem().getNome());
-                }
-                tabelaEntregasPadrao.addRow(new Object[]{
-                        e.getId(),
-                        e.getBeneficiario().getNome(),
-                        itens.toString(),
-                        e.getStatus()
-                });
-            }
+    private void atualizarEntregas() {
+        entregasVisiveis.clear();
+        modeloEntregas.setRowCount(0);
+        if (rotaSelecionada == null) return;
+        rotaSelecionada = controller.buscarPorId(rotaSelecionada.getId());
+        for (Entrega e : rotaSelecionada.getEntregas()) {
+            entregasVisiveis.add(e);
+            String itens = e.getItems().stream()
+                .map(i -> i.getQuantidade() + "x " + i.getItem().getNome())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+            modeloEntregas.addRow(new Object[]{e.getBeneficiario().getNome(), itens, e.getDescricao(), e.getStatus()});
         }
+    }
 
-        tabela.getColumnModel().getColumn(0).setMinWidth(0);
-        tabela.getColumnModel().getColumn(0).setMaxWidth(0);
+    private boolean confirma(String t) {
+        return JOptionPane.showConfirmDialog(this, t, "Confirmação", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+    }
+
+    private void mensagem(String m) {
+        JOptionPane.showMessageDialog(this, m);
     }
 }

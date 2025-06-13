@@ -78,6 +78,13 @@ public class EntregaController {
         dao.atualizar(entrega);
     }
 
+    public List<Entrega> buscarPorTexto(String texto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            throw new IllegalArgumentException("Texto de busca não pode ser nulo ou vazio");
+        }
+        return dao.buscarPorTexto(texto.trim());
+    }
+
     private void validar(Entrega entrega) {
         if (entrega == null) throw new IllegalArgumentException("Entrega não pode ser nula");
         if (entrega.getBeneficiario() == null) throw new IllegalArgumentException("Beneficiário é obrigatório");

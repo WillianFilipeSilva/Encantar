@@ -18,12 +18,10 @@ public class ItemDAO implements IItemDAO {
 
             stmt.setString(1, item.getNome());
             stmt.setString(2, item.getDescricao());
-
             stmt.executeUpdate();
 
-            ResultSet rs = stmt.getGeneratedKeys();
-            if (rs.next()) {
-                item.setId(rs.getLong(1));
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) item.setId(rs.getLong(1));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao criar item: " + e.getMessage(), e);
@@ -39,7 +37,6 @@ public class ItemDAO implements IItemDAO {
             stmt.setString(1, item.getNome());
             stmt.setString(2, item.getDescricao());
             stmt.setLong(3, item.getId());
-
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar item: " + e.getMessage(), e);
@@ -64,17 +61,10 @@ public class ItemDAO implements IItemDAO {
         List<Item> itens = new ArrayList<>();
 
         try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                Item item = new Item();
-                item.setId(rs.getLong("id"));
-                item.setNome(rs.getString("nome"));
-                item.setDescricao(rs.getString("descricao"));
-                itens.add(item);
-            }
+            while (rs.next()) itens.add(criarItem(rs));
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao listar itens: " + e.getMessage(), e);
         }
@@ -89,29 +79,61 @@ public class ItemDAO implements IItemDAO {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setLong(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                Item item = new Item();
-                item.setId(rs.getLong("id"));
-                item.setNome(rs.getString("nome"));
-                item.setDescricao(rs.getString("descricao"));
-                return item;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return criarItem(rs);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao buscar item: " + e.getMessage(), e);
         }
-
         return null;
     }
 
-    @Override
     public List<Item> buscarPorNome(String nome) {
-        return List.of();
+        String sql = "SELECT * FROM item WHERE nome LIKE ?";
+        List<Item> itens = new ArrayList<>();
+
+        try (Connection conn = conexao.abrir();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + nome + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) itens.add(criarItem(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar itens por nome: " + e.getMessage(), e);
+        }
+
+        return itens;
     }
 
-    @Override
+    public List<Item> buscarPorTexto(String texto) {
+        String sql = "SELECT * FROM item WHERE LOWER(nome) LIKE LOWER(?) OR LOWER(descricao) LIKE LOWER(?)";
+        List<Item> itens = new ArrayList<>();
+
+        try (Connection conn = conexao.abrir();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, "%" + texto + "%");
+            stmt.setString(2, "%" + texto + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) itens.add(criarItem(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar itens por texto: " + e.getMessage(), e);
+        }
+
+        return itens;
+    }
+
     public List<Item> buscarTodos() {
-        return List.of();
+        return listarTodos();
+    }
+
+    private Item criarItem(ResultSet rs) throws SQLException {
+        Item item = new Item();
+        item.setId(rs.getLong("id"));
+        item.setNome(rs.getString("nome"));
+        item.setDescricao(rs.getString("descricao"));
+        return item;
     }
 }

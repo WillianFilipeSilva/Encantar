@@ -18,20 +18,25 @@ public class EntregaDAO implements IEntregaDAO {
     private final ItemDAO itemDAO = new ItemDAO();
 
     public void criar(Entrega entrega) {
-        String sqlEntrega = "INSERT INTO entrega (beneficiario_id, data_entrega, status, descricao, rota_id) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO entrega (beneficiario_id, data_entrega, status, descricao, rota_id) " +
+                "VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = conexao.abrir()) {
             conn.setAutoCommit(false);
-            try (PreparedStatement stmt = conn.prepareStatement(sqlEntrega, Statement.RETURN_GENERATED_KEYS)) {
-                stmt.setLong(1, entrega.getBeneficiario().getId());
-                stmt.setDate(2, Date.valueOf(entrega.getDataEntrega()));
-                stmt.setString(3, entrega.getStatus().toString());
-                stmt.setString(4, entrega.getDescricao());
-                if (entrega.getRota() != null) stmt.setLong(5, entrega.getRota().getId());
-                else stmt.setNull(5, Types.BIGINT);
-                stmt.executeUpdate();
-                ResultSet rs = stmt.getGeneratedKeys();
-                if (rs.next()) entrega.setId(rs.getLong(1));
+
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setLong(1, entrega.getBeneficiario().getId());
+                ps.setDate(2, Date.valueOf(entrega.getDataEntrega()));
+                ps.setString(3, entrega.getStatus().toString());
+                ps.setString(4, entrega.getDescricao());
+                if (entrega.getRota() != null) ps.setLong(5, entrega.getRota().getId());
+                else ps.setNull(5, Types.BIGINT);
+                ps.executeUpdate();
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) entrega.setId(rs.getLong(1));
+                }
             }
+
             inserirItens(entrega, conn);
             conn.commit();
         } catch (SQLException e) {
@@ -40,23 +45,28 @@ public class EntregaDAO implements IEntregaDAO {
     }
 
     public void atualizar(Entrega entrega) {
-        String sqlEntrega = "UPDATE entrega SET beneficiario_id = ?, data_entrega = ?, status = ?, descricao = ?, rota_id = ? WHERE id = ?";
+        String sql = "UPDATE entrega SET beneficiario_id=?, data_entrega=?, status=?, " +
+                "descricao=?, rota_id=? WHERE id=?";
         try (Connection conn = conexao.abrir()) {
             conn.setAutoCommit(false);
-            try (PreparedStatement stmt = conn.prepareStatement(sqlEntrega)) {
-                stmt.setLong(1, entrega.getBeneficiario().getId());
-                stmt.setDate(2, Date.valueOf(entrega.getDataEntrega()));
-                stmt.setString(3, entrega.getStatus().toString());
-                stmt.setString(4, entrega.getDescricao());
-                if (entrega.getRota() != null) stmt.setLong(5, entrega.getRota().getId());
-                else stmt.setNull(5, Types.BIGINT);
-                stmt.setLong(6, entrega.getId());
-                stmt.executeUpdate();
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setLong(1, entrega.getBeneficiario().getId());
+                ps.setDate(2, Date.valueOf(entrega.getDataEntrega()));
+                ps.setString(3, entrega.getStatus().toString());
+                ps.setString(4, entrega.getDescricao());
+                if (entrega.getRota() != null) ps.setLong(5, entrega.getRota().getId());
+                else ps.setNull(5, Types.BIGINT);
+                ps.setLong(6, entrega.getId());
+                ps.executeUpdate();
             }
-            try (PreparedStatement del = conn.prepareStatement("DELETE FROM entrega_item WHERE entrega_id = ?")) {
+
+            try (PreparedStatement del = conn.prepareStatement(
+                    "DELETE FROM entrega_item WHERE entrega_id=?")) {
                 del.setLong(1, entrega.getId());
                 del.executeUpdate();
             }
+
             inserirItens(entrega, conn);
             conn.commit();
         } catch (SQLException e) {
@@ -67,14 +77,19 @@ public class EntregaDAO implements IEntregaDAO {
     public void deletar(Long id) {
         try (Connection conn = conexao.abrir()) {
             conn.setAutoCommit(false);
-            try (PreparedStatement delItens = conn.prepareStatement("DELETE FROM entrega_item WHERE entrega_id = ?")) {
+
+            try (PreparedStatement delItens = conn.prepareStatement(
+                    "DELETE FROM entrega_item WHERE entrega_id=?")) {
                 delItens.setLong(1, id);
                 delItens.executeUpdate();
             }
-            try (PreparedStatement delEntrega = conn.prepareStatement("DELETE FROM entrega WHERE id = ?")) {
-                delEntrega.setLong(1, id);
-                delEntrega.executeUpdate();
+
+            try (PreparedStatement delEnt = conn.prepareStatement(
+                    "DELETE FROM entrega WHERE id=?")) {
+                delEnt.setLong(1, id);
+                delEnt.executeUpdate();
             }
+
             conn.commit();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao deletar entrega: " + e.getMessage(), e);
@@ -82,118 +97,127 @@ public class EntregaDAO implements IEntregaDAO {
     }
 
     public List<Entrega> listarTodos() {
-        String sql = "SELECT * FROM entrega";
-        List<Entrega> entregas = new ArrayList<>();
-        try (Connection conn = conexao.abrir();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) entregas.add(criarEntrega(rs, conn));
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao listar entregas: " + e.getMessage(), e);
-        }
-        return entregas;
+        return buscar("SELECT * FROM entrega", null, null);
     }
 
     public List<Entrega> buscarPorBeneficiario(Long beneficiarioId) {
-        String sql = "SELECT * FROM entrega WHERE beneficiario_id = ?";
-        List<Entrega> entregas = new ArrayList<>();
-        try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, beneficiarioId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) entregas.add(criarEntrega(rs, conn));
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar entregas do beneficiário: " + e.getMessage(), e);
-        }
-        return entregas;
+        return buscar("SELECT * FROM entrega WHERE beneficiario_id = ?",
+                ps -> ps.setLong(1, beneficiarioId), null);
     }
 
     public List<Entrega> buscarPorStatus(StatusEntrega status) {
-        String sql = "SELECT * FROM entrega WHERE status = ?";
-        List<Entrega> entregas = new ArrayList<>();
-        try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status.toString());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) entregas.add(criarEntrega(rs, conn));
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar entregas por status: " + e.getMessage(), e);
-        }
-        return entregas;
+        return buscar("SELECT * FROM entrega WHERE status = ?",
+                ps -> ps.setString(1, status.toString()), null);
     }
 
     public List<Entrega> buscarPorData(LocalDate data) {
-        return List.of();
+        return buscar("SELECT * FROM entrega WHERE data_entrega = ?",
+                ps -> ps.setDate(1, Date.valueOf(data)), null);
     }
 
     public List<Entrega> buscarPorRota(Long rotaId) {
-        String sql = "SELECT * FROM entrega WHERE rota_id = ?";
-        List<Entrega> list = new ArrayList<>();
-        try (Connection c = conexao.abrir();
-             PreparedStatement s = c.prepareStatement(sql)) {
-            s.setLong(1, rotaId);
-            ResultSet rs = s.executeQuery();
-            while (rs.next()) list.add(criarEntrega(rs, c));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return list;
+        return buscar("SELECT * FROM entrega WHERE rota_id = ?",
+                ps -> ps.setLong(1, rotaId),
+                false);
+    }
+
+    public List<Entrega> buscarPorTexto(String texto) {
+        return buscar(
+            "SELECT DISTINCT e.* FROM entrega e " +
+            "INNER JOIN beneficiario b ON e.beneficiario_id = b.id " +
+            "WHERE LOWER(b.nome) LIKE LOWER(?) OR LOWER(e.descricao) LIKE LOWER(?)",
+            ps -> {
+                ps.setString(1, "%" + texto + "%");
+                ps.setString(2, "%" + texto + "%");
+            },
+            null
+        );
     }
 
     public List<Entrega> buscarTodos() {
-        return List.of();
+        return listarTodos();
     }
 
     public Entrega buscarPorId(Long id) {
-        String sql = "SELECT * FROM entrega WHERE id = ?";
+        List<Entrega> list = buscar("SELECT * FROM entrega WHERE id = ?",
+                ps -> ps.setLong(1, id), null);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    private List<Entrega> buscar(String sql,
+                                 ParamSetter paramSetter,
+                                 Boolean carregarRota) {
+
+        List<Entrega> lista = new ArrayList<>();
+        boolean fetchRota = carregarRota == null || carregarRota;
+
         try (Connection conn = conexao.abrir();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) return criarEntrega(rs, conn);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            if (paramSetter != null) paramSetter.accept(ps);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) lista.add(criarEntrega(rs, conn, fetchRota));
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar entrega: " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao consultar entregas: " + e.getMessage(), e);
         }
-        return null;
+        return lista;
     }
 
     private void inserirItens(Entrega entrega, Connection conn) throws SQLException {
         String sql = "INSERT INTO entrega_item (entrega_id, item_id, quantidade) VALUES (?, ?, ?)";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (EntregaItem ei : entrega.getItems()) {
-                stmt.setLong(1, entrega.getId());
-                stmt.setLong(2, ei.getItem().getId());
-                stmt.setInt(3, ei.getQuantidade());
-                stmt.addBatch();
+                ps.setLong(1, entrega.getId());
+                ps.setLong(2, ei.getItem().getId());
+                ps.setInt(3, ei.getQuantidade());
+                ps.addBatch();
             }
-            stmt.executeBatch();
+            ps.executeBatch();
         }
     }
 
     private List<EntregaItem> buscarItens(Long entregaId, Connection conn) throws SQLException {
-        String sql = "SELECT item_id, quantidade FROM entrega_item WHERE entrega_id = ?";
         List<EntregaItem> itens = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, entregaId);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Item item = itemDAO.buscarPorId(rs.getLong("item_id"));
-                itens.add(new EntregaItem(entregaId, item.getId(), item, rs.getInt("quantidade")));
+        String sql = "SELECT item_id, quantidade FROM entrega_item WHERE entrega_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, entregaId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Item item = itemDAO.buscarPorId(rs.getLong("item_id"));
+                    itens.add(new EntregaItem(entregaId,
+                            item.getId(),
+                            item,
+                            rs.getInt("quantidade")));
+                }
             }
         }
         return itens;
     }
 
-    private Entrega criarEntrega(ResultSet rs, Connection conn) throws SQLException {
-        Entrega entrega = new Entrega();
-        entrega.setId(rs.getLong("id"));
-        entrega.setBeneficiario(beneficiarioDAO.buscarPorId(rs.getLong("beneficiario_id")));
-        entrega.setDataEntrega(rs.getDate("data_entrega").toLocalDate());
-        entrega.setStatus(StatusEntrega.valueOf(rs.getString("status")));
-        entrega.setDescricao(rs.getString("descricao"));
+    private Entrega criarEntrega(ResultSet rs,
+                                 Connection conn,
+                                 boolean fetchRota) throws SQLException {
+
+        Entrega e = new Entrega();
+        e.setId(rs.getLong("id"));
+        e.setBeneficiario(beneficiarioDAO.buscarPorId(rs.getLong("beneficiario_id")));
+        e.setDataEntrega(rs.getDate("data_entrega").toLocalDate());
+        e.setStatus(StatusEntrega.valueOf(rs.getString("status")));
+        e.setDescricao(rs.getString("descricao"));
+
         Long rotaId = rs.getObject("rota_id", Long.class);
-        if (rotaId != null) entrega.setRota(rotaDAO.buscarPorId(rotaId));
-        entrega.setItems(buscarItens(entrega.getId(), conn));
-        return entrega;
+        if (rotaId != null && fetchRota) e.setRota(rotaDAO.buscarPorId(rotaId));
+
+        e.setItems(buscarItens(e.getId(), conn));
+
+        return e;
+    }
+
+    private interface ParamSetter {
+        void accept(PreparedStatement ps) throws SQLException;
     }
 }

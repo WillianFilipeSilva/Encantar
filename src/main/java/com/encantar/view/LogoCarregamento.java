@@ -6,22 +6,22 @@ import java.net.URL;
 public class LogoCarregamento extends JWindow {
     public LogoCarregamento() {
         URL caminhoLogo = getClass().getClassLoader().getResource("img/LogoEncantar.png");
-        JLabel label = (caminhoLogo != null)
+        JLabel rotuloLogo = (caminhoLogo != null)
                 ? new JLabel(new ImageIcon(caminhoLogo))
                 : new JLabel("ENCANTAR", SwingConstants.CENTER);
-        if (caminhoLogo == null) label.setFont(label.getFont().deriveFont(32f));
+        if (caminhoLogo == null) rotuloLogo.setFont(rotuloLogo.getFont().deriveFont(32f));
 
-        add(label);
+        add(rotuloLogo);
         pack();
         setLocationRelativeTo(null);
         setAlwaysOnTop(true);
         setVisible(true);
 
-        Timer tempoLogo = new Timer(2000, e -> {
+        Timer temporizadorLogo = new Timer(2000, e -> {
             dispose();
             new LoginFrame().setVisible(true);
         });
-        tempoLogo.setRepeats(false);
-        tempoLogo.start();
+        temporizadorLogo.setRepeats(false);
+        temporizadorLogo.start();
     }
 }

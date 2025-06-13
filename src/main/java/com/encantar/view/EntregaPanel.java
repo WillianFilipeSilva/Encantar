@@ -8,7 +8,6 @@ import com.encantar.model.*;
 import com.encantar.model.enums.StatusEntrega;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -23,7 +22,6 @@ public class EntregaPanel extends JPanel {
     private final RotaController rotaController = new RotaController();
     private final DefaultTableModel tabelaPadrao;
     private final JTable tabela;
-
     private final JComboBox<Beneficiario> campoBeneficiario;
     private final JComboBox<Item> campoItem;
     private final JSpinner campoQuantidade;
@@ -31,101 +29,63 @@ public class EntregaPanel extends JPanel {
     private final JComboBox<StatusEntrega> campoStatus;
     private final JComboBox<Rota> campoRota;
     private final JTextField campoDescricao = new JTextField(20);
-
-    private final JComboBox<StatusEntrega> campoBuscaStatus;
-    private final JComboBox<Beneficiario> campoBuscaBeneficiario;
-
+    private final JTextField campoBusca = new JTextField(20);
     private final JButton botaoLimpar = new JButton("Novo");
     private final JButton botaoSalvar = new JButton("Salvar");
     private final JButton botaoExcluir = new JButton("Excluir");
     private final JButton botaoBuscar = new JButton("Buscar");
-
     private Entrega entregaEmEdicao;
 
     public EntregaPanel() {
-        Border bordaArredondada = new LineBorder(Color.lightGray, 1, true);
-        int altura = 25;
-
         setLayout(new BorderLayout());
+        int h = 25;
+        var borda = new LineBorder(Color.lightGray, 1, true);
 
         campoBeneficiario = new JComboBox<>(beneficiarioController.buscar(null, false, null).toArray(new Beneficiario[0]));
         campoItem = new JComboBox<>(itemController.listarTodos().toArray(new Item[0]));
         campoQuantidade = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1));
         campoData = new JTextField(10);
-        campoData.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         campoStatus = new JComboBox<>(StatusEntrega.values());
         campoRota = new JComboBox<>(rotaController.listarTodos().toArray(new Rota[0]));
-        campoRota.setSelectedItem(null);
+        campoData.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
-        campoData.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoBeneficiario.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoItem.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoQuantidade.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoStatus.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoRota.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoDescricao.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
+        for (JComponent c : new JComponent[]{campoBeneficiario, campoItem, campoQuantidade, campoData, campoStatus, campoRota, campoDescricao, campoBusca}) {
+            c.setMaximumSize(new Dimension(Integer.MAX_VALUE, h));
+            c.setBorder(borda);
+            c.setAlignmentX(LEFT_ALIGNMENT);
+        }
 
-        campoData.setBorder(bordaArredondada);
-        campoBeneficiario.setBorder(bordaArredondada);
-        campoItem.setBorder(bordaArredondada);
-        campoQuantidade.setBorder(bordaArredondada);
-        campoStatus.setBorder(bordaArredondada);
-        campoRota.setBorder(bordaArredondada);
-        campoDescricao.setBorder(bordaArredondada);
-
-        campoBuscaStatus = new JComboBox<>(StatusEntrega.values());
-        campoBuscaBeneficiario = new JComboBox<>(beneficiarioController.buscar(null, false, null).toArray(new Beneficiario[0]));
+        renderer(campoBeneficiario);
+        renderer(campoItem);
+        renderer(campoRota);
 
         JPanel busca = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        busca.add(new JLabel("Status:"));
-        busca.add(campoBuscaStatus);
-        busca.add(new JLabel("Beneficiário:"));
-        busca.add(campoBuscaBeneficiario);
+        busca.add(new JLabel("Buscar:"));
+        busca.add(campoBusca);
         busca.add(botaoBuscar);
 
-        JPanel painelFormulario = new JPanel();
-        painelFormulario.setLayout(new BoxLayout(painelFormulario, BoxLayout.Y_AXIS));
-
-        JLabel labelBeneficiario = new JLabel("Beneficiário:");
-        labelBeneficiario.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelBeneficiario);
-        painelFormulario.add(campoBeneficiario);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        JLabel labelItem = new JLabel("Item:");
-        labelItem.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelItem);
-        painelFormulario.add(campoItem);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        JLabel labelQuantidade = new JLabel("Quantidade:");
-        labelQuantidade.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelQuantidade);
-        painelFormulario.add(campoQuantidade);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        JLabel labelData = new JLabel("Data:");
-        labelData.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelData);
-        painelFormulario.add(campoData);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        JLabel labelStatus = new JLabel("Status:");
-        labelStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelStatus);
-        painelFormulario.add(campoStatus);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        JLabel labelRota = new JLabel("Rota:");
-        labelRota.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelRota);
-        painelFormulario.add(campoRota);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        JLabel labelDescricao = new JLabel("Descricao:");
-        labelDescricao.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelFormulario.add(labelDescricao);
-        painelFormulario.add(campoDescricao);
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.add(lbl("Beneficiário:"));
+        form.add(campoBeneficiario);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Item:"));
+        form.add(campoItem);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Quantidade:"));
+        form.add(campoQuantidade);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Data:"));
+        form.add(campoData);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Status:"));
+        form.add(campoStatus);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Rota:"));
+        form.add(campoRota);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Descricao:"));
+        form.add(campoDescricao);
 
         JPanel botoes = new JPanel();
         botoes.add(botaoLimpar);
@@ -134,76 +94,80 @@ public class EntregaPanel extends JPanel {
 
         JPanel painelEsquerdo = new JPanel(new BorderLayout());
         painelEsquerdo.setPreferredSize(new Dimension(300, 400));
-        painelEsquerdo.add(painelFormulario, BorderLayout.CENTER);
+        painelEsquerdo.add(form, BorderLayout.CENTER);
         painelEsquerdo.add(botoes, BorderLayout.SOUTH);
 
-        tabelaPadrao = new DefaultTableModel(
-                new Object[]{"ID", "Beneficiário", "Itens", "Data", "Status", "Rota"}, 0) {
-            public boolean isCellEditable(int row, int column) {
+        tabelaPadrao = new DefaultTableModel(new Object[]{"ID", "Beneficiário", "Itens", "Descrição", "Data", "Status", "Rota"}, 0) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
         tabela = new JTable(tabelaPadrao);
-        JScrollPane rolagemTabela = new JScrollPane(tabela);
-        rolagemTabela.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
-
-        JPanel esquerdaComEspaco = new JPanel(new BorderLayout());
-        esquerdaComEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        esquerdaComEspaco.add(painelEsquerdo, BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
 
         JPanel painelTabela = new JPanel(new BorderLayout());
-        painelTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
-        painelTabela.add(rolagemTabela, BorderLayout.CENTER);
+        painelTabela.add(scroll, BorderLayout.CENTER);
+
+        JPanel esquerdaEspaco = new JPanel(new BorderLayout());
+        esquerdaEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        esquerdaEspaco.add(painelEsquerdo, BorderLayout.CENTER);
 
         add(busca, BorderLayout.NORTH);
-        add(esquerdaComEspaco, BorderLayout.WEST);
+        add(esquerdaEspaco, BorderLayout.WEST);
         add(painelTabela, BorderLayout.CENTER);
 
-        configurarEventos();
+        eventos();
         atualizarTabela();
     }
 
-    private void configurarEventos() {
-        botaoLimpar.addActionListener(e -> limparFormulario());
+    private JLabel lbl(String t) {
+        JLabel l = new JLabel(t, SwingConstants.LEFT);
+        l.setAlignmentX(LEFT_ALIGNMENT);
+        return l;
+    }
 
+    private <T> void renderer(JComboBox<T> cb) {
+        cb.setRenderer((list, v, i, s, f) -> {
+            Component c = new DefaultListCellRenderer().getListCellRendererComponent(list, v, i, s, f);
+            if (v instanceof Beneficiario b)
+                ((JLabel) c).setText(b.getNome() + " - " + b.getTelefone() + " - " + b.getDescricao());
+            if (v instanceof Item it) ((JLabel) c).setText(it.getNome());
+            if (v instanceof Rota r) ((JLabel) c).setText(r.getNome());
+            return c;
+        });
+    }
+
+    private void eventos() {
+        botaoLimpar.addActionListener(e -> limpar());
         botaoSalvar.addActionListener(e -> {
             try {
                 if (entregaEmEdicao == null) entregaEmEdicao = new Entrega();
-
                 entregaEmEdicao.setBeneficiario((Beneficiario) campoBeneficiario.getSelectedItem());
-                Item itemSel = (Item) campoItem.getSelectedItem();
-                int qtd = (Integer) campoQuantidade.getValue();
-                entregaEmEdicao.setItems(List.of(
-                        new EntregaItem(null, itemSel.getId(), itemSel, qtd)
-                ));
+                Item it = (Item) campoItem.getSelectedItem();
+                entregaEmEdicao.setItems(List.of(new EntregaItem(null, it.getId(), it, (Integer) campoQuantidade.getValue())));
                 entregaEmEdicao.setDataEntrega(LocalDate.parse(campoData.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy")));
                 entregaEmEdicao.setStatus((StatusEntrega) campoStatus.getSelectedItem());
                 entregaEmEdicao.setRota((Rota) campoRota.getSelectedItem());
                 entregaEmEdicao.setDescricao(campoDescricao.getText());
-
                 controller.salvar(entregaEmEdicao);
-                limparFormulario();
+                limpar();
                 atualizarTabela();
-                JOptionPane.showMessageDialog(this, "Entrega salva com sucesso!");
+                JOptionPane.showMessageDialog(this, "Entrega salva");
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
+                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
             }
         });
 
         botaoExcluir.addActionListener(e -> {
             if (entregaEmEdicao != null && entregaEmEdicao.getId() != null) {
-                if (JOptionPane.showConfirmDialog(this,
-                        "Deseja realmente excluir esta entrega?",
-                        "Confirmação",
-                        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                    try {
-                        controller.deletar(entregaEmEdicao.getId());
-                        limparFormulario();
-                        atualizarTabela();
-                        JOptionPane.showMessageDialog(this, "Entrega excluída com sucesso!");
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
-                    }
+                try {
+                    controller.deletar(entregaEmEdicao.getId());
+                    limpar();
+                    atualizarTabela();
+                    JOptionPane.showMessageDialog(this, "Entrega excluída");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
                 }
             }
         });
@@ -212,61 +176,59 @@ public class EntregaPanel extends JPanel {
 
         tabela.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
-                Long id = (Long) tabela.getValueAt(tabela.getSelectedRow(), 0);
-                entregaEmEdicao = controller.buscarPorId(id);
-                if (entregaEmEdicao != null) preencherFormulario(entregaEmEdicao);
+                entregaEmEdicao = controller.buscarPorId((Long) tabela.getValueAt(tabela.getSelectedRow(), 0));
+                preencher();
             }
         });
     }
 
-    private void limparFormulario() {
+    private void limpar() {
         entregaEmEdicao = null;
         campoBeneficiario.setSelectedIndex(0);
         campoItem.setSelectedIndex(0);
         campoQuantidade.setValue(1);
         campoData.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         campoStatus.setSelectedIndex(0);
-        campoRota.setSelectedItem(null);
+        campoRota.setSelectedIndex(0);
         campoDescricao.setText("");
         tabela.clearSelection();
     }
 
-    private void preencherFormulario(Entrega entrega) {
-        campoBeneficiario.setSelectedItem(entrega.getBeneficiario());
-        if (!entrega.getItems().isEmpty()) {
-            EntregaItem ei = entrega.getItems().get(0);
-            campoItem.setSelectedItem(ei.getItem());
-            campoQuantidade.setValue(ei.getQuantidade());
+    private void preencher() {
+        campoBeneficiario.setSelectedItem(entregaEmEdicao.getBeneficiario());
+        if (!entregaEmEdicao.getItems().isEmpty()) {
+            campoItem.setSelectedItem(entregaEmEdicao.getItems().get(0).getItem());
+            campoQuantidade.setValue(entregaEmEdicao.getItems().get(0).getQuantidade());
         }
-        campoData.setText(entrega.getDataEntrega().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        campoStatus.setSelectedItem(entrega.getStatus());
-        campoRota.setSelectedItem(entrega.getRota());
-        campoDescricao.setText(entrega.getDescricao());
+        campoData.setText(entregaEmEdicao.getDataEntrega().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        campoStatus.setSelectedItem(entregaEmEdicao.getStatus());
+        campoRota.setSelectedItem(entregaEmEdicao.getRota());
+        campoDescricao.setText(entregaEmEdicao.getDescricao());
     }
 
     private void atualizarTabela() {
         tabelaPadrao.setRowCount(0);
         List<Entrega> entregas;
-        StatusEntrega st = (StatusEntrega) campoBuscaStatus.getSelectedItem();
-        Beneficiario ben = (Beneficiario) campoBuscaBeneficiario.getSelectedItem();
-        if (ben != null) entregas = controller.buscarPorBeneficiario(ben.getId());
-        else if (st != null) entregas = controller.buscarPorStatus(st);
-        else entregas = controller.listarTodos();
+        String busca = campoBusca.getText().trim();
+        if (!busca.isEmpty()) {
+            entregas = controller.buscarPorTexto(busca);
+        } else {
+            entregas = controller.listarTodos();
+        }
 
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        for (Entrega e : entregas) {
-            StringBuilder itens = new StringBuilder();
-            for (EntregaItem ei : e.getItems()) {
-                if (itens.length() > 0) itens.append(", ");
-                itens.append(ei.getQuantidade()).append("x ").append(ei.getItem().getNome());
-            }
+        for (Entrega entrega : entregas) {
+            String itens = entrega.getItems().stream()
+                    .map(i -> i.getQuantidade() + "x " + i.getItem().getNome())
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("");
             tabelaPadrao.addRow(new Object[]{
-                    e.getId(),
-                    e.getBeneficiario().getNome(),
-                    itens.toString(),
-                    e.getDataEntrega().format(fmt),
-                    e.getStatus(),
-                    e.getRota() != null ? e.getRota().getNome() : ""
+                    entrega.getId(),
+                    entrega.getBeneficiario().getNome(),
+                    itens,
+                    entrega.getDescricao(),
+                    entrega.getDataEntrega().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    entrega.getStatus(),
+                    entrega.getRota() != null ? entrega.getRota().getNome() : ""
             });
         }
 

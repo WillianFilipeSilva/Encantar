@@ -4,8 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainFrame extends JFrame {
-    private final CardLayout cartao = new CardLayout();
-    private final JPanel centro = new JPanel(cartao);
+    private final CardLayout gerenciadorCartoes = new CardLayout();
+    private final JPanel painelCentral = new JPanel(gerenciadorCartoes);
 
     public MainFrame() {
         setTitle("Encantar");
@@ -14,10 +14,10 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        centro.add(new BeneficiarioPanel(), "Beneficiários");
-        centro.add(new ItemPanel(), "Itens");
-        centro.add(new EntregaPanel(), "Entregas");
-        centro.add(new RotaPanel(), "Rotas");
+        painelCentral.add(new BeneficiarioPanel(), "Beneficiários");
+        painelCentral.add(new ItemPanel(), "Itens");
+        painelCentral.add(new EntregaPanel(), "Entregas");
+        painelCentral.add(new RotaPanel(), "Rotas");
 
         JPanel barraLateral = new JPanel();
         barraLateral.setLayout(new BoxLayout(barraLateral, BoxLayout.Y_AXIS));
@@ -36,13 +36,13 @@ public class MainFrame extends JFrame {
         barraLateral.add(Box.createVerticalStrut(10));
         barraLateral.add(botaoRotas);
 
-        botaoBeneficiarios.addActionListener(e -> cartao.show(centro, "Beneficiários"));
-        botaoItens.addActionListener(e -> cartao.show(centro, "Itens"));
-        botaoEntregas.addActionListener(e -> cartao.show(centro, "Entregas"));
-        botaoRotas.addActionListener(e -> cartao.show(centro, "Rotas"));
+        botaoBeneficiarios.addActionListener(e -> gerenciadorCartoes.show(painelCentral, "Beneficiários"));
+        botaoItens.addActionListener(e -> gerenciadorCartoes.show(painelCentral, "Itens"));
+        botaoEntregas.addActionListener(e -> gerenciadorCartoes.show(painelCentral, "Entregas"));
+        botaoRotas.addActionListener(e -> gerenciadorCartoes.show(painelCentral, "Rotas"));
 
         add(barraLateral, BorderLayout.WEST);
-        add(centro, BorderLayout.CENTER);
+        add(painelCentral, BorderLayout.CENTER);
     }
 
     private JButton criarBotao(String texto) {

@@ -4,7 +4,6 @@ import com.encantar.controller.ItemController;
 import com.encantar.model.Item;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -17,67 +16,78 @@ public class ItemPanel extends JPanel {
 
     private final JTextField campoNome = new JTextField(20);
     private final JTextField campoDescricao = new JTextField(20);
+    private final JTextField campoBusca = new JTextField(20);
 
     private final JButton botaoLimpar = new JButton("Limpar");
     private final JButton botaoSalvar = new JButton("Salvar");
     private final JButton botaoExcluir = new JButton("Excluir");
+    private final JButton botaoBuscar = new JButton("Buscar");
 
     private Item itemEmEdicao;
 
     public ItemPanel() {
-        Border bordaArredondada = new LineBorder(Color.lightGray, 1, true);
-        int altura = 25;
-
         setLayout(new BorderLayout());
+        int h = 25;
+        var borda = new LineBorder(Color.lightGray, 1, true);
 
-        campoNome.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoDescricao.setMaximumSize(new Dimension(Integer.MAX_VALUE, altura));
-        campoNome.setBorder(bordaArredondada);
-        campoDescricao.setBorder(bordaArredondada);
+        for (JComponent c : new JComponent[]{campoNome, campoDescricao, campoBusca}) {
+            c.setMaximumSize(new Dimension(Integer.MAX_VALUE, h));
+            c.setBorder(borda);
+            c.setAlignmentX(LEFT_ALIGNMENT);
+        }
 
-        JPanel painelFormulario = new JPanel();
-        painelFormulario.setLayout(new BoxLayout(painelFormulario, BoxLayout.Y_AXIS));
+        JPanel busca = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        busca.add(new JLabel("Buscar:"));
+        busca.add(campoBusca);
+        busca.add(botaoBuscar);
 
-        painelFormulario.add(new JLabel("Nome:"));
-        painelFormulario.add(campoNome);
-        painelFormulario.add(Box.createVerticalStrut(10));
-
-        painelFormulario.add(new JLabel("Descrição:"));
-        painelFormulario.add(campoDescricao);
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.add(lbl("Nome:"));
+        form.add(campoNome);
+        form.add(Box.createVerticalStrut(10));
+        form.add(lbl("Descrição:"));
+        form.add(campoDescricao);
 
         JPanel botoes = new JPanel();
         botoes.add(botaoLimpar);
         botoes.add(botaoSalvar);
         botoes.add(botaoExcluir);
 
-        JPanel painelEsquerdo = new JPanel(new BorderLayout());
-        painelEsquerdo.setPreferredSize(new Dimension(300, 400));
-        painelEsquerdo.add(painelFormulario, BorderLayout.CENTER);
-        painelEsquerdo.add(botoes, BorderLayout.SOUTH);
+        JPanel blocoForm = new JPanel(new BorderLayout());
+        blocoForm.setPreferredSize(new Dimension(300, 400));
+        blocoForm.add(form, BorderLayout.CENTER);
+        blocoForm.add(botoes, BorderLayout.SOUTH);
 
-        tabelaPadrao = new DefaultTableModel(
-                new Object[]{"ID", "Nome", "Descrição"}, 0) {
-            public boolean isCellEditable(int row, int column) {
+        tabelaPadrao = new DefaultTableModel(new Object[]{"ID", "Nome", "Descrição"}, 0) {
+            public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
         tabela = new JTable(tabelaPadrao);
-        JScrollPane rolagemTabela = new JScrollPane(tabela);
-        rolagemTabela.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
-
-        JPanel esquerdaComEspaco = new JPanel(new BorderLayout());
-        esquerdaComEspaco.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
-        esquerdaComEspaco.add(painelEsquerdo, BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(tabela);
+        scroll.setBorder(new LineBorder(Color.LIGHT_GRAY, 1, true));
 
         JPanel painelTabela = new JPanel(new BorderLayout());
         painelTabela.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 5));
-        painelTabela.add(rolagemTabela, BorderLayout.CENTER);
+        painelTabela.add(scroll, BorderLayout.CENTER);
 
-        add(esquerdaComEspaco, BorderLayout.WEST);
+        JPanel esquerda = new JPanel(new BorderLayout());
+        esquerda.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 10));
+        esquerda.add(blocoForm, BorderLayout.CENTER);
+
+        add(busca, BorderLayout.NORTH);
+        add(esquerda, BorderLayout.WEST);
         add(painelTabela, BorderLayout.CENTER);
 
         configurarEventos();
         atualizarTabela();
+    }
+
+    private JLabel lbl(String t) {
+        JLabel l = new JLabel(t, SwingConstants.LEFT);
+        l.setAlignmentX(LEFT_ALIGNMENT);
+        return l;
     }
 
     private void configurarEventos() {
@@ -103,29 +113,23 @@ public class ItemPanel extends JPanel {
 
         botaoExcluir.addActionListener(e -> {
             if (itemEmEdicao != null && itemEmEdicao.getId() != null) {
-                if (JOptionPane.showConfirmDialog(this,
-                        "Deseja realmente excluir este item?",
-                        "Confirmação",
-                        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-                    try {
-                        controller.deletar(itemEmEdicao.getId());
-                        limparFormulario();
-                        atualizarTabela();
-                        JOptionPane.showMessageDialog(this, "Item excluído com sucesso!");
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
-                    }
+                try {
+                    controller.deletar(itemEmEdicao.getId());
+                    limparFormulario();
+                    atualizarTabela();
+                    JOptionPane.showMessageDialog(this, "Item excluído com sucesso!");
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
                 }
             }
         });
 
+        botaoBuscar.addActionListener(e -> atualizarTabela());
+
         tabela.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && tabela.getSelectedRow() != -1) {
-                Long id = (Long) tabela.getValueAt(tabela.getSelectedRow(), 0);
-                itemEmEdicao = controller.buscarPorId(id);
-                if (itemEmEdicao != null) {
-                    preencherFormulario(itemEmEdicao);
-                }
+                itemEmEdicao = controller.buscarPorId((Long) tabela.getValueAt(tabela.getSelectedRow(), 0));
+                preencherFormulario(itemEmEdicao);
             }
         });
     }
@@ -144,7 +148,13 @@ public class ItemPanel extends JPanel {
 
     private void atualizarTabela() {
         tabelaPadrao.setRowCount(0);
-        List<Item> itens = controller.listarTodos();
+        List<Item> itens;
+        String busca = campoBusca.getText().trim();
+        if (!busca.isEmpty()) {
+            itens = controller.buscarPorTexto(busca);
+        } else {
+            itens = controller.listarTodos();
+        }
 
         for (Item item : itens) {
             tabelaPadrao.addRow(new Object[]{
