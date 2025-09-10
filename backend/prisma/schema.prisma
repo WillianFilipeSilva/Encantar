@@ -1,0 +1,180 @@
+// Schema do Sistema Encantar - Gestão de Entregas para ONGs
+// Este arquivo define todas as entidades do banco de dados
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// ENTIDADES PRINCIPAIS
+// ===========================================
+
+// Administradores do sistema
+model Administrador {
+  id        String   @id @default(cuid())
+  nome      String
+  login     String   @unique
+  senha     String
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  // Relacionamentos
+  convitesEnviados Convite[] @relation("ConviteEnviadoPor")
+  rotasCriadas     Rota[]    @relation("RotaCriadaPor")
+  rotasModificadas Rota[]    @relation("RotaModificadaPor")
+  entregasCriadas  Entrega[] @relation("EntregaCriadaPor")
+  entregasModificadas Entrega[] @relation("EntregaModificadaPor")
+  itemsCriados     Item[]    @relation("ItemCriadoPor")
+  itemsModificados Item[]    @relation("ItemModificadoPor")
+  beneficiariosCriados Beneficiario[] @relation("BeneficiarioCriadoPor")
+  beneficiariosModificados Beneficiario[] @relation("BeneficiarioModificadoPor")
+
+  @@map("administradores")
+}
+
+// Sistema de convites para novos administradores
+model Convite {
+  id        String   @id @default(cuid())
+  email     String?
+  telefone  String?
+  token     String   @unique
+  expiraEm  DateTime
+  usado     Boolean  @default(false)
+  usadoEm   DateTime?
+  criadoEm  DateTime @default(now())
+  
+  // Relacionamentos
+  enviadoPorId String
+  enviadoPor   Administrador @relation("ConviteEnviadoPor", fields: [enviadoPorId], references: [id])
+
+  @@map("convites")
+}
+
+// Beneficiários que recebem as entregas
+model Beneficiario {
+  id          String   @id @default(cuid())
+  nome        String
+  endereco    String
+  telefone    String?
+  email       String?
+  observacoes String?
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  // Auditoria
+  criadoPorId    String
+  criadoPor      Administrador @relation("BeneficiarioCriadoPor", fields: [criadoPorId], references: [id])
+  modificadoPorId String?
+  modificadoPor  Administrador? @relation("BeneficiarioModificadoPor", fields: [modificadoPorId], references: [id])
+
+  // Relacionamentos
+  entregas Entrega[]
+
+  @@map("beneficiarios")
+}
+
+// Items que podem ser entregues
+model Item {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  unidade     String   // Ex: "kg", "unidade", "litro", "caixa"
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  // Auditoria
+  criadoPorId    String
+  criadoPor      Administrador @relation("ItemCriadoPor", fields: [criadoPorId], references: [id])
+  modificadoPorId String?
+  modificadoPor  Administrador? @relation("ItemModificadoPor", fields: [modificadoPorId], references: [id])
+
+  // Relacionamentos
+  entregaItems EntregaItem[]
+
+  @@map("items")
+}
+
+// Entregas (lista de items para um beneficiário)
+model Entrega {
+  id          String   @id @default(cuid())
+  observacoes String?
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  // Relacionamentos
+  beneficiarioId String
+  beneficiario   Beneficiario @relation(fields: [beneficiarioId], references: [id])
+  
+  rotaId String?
+  rota   Rota? @relation(fields: [rotaId], references: [id])
+
+  // Auditoria
+  criadoPorId    String
+  criadoPor      Administrador @relation("EntregaCriadaPor", fields: [criadoPorId], references: [id])
+  modificadoPorId String?
+  modificadoPor  Administrador? @relation("EntregaModificadaPor", fields: [modificadoPorId], references: [id])
+
+  // Relacionamentos
+  entregaItems EntregaItem[]
+
+  @@map("entregas")
+}
+
+// Tabela de ligação entre Entrega e Item (com quantidade)
+model EntregaItem {
+  id        String @id @default(cuid())
+  quantidade Decimal @db.Decimal(10, 2)
+
+  // Relacionamentos
+  entregaId String
+  entrega   Entrega @relation(fields: [entregaId], references: [id], onDelete: Cascade)
+  
+  itemId    String
+  item      Item @relation(fields: [itemId], references: [id])
+
+  @@unique([entregaId, itemId])
+  @@map("entrega_items")
+}
+
+// Rotas (agrupamento de entregas por localidade)
+model Rota {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  dataEntrega DateTime?
+  observacoes String?
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  // Auditoria
+  criadoPorId    String
+  criadoPor      Administrador @relation("RotaCriadaPor", fields: [criadoPorId], references: [id])
+  modificadoPorId String?
+  modificadoPor  Administrador? @relation("RotaModificadaPor", fields: [modificadoPorId], references: [id])
+
+  // Relacionamentos
+  entregas Entrega[]
+
+  @@map("rotas")
+}
+
+// Templates para geração de PDF
+model TemplatePDF {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String?
+  conteudo    String   // HTML do template
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("templates_pdf")
+}
