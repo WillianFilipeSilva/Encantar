@@ -42,7 +42,9 @@ class ItemService extends BaseService_1.BaseService {
                 throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Unidade deve ter no máximo 20 caracteres");
             }
         }
-        if (data.descricao !== undefined && data.descricao && data.descricao.length > 500) {
+        if (data.descricao !== undefined &&
+            data.descricao &&
+            data.descricao.length > 500) {
             throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Descrição deve ter no máximo 500 caracteres");
         }
     }

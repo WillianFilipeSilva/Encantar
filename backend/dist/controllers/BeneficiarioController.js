@@ -8,10 +8,26 @@ class BeneficiarioController extends BaseController_1.BaseController {
     constructor(beneficiarioService) {
         super(beneficiarioService);
         this.findAll = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
-            await (0, express_validator_1.query)("page").optional().isInt({ min: 1 }).withMessage("Página deve ser um número positivo").run(req);
-            await (0, express_validator_1.query)("limit").optional().isInt({ min: 1, max: 100 }).withMessage("Limit deve ser entre 1 e 100").run(req);
-            await (0, express_validator_1.query)("search").optional().isLength({ min: 2 }).withMessage("Busca deve ter pelo menos 2 caracteres").run(req);
-            await (0, express_validator_1.query)("ativo").optional().isBoolean().withMessage("Ativo deve ser true ou false").run(req);
+            await (0, express_validator_1.query)("page")
+                .optional()
+                .isInt({ min: 1 })
+                .withMessage("Página deve ser um número positivo")
+                .run(req);
+            await (0, express_validator_1.query)("limit")
+                .optional()
+                .isInt({ min: 1, max: 100 })
+                .withMessage("Limit deve ser entre 1 e 100")
+                .run(req);
+            await (0, express_validator_1.query)("search")
+                .optional()
+                .isLength({ min: 2 })
+                .withMessage("Busca deve ter pelo menos 2 caracteres")
+                .run(req);
+            await (0, express_validator_1.query)("ativo")
+                .optional()
+                .isBoolean()
+                .withMessage("Ativo deve ser true ou false")
+                .run(req);
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
                 res.status(400).json({

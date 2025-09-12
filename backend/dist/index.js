@@ -12,6 +12,9 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const beneficiario_1 = __importDefault(require("./routes/beneficiario"));
 const item_1 = __importDefault(require("./routes/item"));
+const rota_1 = __importDefault(require("./routes/rota"));
+const modeloEntrega_1 = __importDefault(require("./routes/modeloEntrega"));
+const entrega_1 = __importDefault(require("./routes/entrega"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const notFound_1 = require("./middleware/notFound");
 const database_1 = __importDefault(require("./utils/database"));
@@ -59,6 +62,9 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", auth_1.default);
 app.use("/api/beneficiarios", beneficiario_1.default);
 app.use("/api/items", item_1.default);
+app.use("/api/rotas", rota_1.default);
+app.use("/api/modelos-entrega", modeloEntrega_1.default);
+app.use("/api/entregas", entrega_1.default);
 app.use(notFound_1.notFound);
 app.use(errorHandler_1.errorHandler);
 async function startServer() {

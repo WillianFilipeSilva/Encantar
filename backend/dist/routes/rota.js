@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const RotaRepository_1 = require("../repositories/RotaRepository");
+const RotaService_1 = require("../services/RotaService");
+const RotaController_1 = require("../controllers/RotaController");
+const auth_1 = require("../middleware/auth");
+const database_1 = require("../utils/database");
+const router = (0, express_1.Router)();
+const repository = new RotaRepository_1.RotaRepository(database_1.prisma);
+const service = new RotaService_1.RotaService(repository);
+const controller = new RotaController_1.RotaController(service);
+router.use(auth_1.authenticateToken);
+router.get("/", controller.findAll);
+router.get("/:id", controller.findById);
+router.post("/", controller.create);
+router.put("/:id", controller.update);
+router.delete("/:id", controller.delete);
+exports.default = router;
+//# sourceMappingURL=rota.js.map

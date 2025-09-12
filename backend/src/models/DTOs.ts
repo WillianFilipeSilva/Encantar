@@ -197,6 +197,29 @@ export interface RotaResponseDTO {
 }
 
 // ===========================================
+// DTOs DE MODELO DE ENTREGA
+// ===========================================
+
+export interface CreateModeloEntregaDTO {
+  nome: string;
+  descricao?: string;
+  items: Array<{
+    itemId: string;
+    quantidade: number;
+  }>;
+}
+
+export interface UpdateModeloEntregaDTO {
+  nome?: string;
+  descricao?: string;
+  ativo?: boolean;
+  items?: Array<{
+    itemId: string;
+    quantidade: number;
+  }>;
+}
+
+// ===========================================
 // DTOs DE TEMPLATE PDF
 // ===========================================
 

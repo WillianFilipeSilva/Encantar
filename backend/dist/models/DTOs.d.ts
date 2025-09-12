@@ -154,6 +154,23 @@ export interface RotaResponseDTO {
         nome: string;
     };
 }
+export interface CreateModeloEntregaDTO {
+    nome: string;
+    descricao?: string;
+    items: Array<{
+        itemId: string;
+        quantidade: number;
+    }>;
+}
+export interface UpdateModeloEntregaDTO {
+    nome?: string;
+    descricao?: string;
+    ativo?: boolean;
+    items?: Array<{
+        itemId: string;
+        quantidade: number;
+    }>;
+}
 export interface CreateTemplatePDFDTO {
     nome: string;
     descricao?: string;

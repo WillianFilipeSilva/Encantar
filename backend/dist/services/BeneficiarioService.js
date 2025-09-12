@@ -83,16 +83,22 @@ class BeneficiarioService extends BaseService_1.BaseService {
         }
     }
     async validateUpdateData(data) {
-        if (data.nome !== undefined && (!data.nome || data.nome.trim().length < 2)) {
+        if (data.nome !== undefined &&
+            (!data.nome || data.nome.trim().length < 2)) {
             throw errorHandler_1.CommonErrors.BAD_REQUEST("Nome deve ter pelo menos 2 caracteres");
         }
-        if (data.endereco !== undefined && (!data.endereco || data.endereco.trim().length < 5)) {
+        if (data.endereco !== undefined &&
+            (!data.endereco || data.endereco.trim().length < 5)) {
             throw errorHandler_1.CommonErrors.BAD_REQUEST("Endereço deve ter pelo menos 5 caracteres");
         }
-        if (data.email !== undefined && data.email && !this.isValidEmail(data.email)) {
+        if (data.email !== undefined &&
+            data.email &&
+            !this.isValidEmail(data.email)) {
             throw errorHandler_1.CommonErrors.BAD_REQUEST("Email inválido");
         }
-        if (data.telefone !== undefined && data.telefone && !this.isValidPhone(data.telefone)) {
+        if (data.telefone !== undefined &&
+            data.telefone &&
+            !this.isValidPhone(data.telefone)) {
             throw errorHandler_1.CommonErrors.BAD_REQUEST("Telefone inválido");
         }
     }
@@ -111,10 +117,12 @@ class BeneficiarioService extends BaseService_1.BaseService {
                 id: beneficiario.criadoPor.id,
                 nome: beneficiario.criadoPor.nome,
             },
-            modificadoPor: beneficiario.modificadoPor ? {
-                id: beneficiario.modificadoPor.id,
-                nome: beneficiario.modificadoPor.nome,
-            } : undefined,
+            modificadoPor: beneficiario.modificadoPor
+                ? {
+                    id: beneficiario.modificadoPor.id,
+                    nome: beneficiario.modificadoPor.nome,
+                }
+                : undefined,
         };
     }
     isValidEmail(email) {

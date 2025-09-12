@@ -31,9 +31,7 @@ class ItemController extends BaseController_1.BaseController {
                 .withMessage("Ativo deve ser um valor booleano"),
         ];
         this.validateUpdate = [
-            (0, express_validator_1.param)("id")
-                .isUUID()
-                .withMessage("ID deve ser um UUID válido"),
+            (0, express_validator_1.param)("id").isUUID().withMessage("ID deve ser um UUID válido"),
             (0, express_validator_1.body)("nome")
                 .optional()
                 .notEmpty()
@@ -83,9 +81,7 @@ class ItemController extends BaseController_1.BaseController {
                 .withMessage("Ativo deve ser um valor booleano"),
         ];
         this.validateId = [
-            (0, express_validator_1.param)("id")
-                .isUUID()
-                .withMessage("ID deve ser um UUID válido"),
+            (0, express_validator_1.param)("id").isUUID().withMessage("ID deve ser um UUID válido"),
         ];
         this.validateSearchByName = [
             (0, express_validator_1.query)("nome")

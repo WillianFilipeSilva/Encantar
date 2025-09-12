@@ -182,7 +182,7 @@ class ItemRepository extends BaseRepository_1.BaseRepository {
             distinct: ["unidade"],
             orderBy: { unidade: "asc" },
         });
-        return result.map(item => item.unidade);
+        return result.map((item) => item.unidade);
     }
     async countTotalEntregasByItem(itemId) {
         const result = await this.prisma.entregaItem.aggregate({

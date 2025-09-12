@@ -7,6 +7,6 @@ declare class DatabaseClient {
     static transaction<T>(fn: (prisma: PrismaClient) => Promise<T>): Promise<T>;
     static healthCheck(): Promise<boolean>;
 }
-export declare const prisma: any;
+export declare const prisma: PrismaClient<import(".prisma/client").Prisma.PrismaClientOptions, never, import("@prisma/client/runtime/library").DefaultArgs>;
 export default DatabaseClient;
 //# sourceMappingURL=database.d.ts.map
