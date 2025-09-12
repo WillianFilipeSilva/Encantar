@@ -9,8 +9,9 @@ import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth";
 import beneficiarioRoutes from "./routes/beneficiario";
 import itemRoutes from "./routes/item";
-// import entregaRoutes from './routes/entrega';
-// import rotaRoutes from './routes/rota';
+import rotaRoutes from "./routes/rota";
+import modeloEntregaRoutes from "./routes/modeloEntrega";
+import entregaRoutes from "./routes/entrega";
 
 // Importar middleware
 import { errorHandler } from "./middleware/errorHandler";
@@ -92,8 +93,9 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/beneficiarios", beneficiarioRoutes);
 app.use("/api/items", itemRoutes);
-// app.use('/api/entregas', entregaRoutes);
-// app.use('/api/rotas', rotaRoutes);
+app.use("/api/rotas", rotaRoutes);
+app.use("/api/modelos-entrega", modeloEntregaRoutes);
+app.use("/api/entregas", entregaRoutes);
 
 // ===========================================
 // MIDDLEWARE DE ERRO
