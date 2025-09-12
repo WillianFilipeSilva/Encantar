@@ -98,6 +98,7 @@ model Item {
 
   // Relacionamentos
   entregaItems EntregaItem[]
+  modeloItems ModeloEntregaItem[]
 
   @@map("items")
 }
@@ -113,8 +114,8 @@ model Entrega {
   beneficiarioId String
   beneficiario   Beneficiario @relation(fields: [beneficiarioId], references: [id])
   
-  rotaId String?
-  rota   Rota? @relation(fields: [rotaId], references: [id])
+  rotaId String
+  rota   Rota @relation(fields: [rotaId], references: [id])
 
   // Auditoria
   criadoPorId    String
@@ -177,4 +178,35 @@ model TemplatePDF {
   atualizadoEm DateTime @updatedAt
 
   @@map("templates_pdf")
+}
+
+// Modelo para configurações de entrega (cestas pré-montadas)
+model ModeloEntrega {
+  id          String   @id @default(cuid())
+  nome        String   @unique
+  descricao   String?
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  // Relacionamentos
+  modeloItems ModeloEntregaItem[]
+
+  @@map("modelos_entrega")
+}
+
+// Tabela de ligação para os itens de um modelo de entrega
+model ModeloEntregaItem {
+  id         String  @id @default(cuid())
+  quantidade Decimal @db.Decimal(10, 2)
+
+  // Relacionamentos
+  modeloId String
+  modelo   ModeloEntrega @relation(fields: [modeloId], references: [id], onDelete: Cascade)
+
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  @@unique([modeloId, itemId])
+  @@map("modelos_entrega_items")
 }
