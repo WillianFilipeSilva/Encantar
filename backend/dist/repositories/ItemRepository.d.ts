@@ -22,8 +22,8 @@ export declare class ItemRepository extends BaseRepository<Item, CreateItemDTO, 
             ativo: boolean;
             criadoEm: Date;
             atualizadoEm: Date;
-            criadoPorId: string;
             descricao: string | null;
+            criadoPorId: string;
             modificadoPorId: string | null;
             unidade: string;
         })[];
@@ -58,8 +58,8 @@ export declare class ItemRepository extends BaseRepository<Item, CreateItemDTO, 
                 id: string;
                 criadoEm: Date;
                 atualizadoEm: Date;
-                criadoPorId: string;
                 observacoes: string | null;
+                criadoPorId: string;
                 modificadoPorId: string | null;
                 beneficiarioId: string;
                 rotaId: string;
@@ -76,8 +76,8 @@ export declare class ItemRepository extends BaseRepository<Item, CreateItemDTO, 
         ativo: boolean;
         criadoEm: Date;
         atualizadoEm: Date;
-        criadoPorId: string;
         descricao: string | null;
+        criadoPorId: string;
         modificadoPorId: string | null;
         unidade: string;
     }) | null>;
@@ -110,8 +110,8 @@ export declare class ItemRepository extends BaseRepository<Item, CreateItemDTO, 
         ativo: boolean;
         criadoEm: Date;
         atualizadoEm: Date;
-        criadoPorId: string;
         descricao: string | null;
+        criadoPorId: string;
         modificadoPorId: string | null;
         unidade: string;
     })[]>;
@@ -129,8 +129,8 @@ export declare class ItemRepository extends BaseRepository<Item, CreateItemDTO, 
                 id: string;
                 criadoEm: Date;
                 atualizadoEm: Date;
-                criadoPorId: string;
                 observacoes: string | null;
+                criadoPorId: string;
                 modificadoPorId: string | null;
                 beneficiarioId: string;
                 rotaId: string;

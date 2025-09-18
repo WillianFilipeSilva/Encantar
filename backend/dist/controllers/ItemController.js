@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ItemController = void 0;
 const BaseController_1 = require("./BaseController");
-const errorHandler_1 = require("../middleware/errorHandler");
 const express_validator_1 = require("express-validator");
 class ItemController extends BaseController_1.BaseController {
     constructor(itemService) {
@@ -109,235 +108,265 @@ class ItemController extends BaseController_1.BaseController {
                 .isInt({ min: 1, max: 50 })
                 .withMessage("Limite deve ser um número entre 1 e 50"),
         ];
-        this.findAll = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+        this.itemService = itemService;
+    }
+    async findAll(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const filters = this.buildFilters(req.query);
-            const result = await this.itemService.findAll(page, limit, filters);
-            res.json({
-                success: true,
-                data: result.data,
-                pagination: result.pagination,
-            });
-        });
-        this.findById = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            await super.findAll(req, res, next);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findById(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
-            const { id } = req.params;
-            const item = await this.itemService.findById(id);
-            res.json({
-                success: true,
-                data: item,
-            });
-        });
-        this.findAllWithRelations = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            await super.findById(req, res, next);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findAllWithRelations(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             const filters = this.buildFilters(req.query);
             const result = await this.itemService.findAllWithRelations(page, limit, filters);
-            res.json({
+            res.status(200).json({
                 success: true,
                 data: result.data,
-                pagination: result.pagination,
+                pagination: result.pagination
             });
-        });
-        this.findByIdWithRelations = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findByIdWithRelations(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const { id } = req.params;
             const item = await this.itemService.findByIdWithRelations(id);
-            res.json({
-                success: true,
-                data: item,
-            });
-        });
-        this.findByNome = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, item);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findByNome(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const { nome } = req.query;
             const limit = parseInt(req.query.limit) || 10;
             const items = await this.itemService.findByNome(nome, limit);
-            res.json({
-                success: true,
-                data: items,
-            });
-        });
-        this.findActiveForSelection = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, items);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findActiveForSelection(req, res, next) {
+        try {
             const items = await this.itemService.findActiveForSelection();
-            res.json({
-                success: true,
-                data: items,
-            });
-        });
-        this.findByUnidade = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, items);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findByUnidade(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const { unidade } = req.query;
             const items = await this.itemService.findByUnidade(unidade);
-            res.json({
-                success: true,
-                data: items,
-            });
-        });
-        this.findMostUsed = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, items);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findMostUsed(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const limit = parseInt(req.query.limit) || 10;
             const items = await this.itemService.findMostUsed(limit);
-            res.json({
-                success: true,
-                data: items,
-            });
-        });
-        this.findDistinctUnidades = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, items);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async findDistinctUnidades(req, res, next) {
+        try {
             const unidades = await this.itemService.findDistinctUnidades();
-            res.json({
-                success: true,
-                data: unidades,
-            });
-        });
-        this.getItemStats = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, unidades);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async getItemStats(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const { id } = req.params;
             const stats = await this.itemService.getItemStats(id);
-            res.json({
-                success: true,
-                data: stats,
-            });
-        });
-        this.reactivate = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            this.successResponse(res, stats);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async reactivate(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
             const { id } = req.params;
-            const item = await this.itemService.reactivate(id, req.user.id);
-            res.json({
-                success: true,
-                message: "Item reativado com sucesso",
-                data: item,
-            });
-        });
-        this.create = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            const userId = req.user?.id;
+            const item = await this.itemService.reactivate(id, userId);
+            this.successResponse(res, item, "Item reativado com sucesso");
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async create(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
-            const itemData = req.body;
-            const item = await this.itemService.create(itemData, req.user.id);
-            res.status(201).json({
-                success: true,
-                message: "Item criado com sucesso",
-                data: item,
-            });
-        });
-        this.update = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            await super.create(req, res, next);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async update(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
-            const { id } = req.params;
-            const itemData = req.body;
-            const item = await this.itemService.update(id, itemData, req.user.id);
-            res.json({
-                success: true,
-                message: "Item atualizado com sucesso",
-                data: item,
-            });
-        });
-        this.delete = (0, errorHandler_1.asyncHandler)(async (req, res) => {
+            await super.update(req, res, next);
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async delete(req, res, next) {
+        try {
             const errors = (0, express_validator_1.validationResult)(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     message: "Dados inválidos",
                     errors: errors.array(),
                 });
+                return;
             }
-            const { id } = req.params;
-            await this.itemService.delete(id, req.user.id);
-            res.json({
-                success: true,
-                message: "Item excluído com sucesso",
-            });
-        });
-        this.itemService = itemService;
+            await super.delete(req, res, next);
+        }
+        catch (error) {
+            next(error);
+        }
     }
     buildFilters(query) {
-        const filters = {};
+        const filters = super.buildFilters(query);
         if (query.nome) {
-            filters.nome = query.nome;
+            filters.nome = {
+                contains: query.nome,
+                mode: "insensitive"
+            };
         }
         if (query.unidade) {
-            filters.unidade = query.unidade;
-        }
-        if (query.ativo !== undefined) {
-            filters.ativo = query.ativo === "true";
+            filters.unidade = {
+                equals: query.unidade,
+                mode: "insensitive"
+            };
         }
         return filters;
     }

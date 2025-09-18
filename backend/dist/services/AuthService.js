@@ -62,15 +62,11 @@ class AuthService {
                 nome,
                 login,
                 senha: senhaHash,
-                criadoPorId: convite.enviadoPorId,
             },
         });
         await this.prisma.convite.update({
             where: { id: convite.id },
-            data: {
-                usado: true,
-                usadoEm: new Date(),
-            },
+            data: { usado: true, usadoEm: new Date() },
         });
         const tokens = this.generateTokens({
             id: administrador.id,

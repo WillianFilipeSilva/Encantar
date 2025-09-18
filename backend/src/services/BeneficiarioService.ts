@@ -27,7 +27,21 @@ export class BeneficiarioService extends BaseService<
     page: number = 1,
     limit: number = 10,
     filters?: any
-  ) {
+  ): Promise<{ 
+    data: (Beneficiario & {
+      criadoPor: { id: string; nome: string };
+      modificadoPor: { id: string; nome: string } | null;
+      _count: { entregas: number };
+    })[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }> {
     if (page < 1) page = 1;
     if (limit < 1 || limit > 100) limit = 10;
 
@@ -41,7 +55,28 @@ export class BeneficiarioService extends BaseService<
   /**
    * Busca beneficiário por ID com relacionamentos
    */
-  async findByIdWithRelations(id: string): Promise<BeneficiarioResponseDTO> {
+  async findByIdWithRelations(id: string): Promise<Beneficiario & {
+    criadoPor: { id: string; nome: string };
+    modificadoPor: { id: string; nome: string } | null;
+    entregas: {
+      id: string;
+      entregaItems: {
+        id: string;
+        item: {
+          id: string;
+          nome: string;
+          descricao: string | null;
+        };
+      }[];
+      rota: {
+        id: string;
+        nome: string;
+      };
+    }[];
+    _count: {
+      entregas: number;
+    };
+  }> {
     if (!id) {
       throw CommonErrors.BAD_REQUEST("ID é obrigatório");
     }
@@ -52,16 +87,13 @@ export class BeneficiarioService extends BaseService<
       throw CommonErrors.NOT_FOUND("Beneficiário não encontrado");
     }
 
-    return this.transformBeneficiarioData(beneficiario);
+    return beneficiario;
   }
 
   /**
    * Cria um novo beneficiário
    */
-  async create(
-    data: CreateBeneficiarioDTO,
-    userId?: string
-  ): Promise<BeneficiarioResponseDTO> {
+  async create(data: CreateBeneficiarioDTO, userId?: string): Promise<Beneficiario> {
     await this.validateCreateData(data);
 
     // Verifica se já existe beneficiário com mesmo nome e endereço
@@ -77,19 +109,13 @@ export class BeneficiarioService extends BaseService<
     }
 
     const createData = this.addAuditData(data, userId, "create");
-    const beneficiario = await this.beneficiarioRepository.create(createData);
-
-    return this.transformBeneficiarioData(beneficiario);
+    return this.beneficiarioRepository.create(createData);
   }
 
   /**
    * Atualiza um beneficiário
    */
-  async update(
-    id: string,
-    data: UpdateBeneficiarioDTO,
-    userId?: string
-  ): Promise<BeneficiarioResponseDTO> {
+  async update(id: string, data: UpdateBeneficiarioDTO, userId?: string): Promise<Beneficiario> {
     if (!id) {
       throw CommonErrors.BAD_REQUEST("ID é obrigatório");
     }
@@ -117,18 +143,13 @@ export class BeneficiarioService extends BaseService<
     }
 
     const updateData = this.addAuditData(data, userId, "update");
-    const beneficiario = await this.beneficiarioRepository.update(
-      id,
-      updateData
-    );
-
-    return this.transformBeneficiarioData(beneficiario);
+    return this.beneficiarioRepository.update(id, updateData);
   }
 
   /**
    * Busca beneficiários por nome
    */
-  async findByNome(nome: string, limit: number = 10) {
+  async findByNome(nome: string, limit: number = 10): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
     if (!nome || nome.trim().length < 2) {
       throw CommonErrors.BAD_REQUEST("Nome deve ter pelo menos 2 caracteres");
     }
@@ -139,14 +160,14 @@ export class BeneficiarioService extends BaseService<
   /**
    * Busca beneficiários ativos para seleção
    */
-  async findActiveForSelection() {
+  async findActiveForSelection(): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
     return this.beneficiarioRepository.findActiveForSelection();
   }
 
   /**
    * Busca top beneficiários com mais entregas
    */
-  async findTopBeneficiarios(limit: number = 10) {
+  async findTopBeneficiarios(limit: number = 10): Promise<(Beneficiario & { _count: { entregas: number } })[]> {
     if (limit < 1 || limit > 50) limit = 10;
 
     return this.beneficiarioRepository.findTopBeneficiarios(limit);
@@ -220,7 +241,10 @@ export class BeneficiarioService extends BaseService<
    * Transforma dados do beneficiário para resposta
    */
   private transformBeneficiarioData(
-    beneficiario: any
+    beneficiario: Beneficiario & {
+      criadoPor?: { id: string; nome: string };
+      modificadoPor?: { id: string; nome: string } | null;
+    }
   ): BeneficiarioResponseDTO {
     return {
       id: beneficiario.id,
@@ -233,13 +257,13 @@ export class BeneficiarioService extends BaseService<
       criadoEm: beneficiario.criadoEm,
       atualizadoEm: beneficiario.atualizadoEm,
       criadoPor: {
-        id: beneficiario.criadoPor.id,
-        nome: beneficiario.criadoPor.nome,
+        id: beneficiario.criadoPorId,
+        nome: beneficiario.criadoPor?.nome || 'Desconhecido'
       },
-      modificadoPor: beneficiario.modificadoPor
+      modificadoPor: beneficiario.modificadoPorId && beneficiario.modificadoPor
         ? {
-            id: beneficiario.modificadoPor.id,
-            nome: beneficiario.modificadoPor.nome,
+            id: beneficiario.modificadoPorId,
+            nome: beneficiario.modificadoPor.nome
           }
         : undefined,
     };

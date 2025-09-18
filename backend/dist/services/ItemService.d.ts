@@ -5,10 +5,10 @@ import { CreateItemDTO, UpdateItemDTO } from "../models/DTOs";
 export declare class ItemService extends BaseService<Item, CreateItemDTO, UpdateItemDTO> {
     private itemRepository;
     constructor(itemRepository: ItemRepository);
-    protected validateCreateData(data: CreateItemDTO): void;
-    protected validateUpdateData(data: UpdateItemDTO): void;
-    protected transformData(data: CreateItemDTO, auditData: any): any;
-    protected transformUpdateData(data: UpdateItemDTO, auditData: any): any;
+    protected validateCreateData(data: CreateItemDTO): Promise<void>;
+    protected validateUpdateData(data: UpdateItemDTO): Promise<void>;
+    protected transformData(data: Item): any;
+    protected transformUpdateData(data: UpdateItemDTO, userId?: string): any;
     create(data: CreateItemDTO, userId: string): Promise<Item>;
     update(id: string, data: UpdateItemDTO, userId: string): Promise<Item>;
     findAllWithRelations(page?: number, limit?: number, filters?: any): Promise<{
@@ -30,8 +30,8 @@ export declare class ItemService extends BaseService<Item, CreateItemDTO, Update
             ativo: boolean;
             criadoEm: Date;
             atualizadoEm: Date;
-            criadoPorId: string;
             descricao: string | null;
+            criadoPorId: string;
             modificadoPorId: string | null;
             unidade: string;
         })[];
@@ -66,8 +66,8 @@ export declare class ItemService extends BaseService<Item, CreateItemDTO, Update
                 id: string;
                 criadoEm: Date;
                 atualizadoEm: Date;
-                criadoPorId: string;
                 observacoes: string | null;
+                criadoPorId: string;
                 modificadoPorId: string | null;
                 beneficiarioId: string;
                 rotaId: string;
@@ -84,8 +84,8 @@ export declare class ItemService extends BaseService<Item, CreateItemDTO, Update
         ativo: boolean;
         criadoEm: Date;
         atualizadoEm: Date;
-        criadoPorId: string;
         descricao: string | null;
+        criadoPorId: string;
         modificadoPorId: string | null;
         unidade: string;
     }>;
@@ -117,8 +117,8 @@ export declare class ItemService extends BaseService<Item, CreateItemDTO, Update
         ativo: boolean;
         criadoEm: Date;
         atualizadoEm: Date;
-        criadoPorId: string;
         descricao: string | null;
+        criadoPorId: string;
         modificadoPorId: string | null;
         unidade: string;
     })[]>;
@@ -135,8 +135,8 @@ export declare class ItemService extends BaseService<Item, CreateItemDTO, Update
                 id: string;
                 criadoEm: Date;
                 atualizadoEm: Date;
-                criadoPorId: string;
                 observacoes: string | null;
+                criadoPorId: string;
                 modificadoPorId: string | null;
                 beneficiarioId: string;
                 rotaId: string;
@@ -148,7 +148,7 @@ export declare class ItemService extends BaseService<Item, CreateItemDTO, Update
             itemId: string;
         })[];
     }>;
-    delete(id: string, userId: string): Promise<void>;
+    delete(id: string): Promise<Item>;
     reactivate(id: string, userId: string): Promise<Item>;
 }
 //# sourceMappingURL=ItemService.d.ts.map

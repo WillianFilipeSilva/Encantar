@@ -96,17 +96,13 @@ export class AuthService {
         nome,
         login,
         senha: senhaHash,
-        criadoPorId: convite.enviadoPorId,
       },
     });
 
     // Marca o convite como usado
     await this.prisma.convite.update({
       where: { id: convite.id },
-      data: {
-        usado: true,
-        usadoEm: new Date(),
-      },
+      data: { usado: true, usadoEm: new Date() },
     });
 
     // Gera os tokens

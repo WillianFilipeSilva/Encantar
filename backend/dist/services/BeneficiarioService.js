@@ -23,7 +23,7 @@ class BeneficiarioService extends BaseService_1.BaseService {
         if (!beneficiario) {
             throw errorHandler_1.CommonErrors.NOT_FOUND("Beneficiário não encontrado");
         }
-        return this.transformBeneficiarioData(beneficiario);
+        return beneficiario;
     }
     async create(data, userId) {
         await this.validateCreateData(data);
@@ -32,8 +32,7 @@ class BeneficiarioService extends BaseService_1.BaseService {
             throw errorHandler_1.CommonErrors.CONFLICT("Já existe um beneficiário com este nome e endereço");
         }
         const createData = this.addAuditData(data, userId, "create");
-        const beneficiario = await this.beneficiarioRepository.create(createData);
-        return this.transformBeneficiarioData(beneficiario);
+        return this.beneficiarioRepository.create(createData);
     }
     async update(id, data, userId) {
         if (!id) {
@@ -51,8 +50,7 @@ class BeneficiarioService extends BaseService_1.BaseService {
             }
         }
         const updateData = this.addAuditData(data, userId, "update");
-        const beneficiario = await this.beneficiarioRepository.update(id, updateData);
-        return this.transformBeneficiarioData(beneficiario);
+        return this.beneficiarioRepository.update(id, updateData);
     }
     async findByNome(nome, limit = 10) {
         if (!nome || nome.trim().length < 2) {
@@ -114,13 +112,13 @@ class BeneficiarioService extends BaseService_1.BaseService {
             criadoEm: beneficiario.criadoEm,
             atualizadoEm: beneficiario.atualizadoEm,
             criadoPor: {
-                id: beneficiario.criadoPor.id,
-                nome: beneficiario.criadoPor.nome,
+                id: beneficiario.criadoPorId,
+                nome: beneficiario.criadoPor?.nome || 'Desconhecido'
             },
-            modificadoPor: beneficiario.modificadoPor
+            modificadoPor: beneficiario.modificadoPorId && beneficiario.modificadoPor
                 ? {
-                    id: beneficiario.modificadoPor.id,
-                    nome: beneficiario.modificadoPor.nome,
+                    id: beneficiario.modificadoPorId,
+                    nome: beneficiario.modificadoPor.nome
                 }
                 : undefined,
         };

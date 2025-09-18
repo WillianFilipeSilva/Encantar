@@ -8,58 +8,56 @@ class ItemService extends BaseService_1.BaseService {
         super(itemRepository);
         this.itemRepository = itemRepository;
     }
-    validateCreateData(data) {
+    async validateCreateData(data) {
         if (!data.nome || data.nome.trim().length === 0) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Nome é obrigatório");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Nome é obrigatório");
         }
         if (data.nome.length > 100) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Nome deve ter no máximo 100 caracteres");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Nome deve ter no máximo 100 caracteres");
         }
         if (!data.unidade || data.unidade.trim().length === 0) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Unidade é obrigatória");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
         }
         if (data.unidade.length > 20) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Unidade deve ter no máximo 20 caracteres");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Unidade deve ter no máximo 20 caracteres");
         }
         if (data.descricao && data.descricao.length > 500) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Descrição deve ter no máximo 500 caracteres");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
         }
     }
-    validateUpdateData(data) {
+    async validateUpdateData(data) {
         if (data.nome !== undefined) {
             if (!data.nome || data.nome.trim().length === 0) {
-                throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Nome é obrigatório");
+                throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Nome é obrigatório");
             }
             if (data.nome.length > 100) {
-                throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Nome deve ter no máximo 100 caracteres");
+                throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Nome deve ter no máximo 100 caracteres");
             }
         }
         if (data.unidade !== undefined) {
             if (!data.unidade || data.unidade.trim().length === 0) {
-                throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Unidade é obrigatória");
+                throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
             }
             if (data.unidade.length > 20) {
-                throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Unidade deve ter no máximo 20 caracteres");
+                throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Unidade deve ter no máximo 20 caracteres");
             }
         }
         if (data.descricao !== undefined &&
             data.descricao &&
             data.descricao.length > 500) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Descrição deve ter no máximo 500 caracteres");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
         }
     }
-    transformData(data, auditData) {
+    transformData(data) {
         return {
-            ...data,
             nome: data.nome.trim(),
             unidade: data.unidade.trim(),
             descricao: data.descricao?.trim() || null,
-            ativo: data.ativo !== undefined ? data.ativo : true,
-            ...auditData,
+            ativo: true
         };
     }
-    transformUpdateData(data, auditData) {
-        const transformed = { ...auditData };
+    transformUpdateData(data, userId) {
+        const transformed = this.addAuditData(userId);
         if (data.nome !== undefined) {
             transformed.nome = data.nome.trim();
         }
@@ -75,29 +73,30 @@ class ItemService extends BaseService_1.BaseService {
         return transformed;
     }
     async create(data, userId) {
-        this.validateCreateData(data);
+        await this.validateCreateData(data);
         const exists = await this.itemRepository.existsByNome(data.nome);
         if (exists) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.CONFLICT, "Já existe um item com este nome");
+            throw errorHandler_1.CommonErrors.CONFLICT("Já existe um item com este nome");
         }
-        const auditData = this.addAuditData(userId);
-        const transformedData = this.transformData(data, auditData);
+        const transformedData = {
+            ...this.transformData(data),
+            ...this.addAuditData(userId)
+        };
         return this.itemRepository.create(transformedData);
     }
     async update(id, data, userId) {
-        this.validateUpdateData(data);
+        await this.validateUpdateData(data);
         const existingItem = await this.itemRepository.findById(id);
         if (!existingItem) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.NOT_FOUND, "Item não encontrado");
+            throw errorHandler_1.CommonErrors.NOT_FOUND("Item não encontrado");
         }
         if (data.nome && data.nome !== existingItem.nome) {
             const exists = await this.itemRepository.existsByNome(data.nome, id);
             if (exists) {
-                throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.CONFLICT, "Já existe um item com este nome");
+                throw errorHandler_1.CommonErrors.CONFLICT("Já existe um item com este nome");
             }
         }
-        const auditData = this.addAuditData(userId);
-        const transformedData = this.transformUpdateData(data, auditData);
+        const transformedData = this.transformUpdateData(data, userId);
         return this.itemRepository.update(id, transformedData);
     }
     async findAllWithRelations(page = 1, limit = 10, filters = {}) {
@@ -122,13 +121,13 @@ class ItemService extends BaseService_1.BaseService {
     async findByIdWithRelations(id) {
         const item = await this.itemRepository.findByIdWithRelations(id);
         if (!item) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.NOT_FOUND, "Item não encontrado");
+            throw errorHandler_1.CommonErrors.NOT_FOUND("Item não encontrado");
         }
         return item;
     }
     async findByNome(nome, limit = 10) {
         if (!nome || nome.trim().length === 0) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Nome é obrigatório para busca");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Nome é obrigatório para busca");
         }
         return this.itemRepository.findByNome(nome.trim(), limit);
     }
@@ -137,13 +136,13 @@ class ItemService extends BaseService_1.BaseService {
     }
     async findByUnidade(unidade) {
         if (!unidade || unidade.trim().length === 0) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Unidade é obrigatória para busca");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Unidade é obrigatória para busca");
         }
         return this.itemRepository.findByUnidade(unidade.trim());
     }
     async findMostUsed(limit = 10) {
         if (limit <= 0 || limit > 50) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.VALIDATION_ERROR, "Limite deve estar entre 1 e 50");
+            throw errorHandler_1.CommonErrors.VALIDATION_ERROR("Limite deve estar entre 1 e 50");
         }
         return this.itemRepository.findMostUsed(limit);
     }
@@ -153,31 +152,34 @@ class ItemService extends BaseService_1.BaseService {
     async getItemStats(itemId) {
         const item = await this.itemRepository.findById(itemId);
         if (!item) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.NOT_FOUND, "Item não encontrado");
+            throw errorHandler_1.CommonErrors.NOT_FOUND("Item não encontrado");
         }
         return this.itemRepository.getItemStats(itemId);
     }
-    async delete(id, userId) {
+    async delete(id) {
         const item = await this.itemRepository.findById(id);
         if (!item) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.NOT_FOUND, "Item não encontrado");
+            throw errorHandler_1.CommonErrors.NOT_FOUND("Item não encontrado");
         }
-        const entregaItems = await this.itemRepository.prisma.entregaItem.count({
-            where: { itemId: id },
+        const entregaItems = await this.itemRepository.count({
+            entregaItems: {
+                some: { itemId: id }
+            }
         });
         if (entregaItems > 0) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.CONFLICT, "Não é possível excluir este item pois ele está sendo usado em entregas");
+            throw errorHandler_1.CommonErrors.CONFLICT("Não é possível excluir este item pois ele está sendo usado em entregas");
         }
-        const auditData = this.addAuditData(userId);
-        await this.itemRepository.update(id, { ativo: false, ...auditData });
+        return this.itemRepository.update(id, { ativo: false });
     }
     async reactivate(id, userId) {
         const item = await this.itemRepository.findById(id);
         if (!item) {
-            throw new errorHandler_1.CustomError(errorHandler_1.CommonErrors.NOT_FOUND, "Item não encontrado");
+            throw errorHandler_1.CommonErrors.NOT_FOUND("Item não encontrado");
         }
-        const auditData = this.addAuditData(userId);
-        return this.itemRepository.update(id, { ativo: true, ...auditData });
+        return this.itemRepository.update(id, {
+            ativo: true,
+            ...this.addAuditData(userId)
+        });
     }
 }
 exports.ItemService = ItemService;

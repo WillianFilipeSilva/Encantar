@@ -51,9 +51,9 @@ export interface BeneficiarioResponseDTO {
   id: string;
   nome: string;
   endereco: string;
-  telefone?: string;
-  email?: string;
-  observacoes?: string;
+  telefone?: string | null;
+  email?: string | null;
+  observacoes?: string | null;
   ativo: boolean;
   criadoEm: Date;
   atualizadoEm: Date;
@@ -87,7 +87,7 @@ export interface UpdateItemDTO {
 export interface ItemResponseDTO {
   id: string;
   nome: string;
-  descricao?: string;
+  descricao?: string | null;
   unidade: string;
   ativo: boolean;
   criadoEm: Date;
@@ -113,7 +113,7 @@ export interface CreateEntregaItemDTO {
 
 export interface CreateEntregaDTO {
   beneficiarioId: string;
-  rotaId?: string;
+  rotaId: string;
   observacoes?: string;
   items: CreateEntregaItemDTO[];
 }
@@ -138,7 +138,7 @@ export interface EntregaItemResponseDTO {
 
 export interface EntregaResponseDTO {
   id: string;
-  observacoes?: string;
+  observacoes?: string | null;
   criadoEm: Date;
   atualizadoEm: Date;
   beneficiario: BeneficiarioResponseDTO;
@@ -180,9 +180,9 @@ export interface UpdateRotaDTO {
 export interface RotaResponseDTO {
   id: string;
   nome: string;
-  descricao?: string;
-  dataEntrega?: Date;
-  observacoes?: string;
+  descricao?: string | null;
+  dataEntrega?: Date | null;
+  observacoes?: string | null;
   criadoEm: Date;
   atualizadoEm: Date;
   entregas: EntregaResponseDTO[];
@@ -239,7 +239,7 @@ export interface UpdateTemplatePDFDTO {
 export interface TemplatePDFResponseDTO {
   id: string;
   nome: string;
-  descricao?: string;
+  descricao?: string | null;
   conteudo: string;
   ativo: boolean;
   criadoEm: Date;

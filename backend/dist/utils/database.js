@@ -11,15 +11,16 @@ class DatabaseClient {
                     : ["error"],
                 errorFormat: "pretty",
             });
-            DatabaseClient.instance.$on("query", (e) => {
-                if (process.env.NODE_ENV === "development") {
+            if (process.env.NODE_ENV === "development") {
+                const client = DatabaseClient.instance;
+                client.$on('query', (e) => {
                     console.log("🔍 Query:", e.query);
                     console.log("⏱️  Duration:", e.duration + "ms");
-                }
-            });
-            DatabaseClient.instance.$on("error", (e) => {
-                console.error("❌ Database Error:", e);
-            });
+                });
+                client.$on('error', (e) => {
+                    console.error("❌ Database Error:", e);
+                });
+            }
         }
         return DatabaseClient.instance;
     }

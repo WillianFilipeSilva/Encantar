@@ -24,8 +24,8 @@ export declare class BeneficiarioRepository extends BaseRepository<Beneficiario,
             atualizadoEm: Date;
             email: string | null;
             telefone: string | null;
-            criadoPorId: string;
             observacoes: string | null;
+            criadoPorId: string;
             modificadoPorId: string | null;
             endereco: string;
         })[];
@@ -62,8 +62,8 @@ export declare class BeneficiarioRepository extends BaseRepository<Beneficiario,
                     ativo: boolean;
                     criadoEm: Date;
                     atualizadoEm: Date;
-                    criadoPorId: string;
                     descricao: string | null;
+                    criadoPorId: string;
                     modificadoPorId: string | null;
                     unidade: string;
                 };
@@ -77,8 +77,8 @@ export declare class BeneficiarioRepository extends BaseRepository<Beneficiario,
             id: string;
             criadoEm: Date;
             atualizadoEm: Date;
-            criadoPorId: string;
             observacoes: string | null;
+            criadoPorId: string;
             modificadoPorId: string | null;
             beneficiarioId: string;
             rotaId: string;
@@ -91,8 +91,8 @@ export declare class BeneficiarioRepository extends BaseRepository<Beneficiario,
         atualizadoEm: Date;
         email: string | null;
         telefone: string | null;
-        criadoPorId: string;
         observacoes: string | null;
+        criadoPorId: string;
         modificadoPorId: string | null;
         endereco: string;
     }) | null>;
@@ -122,8 +122,8 @@ export declare class BeneficiarioRepository extends BaseRepository<Beneficiario,
         atualizadoEm: Date;
         email: string | null;
         telefone: string | null;
-        criadoPorId: string;
         observacoes: string | null;
+        criadoPorId: string;
         modificadoPorId: string | null;
         endereco: string;
     })[]>;

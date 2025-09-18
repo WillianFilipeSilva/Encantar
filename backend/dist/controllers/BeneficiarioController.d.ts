@@ -6,14 +6,14 @@ import { CreateBeneficiarioDTO, UpdateBeneficiarioDTO } from "../models/DTOs";
 export declare class BeneficiarioController extends BaseController<Beneficiario, CreateBeneficiarioDTO, UpdateBeneficiarioDTO> {
     private beneficiarioService;
     constructor(beneficiarioService: BeneficiarioService);
-    findAll: (req: Request, res: Response, next: NextFunction) => void;
-    findById: (req: Request, res: Response, next: NextFunction) => void;
-    create: (req: Request, res: Response, next: NextFunction) => void;
-    update: (req: Request, res: Response, next: NextFunction) => void;
-    delete: (req: Request, res: Response, next: NextFunction) => void;
-    search: (req: Request, res: Response, next: NextFunction) => void;
-    findActive: (req: Request, res: Response, next: NextFunction) => void;
-    findTop: (req: Request, res: Response, next: NextFunction) => void;
+    findAll: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    findById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    create: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    update: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    delete: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    search: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    findActive: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    findTop: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     protected buildFilters(query: any): any;
 }
 //# sourceMappingURL=BeneficiarioController.d.ts.map

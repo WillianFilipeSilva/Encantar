@@ -1,15 +1,12 @@
 import { BeneficiarioRepository } from "../repositories/BeneficiarioRepository";
 import { BaseService } from "./BaseService";
 import { Beneficiario } from "@prisma/client";
-import { CreateBeneficiarioDTO, UpdateBeneficiarioDTO, BeneficiarioResponseDTO } from "../models/DTOs";
+import { CreateBeneficiarioDTO, UpdateBeneficiarioDTO } from "../models/DTOs";
 export declare class BeneficiarioService extends BaseService<Beneficiario, CreateBeneficiarioDTO, UpdateBeneficiarioDTO> {
     private beneficiarioRepository;
     constructor(beneficiarioRepository: BeneficiarioRepository);
     findAllWithRelations(page?: number, limit?: number, filters?: any): Promise<{
-        data: ({
-            _count: {
-                entregas: number;
-            };
+        data: (Beneficiario & {
             criadoPor: {
                 id: string;
                 nome: string;
@@ -18,18 +15,9 @@ export declare class BeneficiarioService extends BaseService<Beneficiario, Creat
                 id: string;
                 nome: string;
             } | null;
-        } & {
-            id: string;
-            nome: string;
-            ativo: boolean;
-            criadoEm: Date;
-            atualizadoEm: Date;
-            email: string | null;
-            telefone: string | null;
-            criadoPorId: string;
-            observacoes: string | null;
-            modificadoPorId: string | null;
-            endereco: string;
+            _count: {
+                entregas: number;
+            };
         })[];
         pagination: {
             page: number;
@@ -40,37 +28,42 @@ export declare class BeneficiarioService extends BaseService<Beneficiario, Creat
             hasPrev: boolean;
         };
     }>;
-    findByIdWithRelations(id: string): Promise<BeneficiarioResponseDTO>;
-    create(data: CreateBeneficiarioDTO, userId?: string): Promise<BeneficiarioResponseDTO>;
-    update(id: string, data: UpdateBeneficiarioDTO, userId?: string): Promise<BeneficiarioResponseDTO>;
-    findByNome(nome: string, limit?: number): Promise<{
-        id: string;
-        nome: string;
-        telefone: string | null;
-        endereco: string;
-    }[]>;
-    findActiveForSelection(): Promise<{
-        id: string;
-        nome: string;
-        telefone: string | null;
-        endereco: string;
-    }[]>;
-    findTopBeneficiarios(limit?: number): Promise<({
+    findByIdWithRelations(id: string): Promise<Beneficiario & {
+        criadoPor: {
+            id: string;
+            nome: string;
+        };
+        modificadoPor: {
+            id: string;
+            nome: string;
+        } | null;
+        entregas: {
+            id: string;
+            entregaItems: {
+                id: string;
+                item: {
+                    id: string;
+                    nome: string;
+                    descricao: string | null;
+                };
+            }[];
+            rota: {
+                id: string;
+                nome: string;
+            };
+        }[];
         _count: {
             entregas: number;
         };
-    } & {
-        id: string;
-        nome: string;
-        ativo: boolean;
-        criadoEm: Date;
-        atualizadoEm: Date;
-        email: string | null;
-        telefone: string | null;
-        criadoPorId: string;
-        observacoes: string | null;
-        modificadoPorId: string | null;
-        endereco: string;
+    }>;
+    create(data: CreateBeneficiarioDTO, userId?: string): Promise<Beneficiario>;
+    update(id: string, data: UpdateBeneficiarioDTO, userId?: string): Promise<Beneficiario>;
+    findByNome(nome: string, limit?: number): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]>;
+    findActiveForSelection(): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]>;
+    findTopBeneficiarios(limit?: number): Promise<(Beneficiario & {
+        _count: {
+            entregas: number;
+        };
     })[]>;
     protected validateCreateData(data: CreateBeneficiarioDTO): Promise<void>;
     protected validateUpdateData(data: UpdateBeneficiarioDTO): Promise<void>;

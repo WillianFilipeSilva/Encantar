@@ -2,7 +2,7 @@ import { Item } from "@prisma/client";
 import { BaseService } from "./BaseService";
 import { ItemRepository } from "../repositories/ItemRepository";
 import { CreateItemDTO, UpdateItemDTO } from "../models/DTOs";
-import { CustomError, CommonErrors } from "../middleware/errorHandler";
+import { CommonErrors } from "../middleware/errorHandler";
 
 export class ItemService extends BaseService<
   Item,
@@ -19,76 +19,49 @@ export class ItemService extends BaseService<
   /**
    * Valida dados para criação
    */
-  protected validateCreateData(data: CreateItemDTO): void {
+  protected async validateCreateData(data: CreateItemDTO): Promise<void> {
     if (!data.nome || data.nome.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Nome é obrigatório"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Nome é obrigatório");
     }
 
     if (data.nome.length > 100) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Nome deve ter no máximo 100 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Nome deve ter no máximo 100 caracteres");
     }
 
     if (!data.unidade || data.unidade.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Unidade é obrigatória"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
     }
 
     if (data.unidade.length > 20) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Unidade deve ter no máximo 20 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Unidade deve ter no máximo 20 caracteres");
     }
 
     if (data.descricao && data.descricao.length > 500) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Descrição deve ter no máximo 500 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
     }
   }
 
   /**
    * Valida dados para atualização
    */
-  protected validateUpdateData(data: UpdateItemDTO): void {
+  protected async validateUpdateData(data: UpdateItemDTO): Promise<void> {
     if (data.nome !== undefined) {
       if (!data.nome || data.nome.trim().length === 0) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Nome é obrigatório"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Nome é obrigatório");
       }
 
       if (data.nome.length > 100) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Nome deve ter no máximo 100 caracteres"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Nome deve ter no máximo 100 caracteres");
       }
     }
 
     if (data.unidade !== undefined) {
       if (!data.unidade || data.unidade.trim().length === 0) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Unidade é obrigatória"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
       }
 
       if (data.unidade.length > 20) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Unidade deve ter no máximo 20 caracteres"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Unidade deve ter no máximo 20 caracteres");
       }
     }
 
@@ -97,32 +70,27 @@ export class ItemService extends BaseService<
       data.descricao &&
       data.descricao.length > 500
     ) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Descrição deve ter no máximo 500 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
     }
   }
 
   /**
-   * Transforma dados para criação
+   * Transforma dados antes da criação
    */
-  protected transformData(data: CreateItemDTO, auditData: any): any {
+  protected transformData(data: Item): any {
     return {
-      ...data,
       nome: data.nome.trim(),
       unidade: data.unidade.trim(),
       descricao: data.descricao?.trim() || null,
-      ativo: data.ativo !== undefined ? data.ativo : true,
-      ...auditData,
+      ativo: true
     };
   }
 
   /**
    * Transforma dados para atualização
    */
-  protected transformUpdateData(data: UpdateItemDTO, auditData: any): any {
-    const transformed: any = { ...auditData };
+  protected transformUpdateData(data: UpdateItemDTO, userId?: string): any {
+    const transformed: any = this.addAuditData(userId);
 
     if (data.nome !== undefined) {
       transformed.nome = data.nome.trim();
@@ -147,19 +115,18 @@ export class ItemService extends BaseService<
    * Cria um novo item
    */
   async create(data: CreateItemDTO, userId: string): Promise<Item> {
-    this.validateCreateData(data);
+    await this.validateCreateData(data);
 
     // Verifica se já existe um item com o mesmo nome
     const exists = await this.itemRepository.existsByNome(data.nome);
     if (exists) {
-      throw new CustomError(
-        CommonErrors.CONFLICT,
-        "Já existe um item com este nome"
-      );
+      throw CommonErrors.CONFLICT("Já existe um item com este nome");
     }
 
-    const auditData = this.addAuditData(userId);
-    const transformedData = this.transformData(data, auditData);
+    const transformedData = {
+      ...this.transformData(data as any),
+      ...this.addAuditData(userId)
+    };
 
     return this.itemRepository.create(transformedData);
   }
@@ -168,27 +135,23 @@ export class ItemService extends BaseService<
    * Atualiza um item
    */
   async update(id: string, data: UpdateItemDTO, userId: string): Promise<Item> {
-    this.validateUpdateData(data);
+    await this.validateUpdateData(data);
 
     // Verifica se o item existe
     const existingItem = await this.itemRepository.findById(id);
     if (!existingItem) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
     // Verifica se já existe outro item com o mesmo nome
     if (data.nome && data.nome !== existingItem.nome) {
       const exists = await this.itemRepository.existsByNome(data.nome, id);
       if (exists) {
-        throw new CustomError(
-          CommonErrors.CONFLICT,
-          "Já existe um item com este nome"
-        );
+        throw CommonErrors.CONFLICT("Já existe um item com este nome");
       }
     }
 
-    const auditData = this.addAuditData(userId);
-    const transformedData = this.transformUpdateData(data, auditData);
+    const transformedData = this.transformUpdateData(data, userId);
 
     return this.itemRepository.update(id, transformedData);
   }
@@ -231,7 +194,7 @@ export class ItemService extends BaseService<
   async findByIdWithRelations(id: string) {
     const item = await this.itemRepository.findByIdWithRelations(id);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
     return item;
   }
@@ -241,10 +204,7 @@ export class ItemService extends BaseService<
    */
   async findByNome(nome: string, limit: number = 10) {
     if (!nome || nome.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Nome é obrigatório para busca"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Nome é obrigatório para busca");
     }
 
     return this.itemRepository.findByNome(nome.trim(), limit);
@@ -262,10 +222,7 @@ export class ItemService extends BaseService<
    */
   async findByUnidade(unidade: string) {
     if (!unidade || unidade.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Unidade é obrigatória para busca"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória para busca");
     }
 
     return this.itemRepository.findByUnidade(unidade.trim());
@@ -276,10 +233,7 @@ export class ItemService extends BaseService<
    */
   async findMostUsed(limit: number = 10) {
     if (limit <= 0 || limit > 50) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Limite deve estar entre 1 e 50"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Limite deve estar entre 1 e 50");
     }
 
     return this.itemRepository.findMostUsed(limit);
@@ -298,35 +252,33 @@ export class ItemService extends BaseService<
   async getItemStats(itemId: string) {
     const item = await this.itemRepository.findById(itemId);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
     return this.itemRepository.getItemStats(itemId);
   }
 
   /**
-   * Soft delete de um item
+   * Deleta um item
    */
-  async delete(id: string, userId: string): Promise<void> {
+  async delete(id: string): Promise<Item> {
     const item = await this.itemRepository.findById(id);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
     // Verifica se o item está sendo usado em entregas
-    const entregaItems = await this.itemRepository.prisma.entregaItem.count({
-      where: { itemId: id },
+    const entregaItems = await this.itemRepository.count({
+      entregaItems: {
+        some: { itemId: id }
+      }
     });
 
     if (entregaItems > 0) {
-      throw new CustomError(
-        CommonErrors.CONFLICT,
-        "Não é possível excluir este item pois ele está sendo usado em entregas"
-      );
+      throw CommonErrors.CONFLICT("Não é possível excluir este item pois ele está sendo usado em entregas");
     }
 
-    const auditData = this.addAuditData(userId);
-    await this.itemRepository.update(id, { ativo: false, ...auditData });
+    return this.itemRepository.update(id, { ativo: false });
   }
 
   /**
@@ -335,10 +287,12 @@ export class ItemService extends BaseService<
   async reactivate(id: string, userId: string): Promise<Item> {
     const item = await this.itemRepository.findById(id);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    const auditData = this.addAuditData(userId);
-    return this.itemRepository.update(id, { ativo: true, ...auditData });
+    return this.itemRepository.update(id, { 
+      ativo: true,
+      ...this.addAuditData(userId)
+    });
   }
 }

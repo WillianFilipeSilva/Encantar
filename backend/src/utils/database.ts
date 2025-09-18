@@ -18,16 +18,21 @@ class DatabaseClient {
       });
 
       // Event listeners para logs
-      DatabaseClient.instance.$on("query", (e: any) => {
-        if (process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === "development") {
+        const client = DatabaseClient.instance as PrismaClient & {
+          $on(event: 'query', listener: (event: { query: string; duration: number }) => void): void;
+          $on(event: 'error', listener: (event: { message: string }) => void): void;
+        };
+        
+        client.$on('query', (e) => {
           console.log("🔍 Query:", e.query);
           console.log("⏱️  Duration:", e.duration + "ms");
-        }
-      });
+        });
 
-      DatabaseClient.instance.$on("error", (e: any) => {
-        console.error("❌ Database Error:", e);
-      });
+        client.$on('error', (e) => {
+          console.error("❌ Database Error:", e);
+        });
+      }
     }
 
     return DatabaseClient.instance;
@@ -64,10 +69,10 @@ class DatabaseClient {
    * Executa uma transação
    */
   public static async transaction<T>(
-    fn: (prisma: PrismaClient) => Promise<T>
+    fn: (prisma: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends">) => Promise<T>
   ): Promise<T> {
     const prisma = DatabaseClient.getInstance();
-    return prisma.$transaction(fn);
+    return prisma.$transaction<T>(fn);
   }
 
   /**

@@ -15,6 +15,7 @@ const item_1 = __importDefault(require("./routes/item"));
 const rota_1 = __importDefault(require("./routes/rota"));
 const modeloEntrega_1 = __importDefault(require("./routes/modeloEntrega"));
 const entrega_1 = __importDefault(require("./routes/entrega"));
+const swagger_1 = require("./swagger/swagger");
 const errorHandler_1 = require("./middleware/errorHandler");
 const notFound_1 = require("./middleware/notFound");
 const database_1 = __importDefault(require("./utils/database"));
@@ -51,6 +52,7 @@ app.use((0, cors_1.default)({
 app.use((0, morgan_1.default)("combined"));
 app.use(express_1.default.json({ limit: "10mb" }));
 app.use(express_1.default.urlencoded({ extended: true, limit: "10mb" }));
+(0, swagger_1.setupSwagger)(app);
 app.get("/health", (req, res) => {
     res.json({
         status: "OK",

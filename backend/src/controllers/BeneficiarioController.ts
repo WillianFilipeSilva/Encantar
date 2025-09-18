@@ -7,8 +7,9 @@ import {
   UpdateBeneficiarioDTO,
   BeneficiarioResponseDTO,
 } from "../models/DTOs";
-import { asyncHandler } from "../middleware/errorHandler";
+import { CommonErrors } from "../middleware/errorHandler";
 import { body, query, validationResult } from "express-validator";
+import { CacheManager } from "../utils/cache/cacheManager";
 
 export class BeneficiarioController extends BaseController<
   Beneficiario,
@@ -25,8 +26,8 @@ export class BeneficiarioController extends BaseController<
   /**
    * GET / - Lista todos os beneficiários com paginação
    */
-  findAll = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  findAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       // Validação dos query parameters
       await query("page")
         .optional()
@@ -51,13 +52,7 @@ export class BeneficiarioController extends BaseController<
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          error: "Parâmetros inválidos",
-          code: "VALIDATION_ERROR",
-          details: errors.array(),
-        });
-        return;
+        throw CommonErrors.VALIDATION_ERROR(`Parâmetros inválidos: ${errors.array()[0].msg}`);
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -75,23 +70,20 @@ export class BeneficiarioController extends BaseController<
         data: result.data,
         pagination: result.pagination,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * GET /:id - Busca um beneficiário por ID com relacionamentos
    */
-  findById = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  findById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
-          success: false,
-          error: "ID é obrigatório",
-          code: "MISSING_ID",
-        });
-        return;
+        throw CommonErrors.BAD_REQUEST("ID é obrigatório");
       }
 
       const result = await this.beneficiarioService.findByIdWithRelations(id);
@@ -100,14 +92,16 @@ export class BeneficiarioController extends BaseController<
         success: true,
         data: result,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * POST / - Cria um novo beneficiário
    */
-  create = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       // Validação dos dados
       await body("nome")
         .notEmpty()
@@ -139,13 +133,7 @@ export class BeneficiarioController extends BaseController<
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          error: "Dados inválidos",
-          code: "VALIDATION_ERROR",
-          details: errors.array(),
-        });
-        return;
+        throw CommonErrors.VALIDATION_ERROR(`Dados inválidos: ${errors.array()[0].msg}`);
       }
 
       const data: CreateBeneficiarioDTO = req.body;
@@ -153,28 +141,28 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.create(data, userId);
 
+      // Invalida o cache após criação
+      CacheManager.Beneficiario.invalidateAll();
+
       res.status(201).json({
         success: true,
         data: result,
         message: "Beneficiário criado com sucesso",
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * PUT /:id - Atualiza um beneficiário
    */
-  update = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
-          success: false,
-          error: "ID é obrigatório",
-          code: "MISSING_ID",
-        });
-        return;
+        throw CommonErrors.BAD_REQUEST("ID é obrigatório");
       }
 
       // Validação dos dados
@@ -211,13 +199,7 @@ export class BeneficiarioController extends BaseController<
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          error: "Dados inválidos",
-          code: "VALIDATION_ERROR",
-          details: errors.array(),
-        });
-        return;
+        throw CommonErrors.VALIDATION_ERROR(`Dados inválidos: ${errors.array()[0].msg}`);
       }
 
       const data: UpdateBeneficiarioDTO = req.body;
@@ -225,44 +207,49 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.update(id, data, userId);
 
+      // Invalida o cache após atualização
+      CacheManager.Beneficiario.invalidateOne(id);
+
       res.json({
         success: true,
         data: result,
         message: "Beneficiário atualizado com sucesso",
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * DELETE /:id - Remove um beneficiário (soft delete)
    */
-  delete = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       const { id } = req.params;
 
       if (!id) {
-        res.status(400).json({
-          success: false,
-          error: "ID é obrigatório",
-          code: "MISSING_ID",
-        });
-        return;
+        throw CommonErrors.BAD_REQUEST("ID é obrigatório");
       }
 
       await this.beneficiarioService.delete(id);
+
+      // Invalida o cache após remoção
+      CacheManager.Beneficiario.invalidateOne(id);
 
       res.json({
         success: true,
         message: "Beneficiário removido com sucesso",
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * GET /search - Busca beneficiários por nome
    */
-  search = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  search = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       await query("q")
         .notEmpty()
         .withMessage("Parâmetro de busca é obrigatório")
@@ -277,13 +264,7 @@ export class BeneficiarioController extends BaseController<
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          error: "Parâmetros inválidos",
-          code: "VALIDATION_ERROR",
-          details: errors.array(),
-        });
-        return;
+        throw CommonErrors.VALIDATION_ERROR(`Parâmetros inválidos: ${errors.array()[0].msg}`);
       }
 
       const { q } = req.query;
@@ -298,28 +279,32 @@ export class BeneficiarioController extends BaseController<
         success: true,
         data: result,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * GET /active - Lista beneficiários ativos para seleção
    */
-  findActive = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  findActive = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       const result = await this.beneficiarioService.findActiveForSelection();
 
       res.json({
         success: true,
         data: result,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * GET /top - Lista beneficiários com mais entregas
    */
-  findTop = asyncHandler(
-    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  findTop = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
       await query("limit")
         .optional()
         .isInt({ min: 1, max: 50 })
@@ -328,13 +313,7 @@ export class BeneficiarioController extends BaseController<
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          error: "Parâmetros inválidos",
-          code: "VALIDATION_ERROR",
-          details: errors.array(),
-        });
-        return;
+        throw CommonErrors.VALIDATION_ERROR(`Parâmetros inválidos: ${errors.array()[0].msg}`);
       }
 
       const limit = parseInt(req.query.limit as string) || 10;
@@ -344,8 +323,10 @@ export class BeneficiarioController extends BaseController<
         success: true,
         data: result,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  };
 
   /**
    * Constrói filtros a partir dos query parameters
