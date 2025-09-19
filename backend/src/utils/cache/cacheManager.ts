@@ -1,5 +1,5 @@
-import cache from '../utils/cache';
-import logger from '../utils/logger';
+import cache from './index';
+import logger from '../logger';
 
 /**
  * Funções para gerenciar o cache das entidades
