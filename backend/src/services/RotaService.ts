@@ -36,14 +36,11 @@ export class RotaService extends BaseService<
       throw CommonErrors.BAD_REQUEST("ID é obrigatório");
     }
     
-    // Busca a rota com suas entregas
     const rota = await this.rotaRepository.findByIdWithRelations(id);
     if (!rota) {
       throw CommonErrors.NOT_FOUND("Rota não encontrada");
     }
     
-    // Verifica se há entregas associadas
-    // Usamos type assertion pois sabemos que findByIdWithRelations inclui entregas
     const rotaWithRelations = rota as Rota & { entregas: any[] };
     if (rotaWithRelations.entregas && rotaWithRelations.entregas.length > 0) {
       throw CommonErrors.BAD_REQUEST(
@@ -51,7 +48,6 @@ export class RotaService extends BaseService<
       );
     }
     
-    // Se não tiver entregas, pode excluir
     return super.delete(id);
   }
 

@@ -63,7 +63,6 @@ export default function ModelosPage() {
     refresh
   } = usePagination<ModeloEntrega>('/modelos-entrega')
 
-  // Buscar itens disponíveis
   const { data: itensDisponiveis } = useQuery<Item[]>({
     queryKey: ['items-all'],
     queryFn: async () => {
@@ -128,7 +127,6 @@ export default function ModelosPage() {
         const response = await api.delete(`/modelos-entrega/${modeloId}`)
         return response.data
       } catch (error: any) {
-        // Não transformamos o erro, apenas o propagamos
         throw error
       }
     },
@@ -191,7 +189,6 @@ export default function ModelosPage() {
         itemId: mi.item.id,
         quantidade: mi.quantidade
       })))
-      // Garante que o estado do diálogo seja atualizado
       setTimeout(() => {
         setDialogOpen(true)
       }, 0)
@@ -202,7 +199,6 @@ export default function ModelosPage() {
   }
 
   const handleDelete = (modelo: ModeloEntrega) => {
-    // Substituindo window.confirm por toast com confirmação
     toast((t) => (
       <div className="flex flex-col gap-2">
         <span>Tem certeza que deseja excluir o modelo "{modelo.nome}"?</span>

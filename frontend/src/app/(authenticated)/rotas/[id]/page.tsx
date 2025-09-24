@@ -115,7 +115,6 @@ export default function RotaDetalhesPage() {
     queryKey: ['itens'],
     queryFn: async () => {
       try {
-        // Corrigindo o endpoint para listar todos os itens
         const response = await api.get('/items?page=1&limit=1000')
         console.log('Dados de itens recebidos:', response.data)
         return response.data.data || response.data
@@ -134,7 +133,6 @@ export default function RotaDetalhesPage() {
     }
   })
 
-  // Mutations para CRUD de entregas
   const createEntregaMutation = useMutation({
     mutationFn: async (newEntrega: any) => {
       const response = await api.post('/entregas', {
@@ -191,7 +189,6 @@ export default function RotaDetalhesPage() {
     }
   })
 
-  // Inicializar itemsSelecionados quando itens carregarem
   useEffect(() => {
     if (itens && itemsSelecionados.length === 0) {
       setItemsSelecionados(itens.map(item => ({ id: item.id, quantidade: 0 })))
@@ -262,7 +259,6 @@ export default function RotaDetalhesPage() {
   const alterarStatusTodasEntregas = async (novoStatus: string) => {
     try {
       await api.patch(`/rotas/${params.id}/entregas/status`, { status: novoStatus })
-      // Refetch dos dados
     } catch (error) {
       console.error('Erro ao alterar status das entregas:', error)
     }
@@ -566,7 +562,6 @@ export default function RotaDetalhesPage() {
                       size="icon" 
                       title="Excluir entrega"
                       onClick={() => {
-                        // Substituindo window.confirm por toast com confirmação
                         toast((t) => (
                           <div className="flex flex-col gap-2">
                             <span>Tem certeza que deseja excluir esta entrega?</span>

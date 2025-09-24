@@ -101,12 +101,10 @@ export default function ItensPage() {
         const response = await api.delete(`/items/${itemId}`);
         return response.data;
       } catch (error: any) {
-        // Registramos informações detalhadas sobre a requisição para facilitar a depuração
         console.error(`Erro ao excluir item com ID: ${itemId}`);
         if (error.config) {
           console.error(`URL da requisição: ${error.config.url}`);
         }
-        // Não transformamos o erro, apenas o propagamos
         throw error;
       }
     },
@@ -156,7 +154,6 @@ export default function ItensPage() {
         descricao: item.descricao || '',
         unidade: item.unidade
       })
-      // Garante que o estado do diálogo seja atualizado
       setTimeout(() => {
         setDialogOpen(true)
       }, 0)
@@ -167,7 +164,6 @@ export default function ItensPage() {
   }
 
   const handleDelete = (item: Item) => {
-    // Substituindo window.confirm por toast com confirmação
     toast((t) => (
       <div className="flex flex-col gap-2">
         <span>Tem certeza que deseja excluir o item "{item.nome}"?</span>

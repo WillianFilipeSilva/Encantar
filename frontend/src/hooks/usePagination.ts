@@ -1,4 +1,3 @@
-// Hook para paginação reutilizável
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/axios'

@@ -41,14 +41,12 @@ api.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // Se é erro 401 e não é uma tentativa de login/refresh
     if (error.response?.status === 401 && 
         !originalRequest._retry && 
         !originalRequest.url?.includes('/auth/login') &&
         !originalRequest.url?.includes('/auth/refresh')) {
       
       if (isRefreshing) {
-        // Se já está fazendo refresh, adiciona à fila
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject })
         }).then(token => {

@@ -102,7 +102,6 @@ export default function BeneficiariosPage() {
         const response = await api.delete(`/beneficiarios/${beneficiarioId}`)
         return response.data
       } catch (error: any) {
-        // Não transformamos o erro, apenas o propagamos
         throw error
       }
     },
@@ -158,7 +157,6 @@ export default function BeneficiariosPage() {
         dataNascimento: beneficiario.dataNascimento ? beneficiario.dataNascimento.split('T')[0] : '',
         observacoes: beneficiario.observacoes || ''
       })
-      // Garante que o estado do diálogo seja atualizado
       setTimeout(() => {
         setDialogOpen(true)
       }, 0)
@@ -169,7 +167,6 @@ export default function BeneficiariosPage() {
   }
 
   const handleDelete = (beneficiario: Beneficiario) => {
-    // Substituindo window.confirm por toast com confirmação
     toast((t) => (
       <div className="flex flex-col gap-2">
         <span>Tem certeza que deseja excluir o beneficiário "{beneficiario.nome}"?</span>
@@ -312,7 +309,6 @@ export default function BeneficiariosPage() {
         </Dialog>
       </div>
 
-      {/* Controles de paginação */}
       <PaginationControls
         pagination={pagination}
         searchValue={params.search}

@@ -10,7 +10,6 @@ export function formatDate(date: Date | string | null | undefined) {
   
   const dateObj = date instanceof Date ? date : new Date(date)
   
-  // Verificar se a data é válida
   if (isNaN(dateObj.getTime())) return ''
   
   return new Intl.DateTimeFormat('pt-BR', {

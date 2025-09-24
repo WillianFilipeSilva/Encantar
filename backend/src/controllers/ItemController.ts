@@ -567,12 +567,10 @@ export class ItemController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo (se existir)
     if (query.ativo !== undefined) {
       filters.ativo = query.ativo === "true";
     }
 
-    // Filtro por busca geral (se existir)
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
@@ -580,7 +578,6 @@ export class ItemController extends BaseController<
       ];
     }
 
-    // Filtros específicos do Item
     if (query.nome) {
       filters.nome = {
         contains: query.nome,
@@ -595,7 +592,6 @@ export class ItemController extends BaseController<
       };
     }
 
-    // Filtro por data (se existir)
     if (query.dataInicio) {
       filters.criadoEm = {
         ...filters.criadoEm,

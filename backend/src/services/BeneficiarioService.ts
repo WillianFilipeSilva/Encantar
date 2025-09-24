@@ -119,11 +119,8 @@ export class BeneficiarioService extends BaseService<
   private processDataForPrisma(data: CreateBeneficiarioDTO | UpdateBeneficiarioDTO): any {
     const processed: any = { ...data };
     
-    // Converte dataNascimento de string para Date se fornecido
     if (data.dataNascimento) {
       try {
-        // Adicionando a hora para garantir formato ISO completo
-        // Formato "2002-01-10" vira "2002-01-10T00:00:00Z"
         if (typeof data.dataNascimento === 'string') {
           if (data.dataNascimento.includes('T')) {
             processed.dataNascimento = new Date(data.dataNascimento);
@@ -151,7 +148,6 @@ export class BeneficiarioService extends BaseService<
     await this.findById(id);
     await this.validateUpdateData(data);
 
-    // Se está alterando nome ou endereço, verifica duplicatas
     if (data.nome || data.endereco) {
       const current = await this.findById(id);
       const nome = data.nome || current.nome;
@@ -332,7 +328,6 @@ export class BeneficiarioService extends BaseService<
       return true;
     }
     
-    // Remove caracteres não numéricos
     const cleanPhone = phone.replace(/\D/g, "");
     
     return cleanPhone.length >= 10 && cleanPhone.length <= 11;
