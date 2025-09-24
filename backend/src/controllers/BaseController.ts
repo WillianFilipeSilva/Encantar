@@ -72,6 +72,9 @@ export abstract class BaseController<T, CreateData, UpdateData> {
       const data = req.body;
       const userId = (req as any).user?.id; // Assumindo que o middleware de auth adiciona o user
 
+      console.log('DEBUG - userId no controller:', userId); // Debug temporário
+      console.log('DEBUG - req.user:', (req as any).user); // Debug temporário
+
       const result = await this.service.create(data, userId);
 
       res.status(201).json({

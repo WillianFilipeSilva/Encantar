@@ -35,6 +35,7 @@ export interface CreateBeneficiarioDTO {
   endereco: string;
   telefone?: string;
   email?: string;
+  dataNascimento?: string;
   observacoes?: string;
 }
 
@@ -43,6 +44,7 @@ export interface UpdateBeneficiarioDTO {
   endereco?: string;
   telefone?: string;
   email?: string;
+  dataNascimento?: string;
   observacoes?: string;
   ativo?: boolean;
 }

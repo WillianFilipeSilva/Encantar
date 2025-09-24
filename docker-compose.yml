@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: encantar-db
+    environment:
+      POSTGRES_DB: encantar
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - encantar-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: encantar-backend
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/encantar"
+      JWT_SECRET: "-ENCANTAR-SECRET-MUDAR-EM-PROD"
+      JWT_REFRESH_SECRET: "-ENCANTAR-REFRESH-SECRET-MUDAR-EM-PROD"
+      JWT_EXPIRES_IN: "15m"
+      JWT_REFRESH_EXPIRES_IN: "7d"
+      PORT: 3001
+      FRONTEND_URL: "http://localhost:3000"
+      NODE_ENV: "development"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - encantar-network
+    command: >
+      sh -c "
+        echo '🔄 Aguardando banco de dados...' &&
+        npx prisma migrate deploy &&
+        echo '🌱 Populando banco...' &&
+        npm run prisma:seed &&
+        echo '🚀 Iniciando servidor...' &&
+        npm run dev
+      "
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: encantar-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3001/api"
+      NODE_ENV: "development"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - encantar-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  encantar-network:
+    driver: bridge

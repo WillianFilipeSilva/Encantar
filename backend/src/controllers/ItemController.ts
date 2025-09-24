@@ -49,7 +49,7 @@ export class ItemController extends BaseController<
    * Validação para atualização de item
    */
   private validateUpdate = [
-    param("id").isUUID().withMessage("ID deve ser um UUID válido"),
+    param("id").matches(/^[a-z0-9]+$/).withMessage("ID inválido"),
     body("nome")
       .optional()
       .notEmpty()
@@ -89,13 +89,26 @@ export class ItemController extends BaseController<
       .withMessage("Limite deve ser um número entre 1 e 100"),
     query("nome")
       .optional()
-      .isLength({ max: 100 })
-      .withMessage("Nome de busca deve ter no máximo 100 caracteres")
+      .custom((value) => {
+        if (value === "") return true; // Permite string vazia
+        if (value && value.length < 2) {
+          throw new Error("Nome de busca deve ter pelo menos 2 caracteres se fornecido");
+        }
+        if (value && value.length > 100) {
+          throw new Error("Nome de busca deve ter no máximo 100 caracteres");
+        }
+        return true;
+      })
       .trim(),
     query("unidade")
       .optional()
-      .isLength({ max: 20 })
-      .withMessage("Unidade de busca deve ter no máximo 20 caracteres")
+      .custom((value) => {
+        if (value === "") return true; // Permite string vazia
+        if (value && value.length > 20) {
+          throw new Error("Unidade de busca deve ter no máximo 20 caracteres");
+        }
+        return true;
+      })
       .trim(),
     query("ativo")
       .optional()
@@ -107,7 +120,7 @@ export class ItemController extends BaseController<
    * Validação para ID
    */
   private validateId = [
-    param("id").isUUID().withMessage("ID deve ser um UUID válido"),
+    param("id").matches(/^[a-z0-9]+$/).withMessage("ID inválido"),
   ];
 
   /**
@@ -115,10 +128,18 @@ export class ItemController extends BaseController<
    */
   private validateSearchByName = [
     query("nome")
-      .notEmpty()
-      .withMessage("Nome é obrigatório para busca")
-      .isLength({ max: 100 })
-      .withMessage("Nome deve ter no máximo 100 caracteres")
+      .custom((value) => {
+        if (!value || value.trim() === "") {
+          throw new Error("Nome é obrigatório para busca");
+        }
+        if (value.length < 2) {
+          throw new Error("Nome deve ter pelo menos 2 caracteres");
+        }
+        if (value.length > 100) {
+          throw new Error("Nome deve ter no máximo 100 caracteres");
+        }
+        return true;
+      })
       .trim(),
     query("limit")
       .optional()
@@ -131,10 +152,15 @@ export class ItemController extends BaseController<
    */
   private validateSearchByUnidade = [
     query("unidade")
-      .notEmpty()
-      .withMessage("Unidade é obrigatória para busca")
-      .isLength({ max: 20 })
-      .withMessage("Unidade deve ter no máximo 20 caracteres")
+      .custom((value) => {
+        if (!value || value.trim() === "") {
+          throw new Error("Unidade é obrigatória para busca");
+        }
+        if (value.length > 20) {
+          throw new Error("Unidade deve ter no máximo 20 caracteres");
+        }
+        return true;
+      })
       .trim(),
   ];
 
@@ -167,7 +193,17 @@ export class ItemController extends BaseController<
         return;
       }
 
-      await super.findAll(req, res, next);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const filters = this.buildFilters(req.query);
+
+      const result = await this.service.findAll(page, limit, filters);
+
+      res.json({
+        success: true,
+        data: result.data,
+        pagination: result.pagination,
+      });
     } catch (error) {
       next(error);
     }
@@ -192,7 +228,23 @@ export class ItemController extends BaseController<
         return;
       }
 
-      await super.findById(req, res, next);
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          error: "ID é obrigatório",
+          code: "MISSING_ID",
+        });
+        return;
+      }
+
+      const item = await this.service.findById(id);
+
+      res.json({
+        success: true,
+        data: item,
+      });
     } catch (error) {
       next(error);
     }
@@ -412,35 +464,6 @@ export class ItemController extends BaseController<
   }
 
   /**
-   * Reativa um item
-   */
-  public async reactivate(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          message: "Dados inválidos",
-          errors: errors.array(),
-        });
-        return;
-      }
-
-      const { id } = req.params;
-      const userId = (req as AuthenticatedRequest).user?.id;
-      const item = await this.itemService.reactivate(id, userId!);
-
-      this.successResponse(res, item, "Item reativado com sucesso");
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
    * Cria um novo item
    */
   public async create(
@@ -459,7 +482,15 @@ export class ItemController extends BaseController<
         return;
       }
 
-      await super.create(req, res, next);
+      const userId = (req as AuthenticatedRequest).user?.id;
+      const data = { ...req.body, criadoPor: userId };
+      const item = await this.service.create(data);
+
+      res.status(201).json({
+        success: true,
+        data: item,
+        message: "Item criado com sucesso",
+      });
     } catch (error) {
       next(error);
     }
@@ -484,7 +515,16 @@ export class ItemController extends BaseController<
         return;
       }
 
-      await super.update(req, res, next);
+      const { id } = req.params;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      const data = { ...req.body, atualizadoPor: userId };
+      const item = await this.service.update(id, data);
+
+      res.json({
+        success: true,
+        data: item,
+        message: "Item atualizado com sucesso",
+      });
     } catch (error) {
       next(error);
     }
@@ -509,7 +549,13 @@ export class ItemController extends BaseController<
         return;
       }
 
-      await super.delete(req, res, next);
+      const { id } = req.params;
+      await this.service.delete(id);
+
+      res.json({
+        success: true,
+        message: "Item excluído com sucesso",
+      });
     } catch (error) {
       next(error);
     }
@@ -519,8 +565,22 @@ export class ItemController extends BaseController<
    * Constrói filtros a partir dos query parameters
    */
   protected buildFilters(query: any): any {
-    const filters = super.buildFilters(query);
+    const filters: any = {};
 
+    // Filtro por ativo (se existir)
+    if (query.ativo !== undefined) {
+      filters.ativo = query.ativo === "true";
+    }
+
+    // Filtro por busca geral (se existir)
+    if (query.search) {
+      filters.OR = [
+        { nome: { contains: query.search, mode: "insensitive" } },
+        { unidade: { contains: query.search, mode: "insensitive" } },
+      ];
+    }
+
+    // Filtros específicos do Item
     if (query.nome) {
       filters.nome = {
         contains: query.nome,
@@ -532,6 +592,21 @@ export class ItemController extends BaseController<
       filters.unidade = {
         equals: query.unidade,
         mode: "insensitive"
+      };
+    }
+
+    // Filtro por data (se existir)
+    if (query.dataInicio) {
+      filters.criadoEm = {
+        ...filters.criadoEm,
+        gte: new Date(query.dataInicio),
+      };
+    }
+
+    if (query.dataFim) {
+      filters.criadoEm = {
+        ...filters.criadoEm,
+        lte: new Date(query.dataFim),
       };
     }
 

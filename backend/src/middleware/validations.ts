@@ -6,8 +6,8 @@ import { body, param, query } from 'express-validator';
 export const commonValidations = {
   // Validações de parâmetros
   id: param('id')
-    .isUUID()
-    .withMessage('ID deve ser um UUID válido'),
+    .matches(/^[a-z0-9]+$/)
+    .withMessage('ID inválido'),
 
   // Validações de paginação
   page: query('page')

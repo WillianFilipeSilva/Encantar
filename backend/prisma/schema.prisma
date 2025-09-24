@@ -63,6 +63,7 @@ model Beneficiario {
   endereco    String
   telefone    String?
   email       String?
+  dataNascimento DateTime?
   observacoes String?
   ativo       Boolean  @default(true)
   criadoEm    DateTime @default(now())
@@ -86,7 +87,6 @@ model Item {
   nome        String
   descricao   String?
   unidade     String   // Ex: "kg", "unidade", "litro", "caixa"
-  ativo       Boolean  @default(true)
   criadoEm    DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
@@ -107,6 +107,7 @@ model Item {
 model Entrega {
   id          String   @id @default(cuid())
   observacoes String?
+  status      String   @default("PENDENTE") // PENDENTE, ENTREGUE, CANCELADA
   criadoEm    DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
@@ -132,7 +133,7 @@ model Entrega {
 // Tabela de ligação entre Entrega e Item (com quantidade)
 model EntregaItem {
   id        String @id @default(cuid())
-  quantidade Decimal @db.Decimal(10, 2)
+  quantidade Int   // Quantidade inteira de items
 
   // Relacionamentos
   entregaId String
@@ -197,8 +198,8 @@ model ModeloEntrega {
 
 // Tabela de ligação para os itens de um modelo de entrega
 model ModeloEntregaItem {
-  id         String  @id @default(cuid())
-  quantidade Decimal @db.Decimal(10, 2)
+  id         String @id @default(cuid())
+  quantidade Int    // Quantidade inteira de items
 
   // Relacionamentos
   modeloId String

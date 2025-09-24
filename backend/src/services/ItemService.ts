@@ -81,16 +81,15 @@ export class ItemService extends BaseService<
     return {
       nome: data.nome.trim(),
       unidade: data.unidade.trim(),
-      descricao: data.descricao?.trim() || null,
-      ativo: true
+      descricao: data.descricao?.trim() || null
     };
   }
 
   /**
    * Transforma dados para atualização
    */
-  protected transformUpdateData(data: UpdateItemDTO, userId?: string): any {
-    const transformed: any = this.addAuditData(userId);
+  protected async transformUpdateData(data: UpdateItemDTO, userId?: string): Promise<any> {
+    const transformed: any = await this.addAuditData({}, userId, "update");
 
     if (data.nome !== undefined) {
       transformed.nome = data.nome.trim();
@@ -123,9 +122,10 @@ export class ItemService extends BaseService<
       throw CommonErrors.CONFLICT("Já existe um item com este nome");
     }
 
+    const auditData = await this.addAuditData({}, userId, "create");
     const transformedData = {
       ...this.transformData(data as any),
-      ...this.addAuditData(userId)
+      ...auditData
     };
 
     return this.itemRepository.create(transformedData);
@@ -151,7 +151,7 @@ export class ItemService extends BaseService<
       }
     }
 
-    const transformedData = this.transformUpdateData(data, userId);
+    const transformedData = await this.transformUpdateData(data, userId);
 
     return this.itemRepository.update(id, transformedData);
   }
@@ -278,21 +278,6 @@ export class ItemService extends BaseService<
       throw CommonErrors.CONFLICT("Não é possível excluir este item pois ele está sendo usado em entregas");
     }
 
-    return this.itemRepository.update(id, { ativo: false });
-  }
-
-  /**
-   * Reativa um item
-   */
-  async reactivate(id: string, userId: string): Promise<Item> {
-    const item = await this.itemRepository.findById(id);
-    if (!item) {
-      throw CommonErrors.NOT_FOUND("Item não encontrado");
-    }
-
-    return this.itemRepository.update(id, { 
-      ativo: true,
-      ...this.addAuditData(userId)
-    });
+    return this.itemRepository.hardDelete(id);
   }
 }

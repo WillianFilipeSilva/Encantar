@@ -96,7 +96,6 @@ export class BeneficiarioService extends BaseService<
   async create(data: CreateBeneficiarioDTO, userId?: string): Promise<Beneficiario> {
     await this.validateCreateData(data);
 
-    // Verifica se já existe beneficiário com mesmo nome e endereço
     const exists = await this.beneficiarioRepository.existsByNomeAndEndereco(
       data.nome,
       data.endereco
@@ -108,8 +107,37 @@ export class BeneficiarioService extends BaseService<
       );
     }
 
-    const createData = this.addAuditData(data, userId, "create");
+    const processedData = this.processDataForPrisma(data);
+    const createData = await this.addAuditData(processedData, userId, "create");
     return this.beneficiarioRepository.create(createData);
+  }
+  
+  /**
+   * Processa os dados para garantir compatibilidade com o Prisma
+   * Especialmente para campos de data
+   */
+  private processDataForPrisma(data: CreateBeneficiarioDTO | UpdateBeneficiarioDTO): any {
+    const processed: any = { ...data };
+    
+    // Converte dataNascimento de string para Date se fornecido
+    if (data.dataNascimento) {
+      try {
+        // Adicionando a hora para garantir formato ISO completo
+        // Formato "2002-01-10" vira "2002-01-10T00:00:00Z"
+        if (typeof data.dataNascimento === 'string') {
+          if (data.dataNascimento.includes('T')) {
+            processed.dataNascimento = new Date(data.dataNascimento);
+          } else {
+            processed.dataNascimento = new Date(`${data.dataNascimento}T00:00:00.000Z`);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao converter data de nascimento:", error);
+        delete processed.dataNascimento;
+      }
+    }
+    
+    return processed;
   }
 
   /**
@@ -142,7 +170,8 @@ export class BeneficiarioService extends BaseService<
       }
     }
 
-    const updateData = this.addAuditData(data, userId, "update");
+    const processedData = this.processDataForPrisma(data);
+    const updateData = await this.addAuditData(processedData, userId, "update");
     return this.beneficiarioRepository.update(id, updateData);
   }
 
@@ -189,12 +218,20 @@ export class BeneficiarioService extends BaseService<
       );
     }
 
-    if (data.email && !this.isValidEmail(data.email)) {
+    if (data.email && data.email.trim() !== "" && !this.isValidEmail(data.email)) {
       throw CommonErrors.BAD_REQUEST("Email inválido");
     }
 
-    if (data.telefone && !this.isValidPhone(data.telefone)) {
+    if (data.telefone && data.telefone.trim() !== "" && !this.isValidPhone(data.telefone)) {
       throw CommonErrors.BAD_REQUEST("Telefone inválido");
+    }
+
+    if (data.dataNascimento && data.dataNascimento.trim() !== "") {
+      try {
+        new Date(data.dataNascimento);
+      } catch (error) {
+        throw CommonErrors.BAD_REQUEST("Data de nascimento inválida");
+      }
     }
   }
 
@@ -222,7 +259,8 @@ export class BeneficiarioService extends BaseService<
 
     if (
       data.email !== undefined &&
-      data.email &&
+      data.email !== null &&
+      data.email.trim() !== "" &&
       !this.isValidEmail(data.email)
     ) {
       throw CommonErrors.BAD_REQUEST("Email inválido");
@@ -230,10 +268,19 @@ export class BeneficiarioService extends BaseService<
 
     if (
       data.telefone !== undefined &&
-      data.telefone &&
+      data.telefone !== null &&
+      data.telefone.trim() !== "" &&
       !this.isValidPhone(data.telefone)
     ) {
       throw CommonErrors.BAD_REQUEST("Telefone inválido");
+    }
+
+    if (data.dataNascimento !== undefined && data.dataNascimento !== null && data.dataNascimento.trim() !== "") {
+      try {
+        new Date(data.dataNascimento);
+      } catch (error) {
+        throw CommonErrors.BAD_REQUEST("Data de nascimento inválida");
+      }
     }
   }
 
@@ -281,9 +328,13 @@ export class BeneficiarioService extends BaseService<
    * Valida formato de telefone brasileiro
    */
   private isValidPhone(phone: string): boolean {
+    if (!phone || phone.trim() === "") {
+      return true;
+    }
+    
     // Remove caracteres não numéricos
     const cleanPhone = phone.replace(/\D/g, "");
-    // Aceita telefones com 10 ou 11 dígitos (com DDD)
+    
     return cleanPhone.length >= 10 && cleanPhone.length <= 11;
   }
 }

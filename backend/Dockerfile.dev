@@ -1,0 +1,40 @@
+# Dockerfile para Backend - Desenvolvimento
+FROM node:18-alpine
+
+# Instalar ferramentas necessárias
+RUN apk add --no-cache git
+
+# Criar diretório de trabalho
+WORKDIR /app
+
+# Copiar package.json e package-lock.json
+COPY package*.json ./
+
+# Instalar dependências (incluindo dev)
+RUN npm ci
+
+# Copiar código fonte
+COPY . .
+
+# Gerar cliente Prisma
+RUN npx prisma generate
+
+# Expor porta
+EXPOSE 3001
+
+# Criar script de inicialização
+RUN echo '#!/bin/sh\n\
+echo "🔄 Aguardando banco de dados..."\n\
+while ! nc -z postgres 5432; do\n\
+  sleep 1\n\
+done\n\
+echo "✅ Banco conectado!"\n\
+echo "🔄 Executando migrations..."\n\
+npx prisma migrate deploy\n\
+echo "🌱 Populando banco..."\n\
+npm run prisma:seed || true\n\
+echo "🚀 Iniciando servidor..."\n\
+exec npm run dev' > /app/start.sh && chmod +x /app/start.sh
+
+# Comando padrão
+CMD ["/app/start.sh"]

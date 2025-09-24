@@ -12,9 +12,10 @@ import itemRoutes from "./routes/item";
 import rotaRoutes from "./routes/rota";
 import modeloEntregaRoutes from "./routes/modeloEntrega";
 import entregaRoutes from "./routes/entrega";
+import dashboardRoutes from "./routes/dashboard";
 
 // Importar Swagger
-import { setupSwagger } from "./swagger/swagger";
+// import { setupSwagger } from "./swagger/swagger";
 
 // Importar middleware
 import { errorHandler } from "./middleware/errorHandler";
@@ -28,6 +29,34 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ===========================================
+// CORS - DEVE VIR PRIMEIRO
+// ===========================================
+
+// CORS configurado para desenvolvimento
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      process.env.FRONTEND_URL || "http://localhost:3000"
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "Access-Control-Allow-Headers"
+    ],
+    exposedHeaders: ["Set-Cookie"],
+    optionsSuccessStatus: 200, // Para suportar browsers legados
+    preflightContinue: false
+  })
+);
 
 // ===========================================
 // MIDDLEWARE DE SEGURANÇA
@@ -68,40 +97,26 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Necessário para Swagger UI
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001"],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
         frameSrc: ["'none'"],
       },
     },
-    crossOriginEmbedderPolicy: true,
-    crossOriginOpenerPolicy: true,
-    crossOriginResourcePolicy: { policy: "same-site" },
+    crossOriginEmbedderPolicy: false, // Desabilitado para desenvolvimento
+    crossOriginOpenerPolicy: false, // Desabilitado para desenvolvimento
+    crossOriginResourcePolicy: false, // Desabilitado para desenvolvimento
     dnsPrefetchControl: true,
     frameguard: { action: "deny" },
     hidePoweredBy: true,
-    hsts: {
-      maxAge: 31536000,
-      includeSubDomains: true,
-      preload: true,
-    },
+    hsts: false, // Desabilitado para desenvolvimento HTTP
     ieNoOpen: true,
     noSniff: true,
     referrerPolicy: { policy: "same-origin" },
     xssFilter: true,
-  })
-);
-
-// CORS configurado para produção
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -123,7 +138,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // ===========================================
 
 // Configurar Swagger
-setupSwagger(app);
+// setupSwagger(app);
 
 // Rota de health check
 app.get("/health", (req, res) => {
@@ -142,6 +157,7 @@ app.use("/api/items", itemRoutes);
 app.use("/api/rotas", rotaRoutes);
 app.use("/api/modelos-entrega", modeloEntregaRoutes);
 app.use("/api/entregas", entregaRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // ===========================================
 // MIDDLEWARE DE ERRO

@@ -120,7 +120,6 @@ export class ItemRepository extends BaseRepository<
           contains: nome,
           mode: "insensitive",
         },
-        ativo: true,
       },
       take: limit,
       orderBy: { nome: "asc" },
@@ -159,7 +158,6 @@ export class ItemRepository extends BaseRepository<
    */
   async findActiveForSelection() {
     return this.prisma.item.findMany({
-      where: { ativo: true },
       select: {
         id: true,
         nome: true,
@@ -180,7 +178,6 @@ export class ItemRepository extends BaseRepository<
           equals: unidade,
           mode: "insensitive",
         },
-        ativo: true,
       },
       select: {
         id: true,
@@ -197,7 +194,6 @@ export class ItemRepository extends BaseRepository<
    */
   async findMostUsed(limit: number = 10) {
     return this.prisma.item.findMany({
-      where: { ativo: true },
       include: {
         _count: {
           select: {
@@ -219,7 +215,6 @@ export class ItemRepository extends BaseRepository<
    */
   async findDistinctUnidades() {
     const result = await this.prisma.item.findMany({
-      where: { ativo: true },
       select: {
         unidade: true,
       },

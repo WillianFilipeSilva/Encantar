@@ -28,7 +28,6 @@ export class BeneficiarioController extends BaseController<
    */
   findAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Validação dos query parameters
       await query("page")
         .optional()
         .isInt({ min: 1 })
@@ -41,8 +40,12 @@ export class BeneficiarioController extends BaseController<
         .run(req);
       await query("search")
         .optional()
-        .isLength({ min: 2 })
-        .withMessage("Busca deve ter pelo menos 2 caracteres")
+        .custom((value) => {
+          if (value && value.trim().length > 0 && value.trim().length < 2) {
+            throw new Error("Busca deve ter pelo menos 2 caracteres");
+          }
+          return true;
+        })
         .run(req);
       await query("ativo")
         .optional()
@@ -116,17 +119,22 @@ export class BeneficiarioController extends BaseController<
         .withMessage("Endereço deve ter entre 5 e 200 caracteres")
         .run(req);
       await body("telefone")
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ min: 10, max: 15 })
         .withMessage("Telefone deve ter entre 10 e 15 caracteres")
         .run(req);
       await body("email")
-        .optional()
+        .optional({ checkFalsy: true })
         .isEmail()
         .withMessage("Email inválido")
         .run(req);
+      await body("dataNascimento")
+        .optional({ checkFalsy: true })
+        .isISO8601()
+        .withMessage("Data de nascimento deve estar no formato ISO8601 (AAAA-MM-DD)")
+        .run(req);
       await body("observacoes")
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 500 })
         .withMessage("Observações deve ter no máximo 500 caracteres")
         .run(req);
@@ -167,32 +175,37 @@ export class BeneficiarioController extends BaseController<
 
       // Validação dos dados
       await body("nome")
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ min: 2, max: 100 })
         .withMessage("Nome deve ter entre 2 e 100 caracteres")
         .run(req);
       await body("endereco")
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ min: 5, max: 200 })
         .withMessage("Endereço deve ter entre 5 e 200 caracteres")
         .run(req);
       await body("telefone")
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ min: 10, max: 15 })
         .withMessage("Telefone deve ter entre 10 e 15 caracteres")
         .run(req);
       await body("email")
-        .optional()
+        .optional({ checkFalsy: true })
         .isEmail()
         .withMessage("Email inválido")
         .run(req);
+      await body("dataNascimento")
+        .optional({ checkFalsy: true })
+        .isISO8601()
+        .withMessage("Data de nascimento deve estar no formato ISO8601 (AAAA-MM-DD)")
+        .run(req);
       await body("observacoes")
-        .optional()
+        .optional({ checkFalsy: true })
         .isLength({ max: 500 })
         .withMessage("Observações deve ter no máximo 500 caracteres")
         .run(req);
       await body("ativo")
-        .optional()
+        .optional({ checkFalsy: true })
         .isBoolean()
         .withMessage("Ativo deve ser true ou false")
         .run(req);

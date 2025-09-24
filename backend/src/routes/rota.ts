@@ -13,10 +13,10 @@ const controller = new RotaController(service);
 
 router.use(authenticateToken);
 
-router.get("/", controller.findAll);
-router.get("/:id", controller.findById);
-router.post("/", controller.create);
-router.put("/:id", controller.update);
-router.delete("/:id", controller.delete);
+router.get("/", controller.findAll.bind(controller));
+router.get("/:id", controller.findById.bind(controller));
+router.post("/", controller.create.bind(controller));
+router.put("/:id", controller.update.bind(controller));
+router.delete("/:id", controller.delete.bind(controller));
 
 export default router;

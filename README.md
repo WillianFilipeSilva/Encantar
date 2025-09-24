@@ -1,125 +1,115 @@
-# 🎯 Encantar - Sistema de Gestão de Entregas para ONGs
+# � Encantar - Sistema de Gestão de Entregas para ONGs
 
-Sistema completo para gerenciar entregas de ONGs, com controle de beneficiários, items, rotas e geração de PDFs.
+Sistema completo para gerenciar entregas de ONGs, com controle de beneficiários, itens, rotas e dashboard administrativo.
 
 ## 🚀 Tecnologias Utilizadas
 
 ### Backend
-
 - **Node.js + TypeScript** - Runtime e tipagem forte
 - **Express.js** - Framework web
 - **PostgreSQL** - Banco de dados
 - **Prisma ORM** - Type-safe database access
 - **JWT + Refresh Token** - Autenticação segura
-- **Puppeteer** - Geração de PDF
-- **Handlebars** - Templates HTML
+- **Helmet** - Middleware de segurança
+- **Rate Limiting** - Proteção contra abuse
 
-### Frontend (em desenvolvimento)
+### Frontend
+- **Next.js 14** - Framework React com App Router
+- **TypeScript** - Tipagem forte
+- **Tailwind CSS** - Framework CSS utilitário
+- **React Query** - Gerenciamento de estado e cache
+- **Axios** - Cliente HTTP
 
-- **React + TypeScript** - Interface do usuário
-- **Tailwind CSS** - Styling
-- **React Query** - Gerenciamento de estado
+### DevOps
+- **Docker + Docker Compose** - Containerização
+- **PostgreSQL 15 Alpine** - Banco em container
+- **Volume Persistence** - Dados persistentes
 
 ## 📋 Funcionalidades
 
 ### ✅ Implementadas
 
-- [x] Sistema de autenticação JWT + Refresh Token
-- [x] Sistema de convites para novos administradores
-- [x] Classes base para Repository, Service e Controller
+- [x] Sistema de autenticação JWT + Refresh Token completo
+- [x] Interface de login com logo personalizado
+- [x] Dashboard administrativo responsivo
+- [x] CRUD completo de Beneficiários com paginação
+- [x] CRUD completo de Itens com paginação
+- [x] CRUD completo de Rotas com paginação
+- [x] Sistema de entregas vinculadas a rotas
+- [x] Seed de dados para desenvolvimento
 - [x] Middleware de segurança e tratamento de erros
 - [x] Schema completo do banco de dados
-- [x] Estrutura de projeto profissional
+- [x] Containerização com Docker
+- [x] Scripts de automação PowerShell
 
 ### 🔄 Em Desenvolvimento
 
-- [ ] CRUD de Beneficiários
-- [ ] CRUD de Items
-- [ ] CRUD de Entregas
-- [ ] CRUD de Rotas
 - [ ] Sistema de templates PDF
-- [ ] Dashboard com métricas
-- [ ] Frontend React
+- [ ] Métricas avançadas no dashboard
+- [ ] Sistema de relatórios
+- [ ] Notificações push
+- [ ] Sistema de backup automático
 
-## 🛠️ Instalação e Configuração
+## � **Execução com Docker (Recomendado)**
 
-### Pré-requisitos
+### **Pré-requisitos**
+- Docker
+- Docker Compose
 
-- Node.js 18+
-- PostgreSQL 13+
-- npm ou yarn
+### **🚀 Comandos Principais**
 
-### 1. Clone o repositório
+```powershell
+# Iniciar o projeto completo
+docker-compose up -d
 
-```bash
-git clone <url-do-repositorio>
-cd encantar
+# Parar o projeto
+docker-compose down
+
+# Ver status dos containers
+docker ps
+
+# Ver logs
+docker logs encantar-frontend
+docker logs encantar-backend
+docker logs encantar-db
 ```
 
-### 2. Configure o banco de dados
+### **🤖 Script PowerShell Automatizado**
 
-```bash
-# Instale o PostgreSQL e crie um banco
-createdb encantar_db
+Criamos um script `docker.ps1` para facilitar o gerenciamento:
+
+```powershell
+# Iniciar projeto
+.\docker.ps1 start
+
+# Parar projeto
+.\docker.ps1 stop
+
+# Reiniciar projeto
+.\docker.ps1 restart
+
+# Reset completo (limpa dados)
+.\docker.ps1 reset
+
+# Ver status
+.\docker.ps1 status
+
+# Ver logs
+.\docker.ps1 logs
 ```
 
-### 3. Configure as variáveis de ambiente
+## 🌐 **Acessos**
 
-```bash
-cd backend
-cp .env.example .env
-```
+Após executar `docker-compose up -d`:
 
-Edite o arquivo `.env` com suas configurações:
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+- **Health Check**: http://localhost:3001/health
+- **Database**: localhost:5432
 
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/encantar_db"
-
-# JWT
-JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
-JWT_REFRESH_SECRET="your-super-secret-refresh-key-change-this-in-production"
-JWT_EXPIRES_IN="15m"
-JWT_REFRESH_EXPIRES_IN="7d"
-
-# Server
-PORT=3000
-NODE_ENV=development
-
-# CORS
-FRONTEND_URL=http://localhost:5173
-```
-
-### 4. Instale as dependências
-
-```bash
-cd backend
-npm install
-```
-
-### 5. Configure o banco de dados
-
-```bash
-# Gera o cliente Prisma
-npm run prisma:generate
-
-# Executa as migrations
-npm run prisma:migrate
-
-# (Opcional) Abre o Prisma Studio para visualizar dados
-npm run prisma:studio
-```
-
-### 6. Execute o servidor
-
-```bash
-# Desenvolvimento
-npm run dev
-
-# Produção
-npm run build
-npm start
-```
+### **🔐 Credenciais Padrão**
+- **Login**: `admin`
+- **Senha**: `admin123`
 
 ## 📊 Estrutura do Banco de Dados
 
@@ -128,47 +118,23 @@ npm start
 - **Administradores** - Usuários do sistema
 - **Convites** - Sistema de cadastro via convite
 - **Beneficiários** - Quem recebe as entregas
-- **Items** - Produtos cadastrados
-- **Entregas** - Lista de items + quantidades para um beneficiário
-- **EntregaItems** - Tabela de ligação (entrega + item + quantidade)
+- **Itens** - Produtos cadastrados
+- **Entregas** - Lista de itens + quantidades para um beneficiário
+- **EntregaItens** - Tabela de ligação (entrega + item + quantidade)
 - **Rotas** - Agrupamento de entregas por localidade
-- **TemplatesPDF** - Templates para geração de PDF
+- **ModelosEntrega** - Templates de entregas padrão
 
 ### Relacionamentos
 
 - Um Beneficiário pode ter várias Entregas
-- Uma Entrega pertence a um Beneficiário
-- Uma Entrega pode ter vários Items (via EntregaItem)
+- Uma Entrega pertence a um Beneficiário e uma Rota
+- Uma Entrega pode ter vários Itens (via EntregaItem)
 - Uma Rota pode ter várias Entregas
 - Sistema completo de auditoria (criado/modificado por)
 
-## 🔐 Sistema de Autenticação
-
-### Fluxo de Autenticação
-
-1. **Login** - POST `/api/auth/login`
-2. **Refresh Token** - POST `/api/auth/refresh`
-3. **Logout** - POST `/api/auth/logout`
-
-### Sistema de Convites
-
-1. **Criar Convite** - POST `/api/auth/invite` (requer autenticação)
-2. **Validar Convite** - GET `/api/auth/invite/:token`
-3. **Registrar** - POST `/api/auth/register`
-
-### Segurança
-
-- Senhas criptografadas com bcrypt
-- JWT com expiração de 15 minutos
-- Refresh tokens com expiração de 7 dias
-- Rate limiting (100 requests/15min)
-- Headers de segurança com Helmet
-- CORS configurado
-
-## 🚀 API Endpoints
+## � API Endpoints
 
 ### Autenticação
-
 ```
 POST   /api/auth/login          # Login
 POST   /api/auth/register       # Registro via convite
@@ -179,10 +145,36 @@ POST   /api/auth/invite         # Criar convite
 GET    /api/auth/invite/:token  # Validar convite
 ```
 
-### Health Check
-
+### Beneficiários
 ```
-GET    /health                  # Status do servidor
+GET    /api/beneficiarios       # Listar com paginação
+GET    /api/beneficiarios/:id   # Buscar por ID
+POST   /api/beneficiarios       # Criar novo
+PUT    /api/beneficiarios/:id   # Atualizar
+DELETE /api/beneficiarios/:id   # Remover
+```
+
+### Itens
+```
+GET    /api/items              # Listar com paginação
+GET    /api/items/:id          # Buscar por ID
+POST   /api/items              # Criar novo
+PUT    /api/items/:id          # Atualizar
+DELETE /api/items/:id          # Remover
+```
+
+### Rotas
+```
+GET    /api/rotas              # Listar com paginação
+GET    /api/rotas/:id          # Buscar por ID
+POST   /api/rotas              # Criar nova
+PUT    /api/rotas/:id          # Atualizar
+DELETE /api/rotas/:id          # Remover
+```
+
+### Health Check
+```
+GET    /health                 # Status do servidor
 ```
 
 ## 📁 Estrutura do Projeto
@@ -200,48 +192,198 @@ encantar/
 │   │   ├── utils/            # Utilitários
 │   │   └── templates/        # Templates HTML
 │   ├── prisma/
-│   │   └── schema.prisma     # Schema do banco
+│   │   ├── schema.prisma     # Schema do banco
+│   │   ├── seed.ts          # Dados iniciais
+│   │   └── migrations/      # Migrations do banco
+│   ├── Dockerfile.dev       # Container de desenvolvimento
 │   └── package.json
-├── frontend/                 # (em desenvolvimento)
-└── database/                 # Scripts de banco
+├── frontend/
+│   ├── src/
+│   │   ├── app/             # App Router do Next.js
+│   │   ├── components/      # Componentes React
+│   │   ├── hooks/          # Custom hooks
+│   │   └── lib/            # Utilitários e configurações
+│   ├── public/
+│   │   └── logo.png        # Logo da aplicação
+│   ├── Dockerfile.dev      # Container de desenvolvimento
+│   └── package.json
+├── docker-compose.yml       # Orquestração dos containers
+├── docker.ps1             # Script PowerShell de automação
+└── README.md
 ```
 
-## 🔧 Scripts Disponíveis
+## 🔧 Desenvolvimento Manual (Sem Docker)
 
+### Backend
 ```bash
-# Desenvolvimento
-npm run dev              # Inicia servidor em modo dev
-npm run build           # Compila TypeScript
-npm start              # Inicia servidor compilado
-
-# Banco de dados
-npm run prisma:generate # Gera cliente Prisma
-npm run prisma:migrate  # Executa migrations
-npm run prisma:studio   # Abre Prisma Studio
+cd backend
+npm install
+npx prisma migrate dev
+npx prisma db seed
+npm run dev
 ```
 
-## 🎯 Próximos Passos
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-1. **Implementar CRUDs** - Beneficiários, Items, Entregas, Rotas
-2. **Sistema de PDF** - Templates e geração
-3. **Dashboard** - Métricas e gráficos
-4. **Frontend** - Interface React
-5. **Deploy** - Configuração para Hostinger
+### Database
+Certifique-se de ter PostgreSQL rodando na porta 5432 com:
+- Database: `encantar`
+- User: `postgres`
+- Password: `postgres`
+
+## 🔧 Scripts de Manutenção
+
+### Rebuild Containers
+```powershell
+# Rebuild específico
+docker-compose build frontend
+docker-compose build backend
+
+# Rebuild completo
+docker-compose build --no-cache
+```
+
+### Reset do Banco de Dados
+```powershell
+# Usando nosso script
+.\docker.ps1 reset
+
+# Ou manualmente
+docker-compose down
+docker volume rm encantar_postgres_data
+docker-compose up -d
+```
+
+### Logs Detalhados
+```powershell
+# Ver logs em tempo real
+docker-compose logs -f
+
+# Logs específicos
+docker logs encantar-frontend --tail 50
+docker logs encantar-backend --tail 50
+```
+
+## 🎯 Dados de Exemplo
+
+O sistema vem com dados pré-populados para facilitar o desenvolvimento:
+
+### Administrador
+- **Login**: `admin`
+- **Senha**: `admin123`
+
+### Itens de Exemplo
+- Arroz (kg)
+- Feijão (kg)
+- Óleo (litro)
+- Açúcar (kg)
+- Macarrão (pacote)
+
+### Beneficiários de Exemplo
+- Maria da Silva
+- João Santos
+- Ana Costa
+
+### Rotas de Exemplo
+- Rota Centro
+- Rota Jardim
+
+## 🔐 Segurança Implementada
+
+- **Autenticação JWT** com refresh tokens
+- **Rate Limiting** (100 requests/15min geral, 5/hora para login)
+- **Helmet** para headers de segurança
+- **CORS** configurado
+- **Senhas criptografadas** com bcrypt
+- **Proteção contra CSRF, XSS e outros ataques**
+- **Middleware de autenticação** em todas as rotas protegidas
+
+## 🚀 Deploy e Produção
+
+### Variáveis de Ambiente para Produção
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@host:port/database"
+
+# JWT
+JWT_SECRET="strong-secret-for-production"
+JWT_REFRESH_SECRET="strong-refresh-secret-for-production"
+
+# Server
+PORT=3001
+NODE_ENV=production
+FRONTEND_URL="https://yourdomain.com"
+```
+
+### Docker para Produção
+```bash
+# Build para produção
+docker-compose -f docker-compose.prod.yml up -d
+```
 
 ## 🤝 Contribuição
 
-Este é um projeto em desenvolvimento ativo. Para contribuir:
+Para contribuir com o projeto:
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
+1. Faça um fork do repositório
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
-## 📄 Licença
+## � Comandos de Desenvolvimento
+
+```bash
+# Backend
+npm run dev              # Servidor de desenvolvimento
+npm run build           # Build para produção
+npm run prisma:studio   # Interface visual do banco
+npm run prisma:seed     # Popular banco com dados
+
+# Frontend
+npm run dev             # Servidor de desenvolvimento
+npm run build          # Build para produção
+npm run lint           # Verificar código
+```
+
+## 🆘 Solução de Problemas
+
+### Container não inicia
+```powershell
+# Verificar logs
+docker logs encantar-backend
+docker logs encantar-frontend
+
+# Rebuild forçado
+docker-compose build --no-cache
+```
+
+### Erro de conexão com banco
+```powershell
+# Verificar se banco está rodando
+docker logs encantar-db
+
+# Restart do banco
+docker-compose restart postgres
+```
+
+### Frontend não carrega
+```powershell
+# Rebuild do frontend
+docker-compose build frontend
+docker-compose up -d frontend
+```
+
+## �📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
 
 ---
 
-**Desenvolvido com ❤️ para ajudar ONGs a gerenciarem suas entregas de forma eficiente.**
+**🎁 Desenvolvido com ❤️ para ajudar ONGs a gerenciarem suas entregas de forma eficiente e organizada.**

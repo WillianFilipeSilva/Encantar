@@ -1,0 +1,470 @@
+'use client'
+
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { PaginationControls } from "@/components/PaginationControls"
+import { usePagination } from "@/hooks/usePagination"
+import { api } from "@/lib/axios"
+import { getErrorMessage, logError } from "@/lib/errorUtils"
+import { showErrorToast } from "@/components/ErrorToast"
+import { PenLine, Plus, Trash2, Package } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import toast from 'react-hot-toast'
+
+interface ModeloEntrega {
+  id: string
+  nome: string
+  descricao?: string
+  modeloItems: Array<{
+    id: string
+    quantidade: number
+    item: {
+      id: string
+      nome: string
+      unidade: string
+    }
+  }>
+}
+
+interface Item {
+  id: string
+  nome: string
+  unidade: string
+}
+
+interface ModeloItem {
+  itemId: string
+  quantidade: number
+}
+
+export default function ModelosPage() {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingModelo, setEditingModelo] = useState<ModeloEntrega | null>(null)
+  const [formData, setFormData] = useState({
+    nome: '',
+    descricao: '',
+  })
+  const [modeloItems, setModeloItems] = useState<ModeloItem[]>([])
+
+  const queryClient = useQueryClient()
+
+  const {
+    data,
+    pagination,
+    params,
+    setPage,
+    setSearch,
+    setLimit,
+    isLoading,
+    error,
+    refresh
+  } = usePagination<ModeloEntrega>('/modelos-entrega')
+
+  // Buscar itens disponíveis
+  const { data: itensDisponiveis } = useQuery<Item[]>({
+    queryKey: ['items-all'],
+    queryFn: async () => {
+      const response = await api.get('/items?page=1&limit=1000')
+      return response.data.data || response.data
+    }
+  })
+
+  const createModeloMutation = useMutation({
+    mutationFn: async (newModelo: any) => {
+      const response = await api.post('/modelos-entrega', newModelo)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      refresh()
+      resetForm()
+      setDialogOpen(false)
+      toast.success('Modelo de entrega cadastrado com sucesso!', {
+        duration: 3000,
+      })
+    },
+    onError: (error: any) => {
+      logError('CriarModelo', error)
+      showErrorToast('Erro ao cadastrar modelo', error)
+    }
+  })
+
+  const updateModeloMutation = useMutation({
+    mutationFn: async (updatedModelo: any) => {
+      try {
+        const { id, ...data } = updatedModelo
+        const response = await api.put(`/modelos-entrega/${id}`, data)
+        return response.data
+      } catch (error: any) {
+        console.error('Erro detalhado ao atualizar modelo:', error)
+        if (error.response?.status === 400 && error.response?.data?.message) {
+          throw new Error(error.response.data.message)
+        }
+        throw error
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      refresh()
+      resetForm()
+      setEditingModelo(null)
+      setDialogOpen(false)
+      toast.success('Modelo de entrega atualizado com sucesso!', {
+        duration: 3000,
+      })
+    },
+    onError: (error: any) => {
+      logError('AtualizarModelo', error)
+      showErrorToast('Erro ao atualizar modelo', error)
+    }
+  })
+
+  const deleteModeloMutation = useMutation({
+    mutationFn: async (modeloId: string) => {
+      try {
+        const response = await api.delete(`/modelos-entrega/${modeloId}`)
+        return response.data
+      } catch (error: any) {
+        // Não transformamos o erro, apenas o propagamos
+        throw error
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      refresh()
+      toast.success('Modelo de entrega excluído com sucesso!', {
+        duration: 3000,
+      })
+    },
+    onError: (error: any) => {
+      logError('ExcluirModelo', error)
+      showErrorToast('Erro ao excluir modelo', error)
+    }
+  })
+
+  const resetForm = () => {
+    setFormData({ nome: '', descricao: '' })
+    setModeloItems([])
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!formData.nome.trim()) {
+      toast.error('Nome do modelo é obrigatório')
+      return
+    }
+
+    if (modeloItems.length === 0) {
+      toast.error('Adicione pelo menos um item ao modelo')
+      return
+    }
+
+    const submitData = {
+      ...formData,
+      items: modeloItems.filter(item => item.itemId && item.quantidade > 0)
+    }
+
+    if (editingModelo) {
+      updateModeloMutation.mutate({ ...submitData, id: editingModelo.id })
+    } else {
+      createModeloMutation.mutate(submitData)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleEdit = (modelo: ModeloEntrega) => {
+    try {
+      console.log("Iniciando edição do modelo:", modelo)
+      setEditingModelo(modelo)
+      setFormData({
+        nome: modelo.nome,
+        descricao: modelo.descricao || '',
+      })
+      setModeloItems(modelo.modeloItems.map(mi => ({
+        itemId: mi.item.id,
+        quantidade: mi.quantidade
+      })))
+      // Garante que o estado do diálogo seja atualizado
+      setTimeout(() => {
+        setDialogOpen(true)
+      }, 0)
+    } catch (error) {
+      console.error("Erro ao preparar modelo para edição:", error)
+      toast.error("Erro ao abrir formulário de edição")
+    }
+  }
+
+  const handleDelete = (modelo: ModeloEntrega) => {
+    // Substituindo window.confirm por toast com confirmação
+    toast((t) => (
+      <div className="flex flex-col gap-2">
+        <span>Tem certeza que deseja excluir o modelo "{modelo.nome}"?</span>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              deleteModeloMutation.mutate(modelo.id);
+            }}
+            className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
+          >
+            Excluir
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="bg-gray-200 px-3 py-1 rounded-md text-sm"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: 10000,
+    });
+  }
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+    setEditingModelo(null)
+    resetForm()
+  }
+
+  const addItem = () => {
+    setModeloItems(prev => [...prev, { itemId: '', quantidade: 1 }])
+  }
+
+  const removeItem = (index: number) => {
+    setModeloItems(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const updateModeloItem = (index: number, field: string, value: any) => {
+    setModeloItems(prev => prev.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    ))
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Modelos de Entrega</h1>
+          <p className="text-muted-foreground">
+            Gerencie os modelos padrão de entrega
+          </p>
+        </div>
+
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open);
+            if (!open) handleCloseDialog();
+          }}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Novo modelo
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl" aria-describedby="dialog-description">
+            <DialogHeader>
+              <DialogTitle>{editingModelo ? 'Editar modelo' : 'Novo modelo'}</DialogTitle>
+              <p id="dialog-description" className="text-sm text-muted-foreground">
+                {editingModelo 
+                  ? 'Altere os dados do modelo conforme necessário' 
+                  : 'Preencha os dados para cadastrar um novo modelo de entrega'
+                }
+              </p>
+            </DialogHeader>
+
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="nome">Nome do modelo *</label>
+                  <Input 
+                    id="nome" 
+                    placeholder="Ex: Cesta Básica Padrão" 
+                    value={formData.nome}
+                    onChange={(e) => handleInputChange('nome', e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="descricao">Descrição</label>
+                  <Input 
+                    id="descricao" 
+                    placeholder="Descrição do modelo" 
+                    value={formData.descricao}
+                    onChange={(e) => handleInputChange('descricao', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Itens do Modelo</h3>
+                  <Button type="button" onClick={addItem} size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar Item
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {modeloItems.map((modeloItem, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                      <select 
+                        className="flex-1 p-2 border rounded"
+                        value={modeloItem.itemId}
+                        onChange={(e) => updateModeloItem(index, 'itemId', e.target.value)}
+                      >
+                        <option value="">Selecione um item</option>
+                        {itensDisponiveis?.map(item => (
+                          <option key={item.id} value={item.id}>
+                            {item.nome} ({item.unidade})
+                          </option>
+                        ))}
+                      </select>
+                      
+                      <Input 
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        placeholder="Qtd"
+                        className="w-24"
+                        value={modeloItem.quantidade}
+                        onChange={(e) => updateModeloItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
+                      />
+                      
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => removeItem(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  {modeloItems.length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">
+                      Nenhum item adicionado. Clique em "Adicionar Item" para começar.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={createModeloMutation.isPending || updateModeloMutation.isPending}
+              >
+                {editingModelo 
+                  ? (updateModeloMutation.isPending ? 'Atualizando...' : 'Atualizar modelo')
+                  : (createModeloMutation.isPending ? 'Cadastrando...' : 'Cadastrar modelo')
+                }
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <PaginationControls
+        pagination={pagination}
+        searchValue={params.search}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
+        onSearchChange={setSearch}
+        searchPlaceholder="Buscar por nome ou descrição..."
+        isLoading={isLoading}
+      />
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Qtd. Itens</TableHead>
+              <TableHead>Itens</TableHead>
+              <TableHead className="w-[100px]">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    <span className="ml-2">Carregando modelos...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : error ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="text-red-600">
+                    Erro ao carregar modelos: {error?.message || 'Erro desconhecido'}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  {params.search ? 'Nenhum modelo encontrado para a busca.' : 'Nenhum modelo cadastrado.'}
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((modelo) => (
+                <TableRow key={modelo.id}>
+                  <TableCell className="font-medium">{modelo.nome}</TableCell>
+                  <TableCell>{modelo.descricao || '-'}</TableCell>
+                  <TableCell>
+                    <span className="font-semibold">{modelo.modeloItems?.length || 0}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      {modelo.modeloItems?.slice(0, 3).map((mi, index) => (
+                        <div key={index} className="text-sm">
+                          {mi.quantidade} {mi.item.unidade} - {mi.item.nome}
+                        </div>
+                      ))}
+                      {modelo.modeloItems?.length > 3 && (
+                        <div className="text-sm text-muted-foreground">
+                          +{modelo.modeloItems.length - 3} mais
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title="Editar modelo"
+                      onClick={() => handleEdit(modelo)}
+                    >
+                      <PenLine className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title="Excluir modelo"
+                      onClick={() => handleDelete(modelo)}
+                      disabled={deleteModeloMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}
