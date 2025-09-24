@@ -39,10 +39,53 @@ export default function ItensPage() {
     setPage,
     setSearch,
     setLimit,
+    setFilters,
     isLoading,
     error,
     refresh
   } = usePagination<Item>('/items')
+
+  const filterConfig = [
+    {
+      key: 'unidade',
+      label: 'Unidade',
+      type: 'select' as const,
+      options: [
+        { value: 'kg', label: 'Quilograma (kg)' },
+        { value: 'g', label: 'Grama (g)' },
+        { value: 'l', label: 'Litro (l)' },
+        { value: 'ml', label: 'Mililitro (ml)' },
+        { value: 'un', label: 'Unidade (un)' },
+        { value: 'cx', label: 'Caixa (cx)' },
+        { value: 'pct', label: 'Pacote (pct)' },
+        { value: 'lata', label: 'Lata (lata)' },
+        { value: 'all', label: 'Todas' }
+      ],
+      defaultValue: 'all'
+    },
+    {
+      key: 'ativo',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: 'true', label: 'Ativos' },
+        { value: 'false', label: 'Inativos' },
+        { value: 'all', label: 'Todos' }
+      ],
+      defaultValue: 'all'
+    }
+  ]
+
+  const handleFiltersChange = (filters: Record<string, string>) => {
+    const processedFilters = { ...filters }
+    if (processedFilters.unidade === 'all') {
+      delete processedFilters.unidade
+    }
+    if (processedFilters.ativo === 'all') {
+      delete processedFilters.ativo
+    }
+    setFilters(processedFilters)
+  }
 
   const createItemMutation = useMutation({
     mutationFn: async (newItem: { nome: string; descricao: string; unidade: string }) => {
@@ -50,7 +93,11 @@ export default function ItensPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/items'] })
+      // Invalida todas as queries que começam com '/items'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/items'],
+        exact: false 
+      })
       refresh()
       setFormData({ nome: '', descricao: '', unidade: '' })
       setDialogOpen(false)
@@ -79,7 +126,11 @@ export default function ItensPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/items'] })
+      // Invalida todas as queries que começam com '/items'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/items'],
+        exact: false 
+      })
       refresh()
       setFormData({ nome: '', descricao: '', unidade: '' })
       setEditingItem(null)
@@ -109,7 +160,11 @@ export default function ItensPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/items'] });
+      // Invalida todas as queries que começam com '/items'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/items'],
+        exact: false 
+      });
       refresh();
       toast.success('Item excluído com sucesso!', {
         duration: 3000,
@@ -283,6 +338,8 @@ export default function ItensPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome, descrição ou unidade..."
         isLoading={isLoading}
+        filters={filterConfig}
+        onFiltersChange={handleFiltersChange}
       />
 
       <div className="rounded-md border">

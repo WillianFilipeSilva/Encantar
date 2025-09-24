@@ -103,33 +103,33 @@ export default function RotaDetalhesPage() {
     }
   })
 
-  const { data: beneficiarios } = useQuery<Beneficiario[]>({
+  const { data: beneficiarios, isLoading: isLoadingBeneficiarios } = useQuery<Beneficiario[]>({
     queryKey: ['beneficiarios'],
     queryFn: async () => {
       const response = await api.get('/beneficiarios?page=1&limit=1000')
-      return response.data.data || response.data
+      return response.data.data || response.data || []
     }
   })
 
-  const { data: itens } = useQuery<Item[]>({
+  const { data: itens, isLoading: isLoadingItens } = useQuery<Item[]>({
     queryKey: ['itens'],
     queryFn: async () => {
       try {
         const response = await api.get('/items?page=1&limit=1000')
         console.log('Dados de itens recebidos:', response.data)
-        return response.data.data || response.data
+        return response.data.data || response.data || []
       } catch (error) {
         console.error('Erro ao buscar itens:', error)
-        throw error
+        return []
       }
     }
   })
 
-  const { data: modelos } = useQuery<ModeloEntrega[]>({
+  const { data: modelos, isLoading: isLoadingModelos } = useQuery<ModeloEntrega[]>({
     queryKey: ['modelos'],
     queryFn: async () => {
       const response = await api.get('/modelos-entrega?page=1&limit=1000')
-      return response.data.data || response.data
+      return response.data.data || response.data || []
     }
   })
 
@@ -142,7 +142,12 @@ export default function RotaDetalhesPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rota', params.id] })
+      // Invalida queries relacionadas à rota específica
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === 'rota' || 
+          query.queryKey[0] === '/rotas'
+      })
       resetForm()
       setDialogOpen(false)
       toast.success('Entrega cadastrada com sucesso!', {
@@ -161,7 +166,12 @@ export default function RotaDetalhesPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rota', params.id] })
+      // Invalida queries relacionadas à rota específica
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === 'rota' || 
+          query.queryKey[0] === '/rotas'
+      })
       toast.success('Status da entrega atualizado!', {
         duration: 3000,
       })
@@ -178,7 +188,12 @@ export default function RotaDetalhesPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['rota', params.id] })
+      // Invalida queries relacionadas à rota específica
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === 'rota' || 
+          query.queryKey[0] === '/rotas'
+      })
       toast.success('Entrega excluída com sucesso!', {
         duration: 3000,
       })
@@ -264,7 +279,9 @@ export default function RotaDetalhesPage() {
     }
   }
 
-  if (isLoading) return <div className="p-4 text-center">Carregando detalhes da rota...</div>
+  if (isLoading || isLoadingBeneficiarios || isLoadingItens || isLoadingModelos) {
+    return <div className="p-4 text-center">Carregando detalhes da rota...</div>
+  }
   if (error) return <div className="p-4 text-center text-red-600">Erro ao carregar rota: {error?.message}</div>
   if (!rota) return <div className="p-4 text-center">Rota não encontrada</div>
 
@@ -388,7 +405,7 @@ export default function RotaDetalhesPage() {
                   required
                 >
                   <option value="">Selecione o beneficiário</option>
-                  {beneficiarios?.map(beneficiario => (
+                  {Array.isArray(beneficiarios) && beneficiarios.map(beneficiario => (
                     <option key={beneficiario.id} value={beneficiario.id}>
                       {beneficiario.nome} - {beneficiario.endereco}
                     </option>
@@ -409,7 +426,7 @@ export default function RotaDetalhesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {itens?.map(itemData => {
+                      {Array.isArray(itens) && itens.map(itemData => {
                         const itemSelecionado = itemsSelecionados.find(i => i.id === itemData.id)
                         return (
                           <TableRow key={itemData.id}>
@@ -515,8 +532,8 @@ export default function RotaDetalhesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rota.entregas?.length > 0 ? (
-              rota.entregas?.map((entrega) => (
+            {Array.isArray(rota.entregas) && rota.entregas.length > 0 ? (
+              rota.entregas.map((entrega) => (
                 <TableRow key={entrega.id}>
                   <TableCell className="font-medium">
                     {entrega.beneficiario.nome}
@@ -524,7 +541,7 @@ export default function RotaDetalhesPage() {
                   <TableCell>{entrega.beneficiario.endereco}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {entrega.entregaItems?.map((entregaItem, index) => (
+                      {Array.isArray(entrega.entregaItems) && entrega.entregaItems.map((entregaItem, index) => (
                         <div key={index} className="text-sm">
                           {entregaItem.quantidade} {entregaItem.item.unidade} - {entregaItem.item.nome}
                         </div>

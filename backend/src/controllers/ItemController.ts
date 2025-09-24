@@ -85,8 +85,8 @@ export class ItemController extends BaseController<
       .withMessage("Página deve ser um número inteiro maior que 0"),
     query("limit")
       .optional()
-      .isInt({ min: 1, max: 100 })
-      .withMessage("Limite deve ser um número entre 1 e 100"),
+      .isInt({ min: 1, max: 1000 })
+      .withMessage("Limite deve ser um número entre 1 e 1000"),
     query("nome")
       .optional()
       .custom((value) => {

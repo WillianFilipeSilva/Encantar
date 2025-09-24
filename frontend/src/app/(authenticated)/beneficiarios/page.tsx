@@ -10,7 +10,7 @@ import { api } from "@/lib/axios"
 import { getErrorMessage, logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
 import { PenLine, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 
@@ -47,8 +47,23 @@ export default function BeneficiariosPage() {
     setPage,
     setSearch,
     setLimit,
+    setFilters,
     refresh
-  } = usePagination<Beneficiario>('/beneficiarios')
+  } = usePagination<Beneficiario>('/beneficiarios', { ativo: 'true' })
+
+  const filterConfig = [
+    {
+      key: 'ativo',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: 'true', label: 'Ativos' },
+        { value: 'false', label: 'Inativos' },
+        { value: 'all', label: 'Todos' }
+      ],
+      defaultValue: 'true'
+    }
+  ]
 
   const createBeneficiarioMutation = useMutation({
     mutationFn: async (newBeneficiario: any) => {
@@ -56,7 +71,11 @@ export default function BeneficiariosPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] })
+      // Invalida todas as queries que começam com '/beneficiarios' 
+      queryClient.invalidateQueries({ 
+        queryKey: ['/beneficiarios'],
+        exact: false 
+      })
       refresh()
       setFormData({ nome: '', endereco: '', telefone: '', email: '', dataNascimento: '', observacoes: '' })
       setDialogOpen(false)
@@ -83,7 +102,11 @@ export default function BeneficiariosPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] })
+      // Invalida todas as queries que começam com '/beneficiarios'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/beneficiarios'],
+        exact: false 
+      })
       refresh()
       setFormData({ nome: '', endereco: '', telefone: '', email: '', dataNascimento: '', observacoes: '' })
       setEditingBeneficiario(null)
@@ -106,7 +129,11 @@ export default function BeneficiariosPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] })
+      // Invalida todas as queries que começam com '/beneficiarios'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/beneficiarios'],
+        exact: false 
+      })
       refresh()
       toast.success('Beneficiário excluído com sucesso')
     },
@@ -197,6 +224,15 @@ export default function BeneficiariosPage() {
     setDialogOpen(false)
     setEditingBeneficiario(null)
     setFormData({ nome: '', endereco: '', telefone: '', email: '', dataNascimento: '', observacoes: '' })
+  }
+
+  const handleFiltersApply = (filters: Record<string, any>) => {
+    // Converte 'all' para undefined para não filtrar
+    const processedFilters = { ...filters }
+    if (processedFilters.ativo === 'all') {
+      delete processedFilters.ativo
+    }
+    setFilters(processedFilters)
   }
 
   return (
@@ -317,6 +353,8 @@ export default function BeneficiariosPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome, endereço, telefone, email ou observações..."
         isLoading={isLoading}
+        filters={filterConfig}
+        onFiltersChange={handleFiltersApply}
       />
 
       <div className="rounded-md border">
@@ -327,6 +365,7 @@ export default function BeneficiariosPage() {
               <TableHead>Endereço</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Data de nascimento</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Observações</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
@@ -334,7 +373,7 @@ export default function BeneficiariosPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     <span className="ml-2">Carregando beneficiários...</span>
@@ -343,14 +382,14 @@ export default function BeneficiariosPage() {
               </TableRow>
             ) : beneficiarios?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {params.search ? 'Nenhum beneficiário encontrado para a busca.' : 'Nenhum beneficiário cadastrado.'}
                 </TableCell>
               </TableRow>
             ) : (
               beneficiarios?.map((beneficiario) => (
                 <TableRow key={beneficiario.id}>
-                  <TableCell>{beneficiario.nome}</TableCell>
+                  <TableCell className="font-medium">{beneficiario.nome}</TableCell>
                   <TableCell>{beneficiario.endereco}</TableCell>
                   <TableCell>{beneficiario.telefone || '-'}</TableCell>
                   <TableCell>
@@ -358,6 +397,15 @@ export default function BeneficiariosPage() {
                       ? new Date(beneficiario.dataNascimento).toLocaleDateString()
                       : '-'
                     }
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      beneficiario.ativo 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {beneficiario.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-gray-600 max-w-xs truncate block">

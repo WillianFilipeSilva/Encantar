@@ -75,7 +75,12 @@ export function usePagination<T = any>(
   }
 
   const setFilters = (filters: Record<string, any>) => {
-    setParams(prev => ({ ...prev, ...filters, page: 1 }))
+    setParams(prev => ({ 
+      ...prev, 
+      ...filters, 
+      page: 1
+      // Remove a preservação explícita do search, deixe o sistema gerenciar naturalmente
+    }))
   }
 
   const refresh = () => {

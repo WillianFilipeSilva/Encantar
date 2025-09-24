@@ -38,7 +38,6 @@ export class DashboardController {
         totalRotas,
         entregasPorStatus: [
           { status: 'PENDENTE', total: totalEntregas },
-          { status: 'EM_ANDAMENTO', total: 0 },
           { status: 'CONCLUIDA', total: 0 },
           { status: 'CANCELADA', total: 0 },
         ],

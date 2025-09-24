@@ -58,10 +58,33 @@ export default function ModelosPage() {
     setPage,
     setSearch,
     setLimit,
+    setFilters,
     isLoading,
     error,
     refresh
   } = usePagination<ModeloEntrega>('/modelos-entrega')
+
+  const filterConfig = [
+    {
+      key: 'ativo',
+      label: 'Status',
+      type: 'select' as const,
+      options: [
+        { value: 'true', label: 'Ativos' },
+        { value: 'false', label: 'Inativos' },
+        { value: 'all', label: 'Todos' }
+      ],
+      defaultValue: 'all'
+    }
+  ]
+
+  const handleFiltersChange = (filters: Record<string, string>) => {
+    const processedFilters = { ...filters }
+    if (processedFilters.ativo === 'all') {
+      delete processedFilters.ativo
+    }
+    setFilters(processedFilters)
+  }
 
   const { data: itensDisponiveis } = useQuery<Item[]>({
     queryKey: ['items-all'],
@@ -77,7 +100,11 @@ export default function ModelosPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      // Invalida todas as queries que começam com '/modelos-entrega'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/modelos-entrega'],
+        exact: false 
+      })
       refresh()
       resetForm()
       setDialogOpen(false)
@@ -106,7 +133,11 @@ export default function ModelosPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      // Invalida todas as queries que começam com '/modelos-entrega'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/modelos-entrega'],
+        exact: false 
+      })
       refresh()
       resetForm()
       setEditingModelo(null)
@@ -131,7 +162,11 @@ export default function ModelosPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      // Invalida todas as queries que começam com '/modelos-entrega'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/modelos-entrega'],
+        exact: false 
+      })
       refresh()
       toast.success('Modelo de entrega excluído com sucesso!', {
         duration: 3000,
@@ -377,6 +412,8 @@ export default function ModelosPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome ou descrição..."
         isLoading={isLoading}
+        filters={filterConfig}
+        onFiltersChange={handleFiltersChange}
       />
 
       <div className="rounded-md border">

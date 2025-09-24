@@ -1,87 +1,100 @@
-# Dependencies
-**/node_modules/
-**/.pnp
-**/.pnp.js
-**/.yarn/install-state.gz
-**/package-lock.json
-**/yarn.lock
+# =============================================================================
+# GITIGNORE OTIMIZADO PARA PROJETO ENCANTAR
+# =============================================================================
 
+# =============================================================================
+# DEPENDÊNCIAS E NODE_MODULES
+# =============================================================================
+**/node_modules/
+node_modules/
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+**/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# =============================================================================
+# BUILDS E COMPILADOS
+# =============================================================================
+# Backend TypeScript compilado
+backend/dist/
+**/dist/
+
+# Frontend Next.js
+frontend/.next/
+.next/
+frontend/out/
+/out/
+frontend/build/
+/build/
+
+# Outros builds
+**/build/
+
+# =============================================================================
+# ARQUIVOS DE AMBIENTE E CONFIGURAÇÃO
+# =============================================================================
 # Environment files
+.env
+.env.*
+!.env.example
 **/.env
 **/.env.*
 !**/.env.example
+
+# Específicos do frontend
 frontend/.env.local
 frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
+
+# Específicos do backend
 backend/.env
 backend/.env.*
 
-## Logs & cache
+# =============================================================================
+# TYPESCRIPT E NEXT.JS
+# =============================================================================
+*.tsbuildinfo
+frontend/tsconfig.tsbuildinfo
+backend/tsconfig.tsbuildinfo
+next-env.d.ts
+frontend/next-env.d.ts
+
+# =============================================================================
+# LOGS E CACHE
+# =============================================================================
+# Logs
+logs/
 *.log
-*.cache
-*.tmp
-TestResults/
-coverage/
-
-## Sistema operacional
-.DS_Store
-Thumbs.db
-
-## Pacotes
-packages/
-*.nupkg
-
-## Configuração local/secreta
-appsettings.*.local.json
-appsettings.Development.json
-secrets.json
-
-.cursor/
-.vscode/
-node_modules
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-/dist
-
-# misc
-.DS_Store
-*.pem
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+backend/logs/
+**/logs/
 
-# local env files
-.env*.local
+# Cache
+.npm
+.cache/
+.eslintcache
+.stylelintcache
+**/.cache/
+*.cache
+.tmp
 
-# vercel
-.vercel
+# =============================================================================
+# TESTES E COBERTURA
+# =============================================================================
+coverage/
+**/coverage/
+.nyc_output/
+**/TestResults/
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
+# =============================================================================
+# IDE E EDITORES
+# =============================================================================
 # VSCode
 .vscode/*
 !.vscode/settings.json
@@ -89,129 +102,80 @@ next-env.d.ts
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# IDE
+# Cursor AI
+.cursor/
+
+# IntelliJ IDEA
 .idea/
+
+# Vim/Emacs
 *.swp
 *.swo
+*~
 
-# OS generated files
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+_ReSharper*/
+*.DotSettings.user
+
+# =============================================================================
+# SISTEMA OPERACIONAL
+# =============================================================================
+# macOS
 .DS_Store
+**/.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
-ehthumbs.db
+
+# Windows
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Runtime data
+# =============================================================================
+# RUNTIME E PROCESSOS
+# =============================================================================
 pids
 *.pid
 *.seed
 *.pid.lock
-
-# Cache directories
-.npm
-.eslintcache
-.stylelintcache
-
-# Optional REPL history
 .node_repl_history
 
-# Build outputs
-frontend/.next/
-frontend/out/
-frontend/build/
-backend/dist/
-**/build/
-**/dist/
-
-# Debug & Logs
-**/logs/
-**/*.log
-**/npm-debug.log*
-**/yarn-debug.log*
-**/yarn-error.log*
-**/.pnpm-debug.log
-backend/logs/
-
-# IDE / Editors
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-.idea/
-**/*.swp
-**/*.swo
-**/.vs/
-**/*.suo
-**/*.user
-**/*.userosscache
-**/*.sln.docstates
-**/_ReSharper*/
-**/*.DotSettings.user
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Testing
-**/coverage/
-**/.nyc_output/
-**/TestResults/
-
-# Cache
-**/.npm
-**/.eslintcache
-**/.stylelintcache
-**/.cache/
-**/*.cache
-
-# TypeScript
-**/*.tsbuildinfo
-frontend/next-env.d.ts
-
-# OS Generated
-.DS_Store
-**/.DS_Store
-**/.DS_Store?
-**/._*
-**/.Spotlight-V100
-**/.Trashes
-**/ehthumbs.db
-**/Thumbs.db
-
-# Temporary
-**/tmp/
-**/temp/
-
-# Prisma
+# =============================================================================
+# BANCO DE DADOS PRISMA
+# =============================================================================
 backend/prisma/*.db
 backend/prisma/migrations/*
 !backend/prisma/migrations/migration_lock.toml
+!backend/prisma/schema.prisma
 
-# Deployment
+# =============================================================================
+# DEPLOYMENT E HOSTING
+# =============================================================================
+.vercel
+.netlify
 **/.vercel
 **/.netlify
 
-# Misc
-**/*.pem
-.cursor/
+# =============================================================================
+# ARQUIVOS TEMPORÁRIOS E DIVERSOS
+# =============================================================================
+*.pem
+tmp/
+temp/
+**/tmp/
+**/temp/
 
-# Production
-.vercel
-.netlify
-.next
+# Docker
+.dockerignore
 
-# Debug
-.pnpm-debug.log
+# Certificates
+*.p12
+*.key
+*.crt

@@ -27,14 +27,12 @@ interface DashboardData {
 
 const statusMap = {
   PENDENTE: 'Pendente',
-  EM_ANDAMENTO: 'Em andamento',
   CONCLUIDA: 'Concluída',
   CANCELADA: 'Cancelada',
 }
 
 const statusColorMap = {
   PENDENTE: 'text-yellow-500',
-  EM_ANDAMENTO: 'text-blue-500',
   CONCLUIDA: 'text-green-500',
   CANCELADA: 'text-red-500',
 }

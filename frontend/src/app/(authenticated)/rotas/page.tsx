@@ -52,10 +52,37 @@ export default function RotasPage() {
     setPage,
     setSearch,
     setLimit,
+    setFilters,
     isLoading,
     error,
     refresh
   } = usePagination<Rota>('/rotas')
+
+  const filterConfig = [
+    {
+      key: 'dataInicio',
+      label: 'Data de Início',
+      type: 'date' as const,
+      placeholder: 'Data de início'
+    },
+    {
+      key: 'dataFim',
+      label: 'Data de Fim',
+      type: 'date' as const,
+      placeholder: 'Data de fim'
+    }
+  ]
+
+  const handleFiltersChange = (filters: Record<string, string>) => {
+    const processedFilters = { ...filters }
+    // Remove filtros vazios
+    Object.keys(processedFilters).forEach(key => {
+      if (!processedFilters[key]) {
+        delete processedFilters[key]
+      }
+    })
+    setFilters(processedFilters)
+  }
 
   const createRotaMutation = useMutation({
     mutationFn: async (newRota: any) => {
@@ -63,7 +90,11 @@ export default function RotasPage() {
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/rotas'] })
+      // Invalida todas as queries que começam com '/rotas'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/rotas'],
+        exact: false 
+      })
       refresh()
       setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
       setDialogOpen(false)
@@ -90,7 +121,11 @@ export default function RotasPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/rotas'] })
+      // Invalida todas as queries que começam com '/rotas'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/rotas'],
+        exact: false 
+      })
       refresh()
       setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
       setEditingRota(null)
@@ -113,7 +148,11 @@ export default function RotasPage() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/rotas'] })
+      // Invalida todas as queries que começam com '/rotas'
+      queryClient.invalidateQueries({ 
+        queryKey: ['/rotas'],
+        exact: false 
+      })
       refresh()
       toast.success('Rota excluída com sucesso')
     },
@@ -295,6 +334,8 @@ export default function RotasPage() {
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome, descrição ou observações..."
         isLoading={isLoading}
+        filters={filterConfig}
+        onFiltersChange={handleFiltersChange}
       />
 
       <div className="rounded-md border">

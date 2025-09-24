@@ -49,7 +49,11 @@ export function CrudDialog<T extends Record<string, any>>({
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [endpoint] })
+      // Invalida todas as queries que começam com o endpoint
+      queryClient.invalidateQueries({ 
+        queryKey: [endpoint],
+        exact: false 
+      })
       refreshData()
       resetForm()
       setDialogOpen(false)
@@ -69,7 +73,11 @@ export function CrudDialog<T extends Record<string, any>>({
       return response.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [endpoint] })
+      // Invalida todas as queries que começam com o endpoint
+      queryClient.invalidateQueries({ 
+        queryKey: [endpoint],
+        exact: false 
+      })
       refreshData()
       resetForm()
       setEditingItem(null)

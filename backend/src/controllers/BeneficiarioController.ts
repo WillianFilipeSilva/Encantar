@@ -35,7 +35,7 @@ export class BeneficiarioController extends BaseController<
         .run(req);
       await query("limit")
         .optional()
-        .isInt({ min: 1, max: 100 })
+        .isInt({ min: 1, max: 1000 })
         .withMessage("Limit deve ser entre 1 e 100")
         .run(req);
       await query("search")

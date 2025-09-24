@@ -1,3 +1,0 @@
-import { CacheManager } from '../utils/cache/cacheManager';
-
-// ... restante do código
