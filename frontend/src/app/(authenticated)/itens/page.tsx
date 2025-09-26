@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PaginationControls } from "@/components/PaginationControls"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
-import { getErrorMessage, logError } from "@/lib/errorUtils"
+import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
 import { PenLine, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
@@ -51,6 +51,7 @@ export default function ItensPage() {
       label: 'Unidade',
       type: 'select' as const,
       options: [
+        { value: 'all', label: 'Todas' },
         { value: 'kg', label: 'Quilograma (kg)' },
         { value: 'g', label: 'Grama (g)' },
         { value: 'l', label: 'Litro (l)' },
@@ -59,7 +60,6 @@ export default function ItensPage() {
         { value: 'cx', label: 'Caixa (cx)' },
         { value: 'pct', label: 'Pacote (pct)' },
         { value: 'lata', label: 'Lata (lata)' },
-        { value: 'all', label: 'Todas' }
       ],
       defaultValue: 'all'
     },
@@ -68,42 +68,24 @@ export default function ItensPage() {
       label: 'Status',
       type: 'select' as const,
       options: [
+        { value: 'all', label: 'Todos' },
         { value: 'true', label: 'Ativos' },
         { value: 'false', label: 'Inativos' },
-        { value: 'all', label: 'Todos' }
       ],
       defaultValue: 'all'
     }
   ]
-
-  const handleFiltersChange = (filters: Record<string, string>) => {
-    const processedFilters = { ...filters }
-    if (processedFilters.unidade === 'all') {
-      delete processedFilters.unidade
-    }
-    if (processedFilters.ativo === 'all') {
-      delete processedFilters.ativo
-    }
-    setFilters(processedFilters)
-  }
 
   const createItemMutation = useMutation({
     mutationFn: async (newItem: { nome: string; descricao: string; unidade: string }) => {
       const response = await api.post('/items', newItem)
       return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/items'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/items'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/items'] })
       setFormData({ nome: '', descricao: '', unidade: '' })
       setDialogOpen(false)
-      toast.success('Item cadastrado com sucesso!', {
-        duration: 3000,
-      })
+      toast.success('Item cadastrado com sucesso!')
     },
     onError: (error: any) => {
       logError('CriarItem', error)
@@ -113,31 +95,16 @@ export default function ItensPage() {
 
   const updateItemMutation = useMutation({
     mutationFn: async (updatedItem: { id: string; nome: string; descricao: string; unidade: string }) => {
-      try {
-        const { id, ...data } = updatedItem
-        const response = await api.put(`/items/${id}`, data)
-        return response.data
-      } catch (error: any) {
-        console.error('Erro detalhado ao atualizar item:', error)
-        if (error.response?.status === 400 && error.response?.data?.message) {
-          throw new Error(error.response.data.message)
-        }
-        throw error
-      }
+      const { id, ...data } = updatedItem
+      const response = await api.put(`/items/${id}`, data)
+      return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/items'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/items'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/items'] })
       setFormData({ nome: '', descricao: '', unidade: '' })
       setEditingItem(null)
       setDialogOpen(false)
-      toast.success('Item atualizado com sucesso!', {
-        duration: 3000,
-      })
+      toast.success('Item atualizado com sucesso!')
     },
     onError: (error: any) => {
       logError('AtualizarItem', error)
@@ -147,28 +114,12 @@ export default function ItensPage() {
 
   const deleteItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      try {
-        console.log(`Tentando excluir item com ID: ${itemId}`);
-        const response = await api.delete(`/items/${itemId}`);
-        return response.data;
-      } catch (error: any) {
-        console.error(`Erro ao excluir item com ID: ${itemId}`);
-        if (error.config) {
-          console.error(`URL da requisição: ${error.config.url}`);
-        }
-        throw error;
-      }
+      const response = await api.delete(`/items/${itemId}`);
+      return response.data;
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/items'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/items'],
-        exact: false 
-      });
-      refresh();
-      toast.success('Item excluído com sucesso!', {
-        duration: 3000,
-      });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/items'] });
+      toast.success('Item excluído com sucesso!');
     },
     onError: (error: any) => {
       logError('ExcluirItem', error);
@@ -178,17 +129,14 @@ export default function ItensPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!formData.nome.trim()) {
       toast.error('Nome é obrigatório')
       return
     }
-    
     if (!formData.unidade.trim()) {
       toast.error('Unidade é obrigatória')
       return
     }
-
     if (editingItem) {
       updateItemMutation.mutate({ ...formData, id: editingItem.id })
     } else {
@@ -201,21 +149,13 @@ export default function ItensPage() {
   }
 
   const handleEdit = (item: Item) => {
-    try {
-      console.log("Iniciando edição do item:", item)
-      setEditingItem(item)
-      setFormData({
-        nome: item.nome,
-        descricao: item.descricao || '',
-        unidade: item.unidade
-      })
-      setTimeout(() => {
-        setDialogOpen(true)
-      }, 0)
-    } catch (error) {
-      console.error("Erro ao preparar item para edição:", error)
-      toast.error("Erro ao abrir formulário de edição")
-    }
+    setEditingItem(item)
+    setFormData({
+      nome: item.nome,
+      descricao: item.descricao || '',
+      unidade: item.unidade
+    })
+    setDialogOpen(true)
   }
 
   const handleDelete = (item: Item) => {
@@ -260,11 +200,10 @@ export default function ItensPage() {
             Gerencie os itens disponíveis para entrega
           </p>
         </div>
-
         <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) handleCloseDialog();
-          }}>
+          if (!open) handleCloseDialog();
+          setDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -275,52 +214,27 @@ export default function ItensPage() {
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Editar item' : 'Novo item'}</DialogTitle>
               <p id="dialog-description" className="text-sm text-muted-foreground">
-                {editingItem 
-                  ? 'Altere os dados do item conforme necessário' 
+                {editingItem
+                  ? 'Altere os dados do item conforme necessário'
                   : 'Preencha os dados para cadastrar um novo item no sistema'
                 }
               </p>
             </DialogHeader>
-
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label htmlFor="nome">Nome *</label>
-                <Input 
-                  id="nome" 
-                  placeholder="Nome do item" 
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
-                  required
-                />
+                <Input id="nome" placeholder="Nome do item" value={formData.nome} onChange={(e) => handleInputChange('nome', e.target.value)} required />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="descricao">Descrição</label>
-                <Input 
-                  id="descricao" 
-                  placeholder="Descrição do item" 
-                  value={formData.descricao}
-                  onChange={(e) => handleInputChange('descricao', e.target.value)}
-                />
+                <Input id="descricao" placeholder="Descrição do item" value={formData.descricao} onChange={(e) => handleInputChange('descricao', e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="unidade">Unidade *</label>
-                <Input 
-                  id="unidade" 
-                  placeholder="Ex: kg, unidade, litro, caixa" 
-                  value={formData.unidade}
-                  onChange={(e) => handleInputChange('unidade', e.target.value)}
-                  required
-                />
+                <Input id="unidade" placeholder="Ex: kg, unidade, litro, caixa" value={formData.unidade} onChange={(e) => handleInputChange('unidade', e.target.value)} required />
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={createItemMutation.isPending || updateItemMutation.isPending}
-              >
-                {editingItem 
+              <Button type="submit" className="w-full" disabled={createItemMutation.isPending || updateItemMutation.isPending}>
+                {editingItem
                   ? (updateItemMutation.isPending ? 'Atualizando...' : 'Atualizar item')
                   : (createItemMutation.isPending ? 'Cadastrando...' : 'Cadastrar item')
                 }
@@ -329,19 +243,18 @@ export default function ItensPage() {
           </DialogContent>
         </Dialog>
       </div>
-
       <PaginationControls
         pagination={pagination}
         searchValue={params.search}
+        filterValues={params}
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome, descrição ou unidade..."
         isLoading={isLoading}
         filters={filterConfig}
-        onFiltersChange={handleFiltersChange}
+        onFiltersChange={setFilters}
       />
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -383,21 +296,10 @@ export default function ItensPage() {
                   <TableCell>{item.descricao || '-'}</TableCell>
                   <TableCell>{item.unidade}</TableCell>
                   <TableCell className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Editar item"
-                      onClick={() => handleEdit(item)}
-                    >
+                    <Button variant="ghost" size="icon" title="Editar item" onClick={() => handleEdit(item)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Excluir item"
-                      onClick={() => handleDelete(item)}
-                      disabled={deleteItemMutation.isPending}
-                    >
+                    <Button variant="ghost" size="icon" title="Excluir item" onClick={() => handleDelete(item)} disabled={deleteItemMutation.isPending}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

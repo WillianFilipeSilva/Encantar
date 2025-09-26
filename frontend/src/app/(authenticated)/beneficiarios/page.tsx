@@ -7,10 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PaginationControls } from "@/components/PaginationControls"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
-import { getErrorMessage, logError } from "@/lib/errorUtils"
+import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
 import { PenLine, Plus, Trash2 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 
@@ -40,16 +40,16 @@ export default function BeneficiariosPage() {
   const queryClient = useQueryClient()
 
   const {
-    data: beneficiarios,
+    data,
     pagination,
-    isLoading,
     params,
     setPage,
     setSearch,
     setLimit,
     setFilters,
-    refresh
-  } = usePagination<Beneficiario>('/beneficiarios', { ativo: 'true' })
+    isLoading,
+    error,
+  } = usePagination<Beneficiario>('/beneficiarios')
 
   const filterConfig = [
     {
@@ -57,29 +57,24 @@ export default function BeneficiariosPage() {
       label: 'Status',
       type: 'select' as const,
       options: [
+        { value: 'all', label: 'Todos' },
         { value: 'true', label: 'Ativos' },
         { value: 'false', label: 'Inativos' },
-        { value: 'all', label: 'Todos' }
       ],
-      defaultValue: 'true'
+      defaultValue: 'all'
     }
   ]
 
   const createBeneficiarioMutation = useMutation({
-    mutationFn: async (newBeneficiario: any) => {
+    mutationFn: async (newBeneficiario: { nome: string; endereco: string; telefone?: string; email?: string; dataNascimento?: string; observacoes?: string }) => {
       const response = await api.post('/beneficiarios', newBeneficiario)
       return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/beneficiarios' 
-      queryClient.invalidateQueries({ 
-        queryKey: ['/beneficiarios'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] })
       setFormData({ nome: '', endereco: '', telefone: '', email: '', dataNascimento: '', observacoes: '' })
       setDialogOpen(false)
-      toast.success('Beneficiário cadastrado com sucesso')
+      toast.success('Beneficiário cadastrado com sucesso!')
     },
     onError: (error: any) => {
       logError('CriarBeneficiario', error)
@@ -88,30 +83,17 @@ export default function BeneficiariosPage() {
   })
 
   const updateBeneficiarioMutation = useMutation({
-    mutationFn: async (updatedBeneficiario: any) => {
-      try {
-        const { id, ...data } = updatedBeneficiario
-        const response = await api.put(`/beneficiarios/${id}`, data)
-        return response.data
-      } catch (error: any) {
-        console.error('Erro detalhado ao atualizar beneficiário:', error)
-        if (error.response?.status === 400 && error.response?.data?.message) {
-          throw new Error(error.response.data.message)
-        }
-        throw error
-      }
+    mutationFn: async (updatedBeneficiario: { id: string; nome: string; endereco: string; telefone?: string; email?: string; dataNascimento?: string; observacoes?: string }) => {
+      const { id, ...data } = updatedBeneficiario
+      const response = await api.put(`/beneficiarios/${id}`, data)
+      return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/beneficiarios'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/beneficiarios'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] })
       setFormData({ nome: '', endereco: '', telefone: '', email: '', dataNascimento: '', observacoes: '' })
       setEditingBeneficiario(null)
       setDialogOpen(false)
-      toast.success('Beneficiário atualizado com sucesso')
+      toast.success('Beneficiário atualizado com sucesso!')
     },
     onError: (error: any) => {
       logError('AtualizarBeneficiario', error)
@@ -121,50 +103,33 @@ export default function BeneficiariosPage() {
 
   const deleteBeneficiarioMutation = useMutation({
     mutationFn: async (beneficiarioId: string) => {
-      try {
-        const response = await api.delete(`/beneficiarios/${beneficiarioId}`)
-        return response.data
-      } catch (error: any) {
-        throw error
-      }
+      const response = await api.delete(`/beneficiarios/${beneficiarioId}`);
+      return response.data;
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/beneficiarios'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/beneficiarios'],
-        exact: false 
-      })
-      refresh()
-      toast.success('Beneficiário excluído com sucesso')
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] });
+      toast.success('Beneficiário excluído com sucesso!');
     },
     onError: (error: any) => {
-      logError('ExcluirBeneficiario', error)
-      showErrorToast('Erro ao excluir beneficiário', error)
+      logError('ExcluirBeneficiario', error);
+      showErrorToast('Erro ao excluir beneficiário', error);
     }
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!formData.nome.trim()) {
       toast.error('Nome é obrigatório')
       return
     }
-    
     if (!formData.endereco.trim()) {
       toast.error('Endereço é obrigatório')
       return
     }
-
-    const submitData = {
-      ...formData,
-      dataNascimento: formData.dataNascimento || null
-    }
-
     if (editingBeneficiario) {
-      updateBeneficiarioMutation.mutate({ ...submitData, id: editingBeneficiario.id })
+      updateBeneficiarioMutation.mutate({ ...formData, id: editingBeneficiario.id })
     } else {
-      createBeneficiarioMutation.mutate(submitData)
+      createBeneficiarioMutation.mutate(formData)
     }
   }
 
@@ -173,24 +138,16 @@ export default function BeneficiariosPage() {
   }
 
   const handleEdit = (beneficiario: Beneficiario) => {
-    try {
-      console.log("Iniciando edição do beneficiário:", beneficiario)
-      setEditingBeneficiario(beneficiario)
-      setFormData({
-        nome: beneficiario.nome,
-        endereco: beneficiario.endereco,
-        telefone: beneficiario.telefone || '',
-        email: beneficiario.email || '',
-        dataNascimento: beneficiario.dataNascimento ? beneficiario.dataNascimento.split('T')[0] : '',
-        observacoes: beneficiario.observacoes || ''
-      })
-      setTimeout(() => {
-        setDialogOpen(true)
-      }, 0)
-    } catch (error) {
-      console.error("Erro ao preparar beneficiário para edição:", error)
-      toast.error("Erro ao abrir formulário de edição")
-    }
+    setEditingBeneficiario(beneficiario)
+    setFormData({
+      nome: beneficiario.nome,
+      endereco: beneficiario.endereco,
+      telefone: beneficiario.telefone || '',
+      email: beneficiario.email || '',
+      dataNascimento: beneficiario.dataNascimento || '',
+      observacoes: beneficiario.observacoes || ''
+    })
+    setDialogOpen(true)
   }
 
   const handleDelete = (beneficiario: Beneficiario) => {
@@ -226,29 +183,19 @@ export default function BeneficiariosPage() {
     setFormData({ nome: '', endereco: '', telefone: '', email: '', dataNascimento: '', observacoes: '' })
   }
 
-  const handleFiltersApply = (filters: Record<string, any>) => {
-    // Converte 'all' para undefined para não filtrar
-    const processedFilters = { ...filters }
-    if (processedFilters.ativo === 'all') {
-      delete processedFilters.ativo
-    }
-    setFilters(processedFilters)
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Beneficiários</h1>
           <p className="text-muted-foreground">
-            Gerencie os beneficiários do sistema
+            Gerencie os beneficiários cadastrados no sistema
           </p>
         </div>
-
         <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) handleCloseDialog();
-          }}>
+          if (!open) handleCloseDialog();
+          setDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -259,83 +206,39 @@ export default function BeneficiariosPage() {
             <DialogHeader>
               <DialogTitle>{editingBeneficiario ? 'Editar beneficiário' : 'Novo beneficiário'}</DialogTitle>
               <p id="dialog-description" className="text-sm text-muted-foreground">
-                {editingBeneficiario 
-                  ? 'Altere os dados do beneficiário conforme necessário' 
+                {editingBeneficiario
+                  ? 'Altere os dados do beneficiário conforme necessário'
                   : 'Preencha os dados para cadastrar um novo beneficiário no sistema'
                 }
               </p>
             </DialogHeader>
-
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label htmlFor="nome">Nome *</label>
-                <Input 
-                  id="nome" 
-                  placeholder="Nome do beneficiário" 
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
-                  required
-                />
+                <Input id="nome" placeholder="Nome do beneficiário" value={formData.nome} onChange={(e) => handleInputChange('nome', e.target.value)} required />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="endereco">Endereço *</label>
-                <Input 
-                  id="endereco" 
-                  placeholder="Endereço do beneficiário" 
-                  value={formData.endereco}
-                  onChange={(e) => handleInputChange('endereco', e.target.value)}
-                  required
-                />
+                <Input id="endereco" placeholder="Endereço completo" value={formData.endereco} onChange={(e) => handleInputChange('endereco', e.target.value)} required />
               </div>
-
               <div className="space-y-2">
-                <label htmlFor="telefone">Telefone (opcional)</label>
-                <Input 
-                  id="telefone" 
-                  placeholder="Telefone do beneficiário" 
-                  value={formData.telefone}
-                  onChange={(e) => handleInputChange('telefone', e.target.value)}
-                />
+                <label htmlFor="telefone">Telefone</label>
+                <Input id="telefone" placeholder="Telefone para contato" value={formData.telefone} onChange={(e) => handleInputChange('telefone', e.target.value)} />
               </div>
-
               <div className="space-y-2">
-                <label htmlFor="email">Email (opcional)</label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="Email do beneficiário" 
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                />
+                <label htmlFor="email">Email</label>
+                <Input id="email" placeholder="Email para contato" type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
               </div>
-
               <div className="space-y-2">
-                <label htmlFor="dataNascimento">Data de nascimento (opcional)</label>
-                <Input 
-                  id="dataNascimento" 
-                  type="date" 
-                  value={formData.dataNascimento}
-                  onChange={(e) => handleInputChange('dataNascimento', e.target.value)}
-                />
+                <label htmlFor="dataNascimento">Data de Nascimento</label>
+                <Input id="dataNascimento" type="date" value={formData.dataNascimento} onChange={(e) => handleInputChange('dataNascimento', e.target.value)} />
               </div>
-
               <div className="space-y-2">
-                <label htmlFor="observacoes">Observações (opcional)</label>
-                <Input 
-                  id="observacoes" 
-                  placeholder="Observações" 
-                  value={formData.observacoes}
-                  onChange={(e) => handleInputChange('observacoes', e.target.value)}
-                />
+                <label htmlFor="observacoes">Observações</label>
+                <Input id="observacoes" placeholder="Observações adicionais" value={formData.observacoes} onChange={(e) => handleInputChange('observacoes', e.target.value)} />
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={createBeneficiarioMutation.isPending || updateBeneficiarioMutation.isPending}
-              >
-                {editingBeneficiario 
+              <Button type="submit" className="w-full" disabled={createBeneficiarioMutation.isPending || updateBeneficiarioMutation.isPending}>
+                {editingBeneficiario
                   ? (updateBeneficiarioMutation.isPending ? 'Atualizando...' : 'Atualizar beneficiário')
                   : (createBeneficiarioMutation.isPending ? 'Cadastrando...' : 'Cadastrar beneficiário')
                 }
@@ -344,19 +247,18 @@ export default function BeneficiariosPage() {
           </DialogContent>
         </Dialog>
       </div>
-
       <PaginationControls
         pagination={pagination}
         searchValue={params.search}
+        filterValues={params}
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nome, endereço, telefone, email ou observações..."
+        searchPlaceholder="Buscar por nome, endereço, telefone ou email..."
         isLoading={isLoading}
         filters={filterConfig}
-        onFiltersChange={handleFiltersApply}
+        onFiltersChange={setFilters}
       />
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -364,70 +266,46 @@ export default function BeneficiariosPage() {
               <TableHead>Nome</TableHead>
               <TableHead>Endereço</TableHead>
               <TableHead>Telefone</TableHead>
-              <TableHead>Data de nascimento</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Observações</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     <span className="ml-2">Carregando beneficiários...</span>
                   </div>
                 </TableCell>
               </TableRow>
-            ) : beneficiarios?.length === 0 ? (
+            ) : error ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="text-red-600">
+                    Erro ao carregar beneficiários: {error?.message || 'Erro desconhecido'}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   {params.search ? 'Nenhum beneficiário encontrado para a busca.' : 'Nenhum beneficiário cadastrado.'}
                 </TableCell>
               </TableRow>
             ) : (
-              beneficiarios?.map((beneficiario) => (
+              data.map((beneficiario) => (
                 <TableRow key={beneficiario.id}>
                   <TableCell className="font-medium">{beneficiario.nome}</TableCell>
                   <TableCell>{beneficiario.endereco}</TableCell>
                   <TableCell>{beneficiario.telefone || '-'}</TableCell>
-                  <TableCell>
-                    {beneficiario.dataNascimento 
-                      ? new Date(beneficiario.dataNascimento).toLocaleDateString()
-                      : '-'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      beneficiario.ativo 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {beneficiario.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-gray-600 max-w-xs truncate block">
-                      {beneficiario.observacoes || '-'}
-                    </span>
-                  </TableCell>
+                  <TableCell>{beneficiario.email || '-'}</TableCell>
                   <TableCell className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      title="Editar beneficiário"
-                      onClick={() => handleEdit(beneficiario)}
-                    >
+                    <Button variant="ghost" size="icon" title="Editar beneficiário" onClick={() => handleEdit(beneficiario)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      title="Excluir beneficiário"
-                      onClick={() => handleDelete(beneficiario)}
-                      disabled={deleteBeneficiarioMutation.isPending}
-                    >
+                    <Button variant="ghost" size="icon" title="Excluir beneficiário" onClick={() => handleDelete(beneficiario)} disabled={deleteBeneficiarioMutation.isPending}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

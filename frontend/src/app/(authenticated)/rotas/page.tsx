@@ -8,7 +8,7 @@ import { PaginationControls } from "@/components/PaginationControls"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
 import { formatDate } from "@/lib/utils"
-import { getErrorMessage, logError } from "@/lib/errorUtils"
+import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
 import { Eye, PenLine, Plus, Trash2 } from "lucide-react"
 import Link from "next/link"
@@ -55,7 +55,6 @@ export default function RotasPage() {
     setFilters,
     isLoading,
     error,
-    refresh
   } = usePagination<Rota>('/rotas')
 
   const filterConfig = [
@@ -73,29 +72,14 @@ export default function RotasPage() {
     }
   ]
 
-  const handleFiltersChange = (filters: Record<string, string>) => {
-    const processedFilters = { ...filters }
-    // Remove filtros vazios
-    Object.keys(processedFilters).forEach(key => {
-      if (!processedFilters[key]) {
-        delete processedFilters[key]
-      }
-    })
-    setFilters(processedFilters)
-  }
-
   const createRotaMutation = useMutation({
     mutationFn: async (newRota: any) => {
       const response = await api.post('/rotas', newRota)
       return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/rotas'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/rotas'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
+      setPage(1)
       setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
       setDialogOpen(false)
       toast.success('Rota cadastrada com sucesso')
@@ -108,25 +92,12 @@ export default function RotasPage() {
 
   const updateRotaMutation = useMutation({
     mutationFn: async (updatedRota: any) => {
-      try {
-        const { id, ...data } = updatedRota
-        const response = await api.put(`/rotas/${id}`, data)
-        return response.data
-      } catch (error: any) {
-        console.error('Erro detalhado ao atualizar rota:', error)
-        if (error.response?.status === 400 && error.response?.data?.message) {
-          throw new Error(error.response.data.message)
-        }
-        throw error
-      }
+      const { id, ...data } = updatedRota
+      const response = await api.put(`/rotas/${id}`, data)
+      return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/rotas'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/rotas'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
       setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
       setEditingRota(null)
       setDialogOpen(false)
@@ -140,20 +111,11 @@ export default function RotasPage() {
 
   const deleteRotaMutation = useMutation({
     mutationFn: async (rotaId: string) => {
-      try {
-        const response = await api.delete(`/rotas/${rotaId}`)
-        return response.data
-      } catch (error: any) {
-        throw error
-      }
+      const response = await api.delete(`/rotas/${rotaId}`)
+      return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/rotas'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/rotas'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
       toast.success('Rota excluída com sucesso')
     },
     onError: (error: any) => {
@@ -164,17 +126,14 @@ export default function RotasPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!formData.nome.trim()) {
       toast.error('Nome é obrigatório')
       return
     }
-
     const submitData = {
       ...formData,
       dataEntrega: formData.dataEntrega || null
     }
-
     if (editingRota) {
       updateRotaMutation.mutate({ ...submitData, id: editingRota.id })
     } else {
@@ -187,22 +146,14 @@ export default function RotasPage() {
   }
 
   const handleEdit = (rota: Rota) => {
-    try {
-      console.log("Iniciando edição da rota:", rota)
-      setEditingRota(rota)
-      setFormData({
-        nome: rota.nome,
-        descricao: rota.descricao || '',
-        dataEntrega: rota.dataEntrega ? rota.dataEntrega.split('T')[0] : '',
-        observacoes: rota.observacoes || ''
-      })
-      setTimeout(() => {
-        setDialogOpen(true)
-      }, 0)
-    } catch (error) {
-      console.error("Erro ao preparar rota para edição:", error)
-      toast.error("Erro ao abrir formulário de edição")
-    }
+    setEditingRota(rota)
+    setFormData({
+      nome: rota.nome,
+      descricao: rota.descricao || '',
+      dataEntrega: rota.dataEntrega ? rota.dataEntrega.split('T')[0] : '',
+      observacoes: rota.observacoes || ''
+    })
+    setDialogOpen(true)
   }
 
   const handleDelete = (rota: Rota) => {
@@ -247,11 +198,10 @@ export default function RotasPage() {
             Gerencie as rotas de entrega
           </p>
         </div>
-
         <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) handleCloseDialog();
-          }}>
+          if (!open) handleCloseDialog();
+          setDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -262,61 +212,31 @@ export default function RotasPage() {
             <DialogHeader>
               <DialogTitle>{editingRota ? 'Editar rota' : 'Nova rota'}</DialogTitle>
               <p id="dialog-description" className="text-sm text-muted-foreground">
-                {editingRota 
-                  ? 'Altere os dados da rota conforme necessário' 
+                {editingRota
+                  ? 'Altere os dados da rota conforme necessário'
                   : 'Preencha os dados para cadastrar uma nova rota no sistema'
                 }
               </p>
             </DialogHeader>
-
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label htmlFor="nome">Nome *</label>
-                <Input 
-                  id="nome" 
-                  placeholder="Ex: Bairro Centro - Semana 1" 
-                  value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
-                  required
-                />
+                <Input id="nome" placeholder="Ex: Bairro Centro - Semana 1" value={formData.nome} onChange={(e) => handleInputChange('nome', e.target.value)} required />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="descricao">Descrição</label>
-                <Input 
-                  id="descricao" 
-                  placeholder="Descrição da rota" 
-                  value={formData.descricao}
-                  onChange={(e) => handleInputChange('descricao', e.target.value)}
-                />
+                <Input id="descricao" placeholder="Descrição da rota" value={formData.descricao} onChange={(e) => handleInputChange('descricao', e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="dataEntrega">Data de entrega</label>
-                <Input 
-                  id="dataEntrega" 
-                  type="date" 
-                  value={formData.dataEntrega}
-                  onChange={(e) => handleInputChange('dataEntrega', e.target.value)}
-                />
+                <Input id="dataEntrega" type="date" value={formData.dataEntrega} onChange={(e) => handleInputChange('dataEntrega', e.target.value)} />
               </div>
-
               <div className="space-y-2">
                 <label htmlFor="observacoes">Observações</label>
-                <Input 
-                  id="observacoes" 
-                  placeholder="Observações sobre a rota" 
-                  value={formData.observacoes}
-                  onChange={(e) => handleInputChange('observacoes', e.target.value)}
-                />
+                <Input id="observacoes" placeholder="Observações sobre a rota" value={formData.observacoes} onChange={(e) => handleInputChange('observacoes', e.target.value)} />
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={createRotaMutation.isPending || updateRotaMutation.isPending}
-              >
-                {editingRota 
+              <Button type="submit" className="w-full" disabled={createRotaMutation.isPending || updateRotaMutation.isPending}>
+                {editingRota
                   ? (updateRotaMutation.isPending ? 'Atualizando...' : 'Atualizar rota')
                   : (createRotaMutation.isPending ? 'Cadastrando...' : 'Cadastrar rota')
                 }
@@ -325,19 +245,18 @@ export default function RotasPage() {
           </DialogContent>
         </Dialog>
       </div>
-
       <PaginationControls
         pagination={pagination}
         searchValue={params.search}
+        filterValues={params}
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome, descrição ou observações..."
         isLoading={isLoading}
         filters={filterConfig}
-        onFiltersChange={handleFiltersChange}
+        onFiltersChange={setFilters}
       />
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -379,7 +298,7 @@ export default function RotasPage() {
                   <TableCell className="font-medium">{rota.nome}</TableCell>
                   <TableCell>{rota.descricao || '-'}</TableCell>
                   <TableCell>
-                    {rota.dataEntrega 
+                    {rota.dataEntrega
                       ? formatDate(rota.dataEntrega)
                       : 'Não definida'
                     }
@@ -393,21 +312,10 @@ export default function RotasPage() {
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Editar"
-                      onClick={() => handleEdit(rota)}
-                    >
+                    <Button variant="ghost" size="icon" title="Editar" onClick={() => handleEdit(rota)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Excluir"
-                      onClick={() => handleDelete(rota)}
-                      disabled={deleteRotaMutation.isPending}
-                    >
+                    <Button variant="ghost" size="icon" title="Excluir" onClick={() => handleDelete(rota)} disabled={deleteRotaMutation.isPending}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

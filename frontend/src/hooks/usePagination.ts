@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/axios'
 
@@ -8,7 +8,7 @@ interface PaginationParams {
   search: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
-  [key: string]: any // filtros adicionais
+  [key: string]: any
 }
 
 interface PaginationResponse<T> {
@@ -35,6 +35,7 @@ interface UsePaginationResult<T> {
   setSortBy: (field: string, order?: 'asc' | 'desc') => void
   setFilters: (filters: Record<string, any>) => void
   refresh: () => void
+  forceRefresh: () => Promise<void>
 }
 
 export function usePagination<T = any>(
@@ -55,7 +56,7 @@ export function usePagination<T = any>(
     queryFn: async () => {
       const response = await api.get<PaginationResponse<T>>(endpoint, { params })
       return response.data
-    }
+    },
   })
 
   const setPage = (page: number) => {
@@ -63,7 +64,7 @@ export function usePagination<T = any>(
   }
 
   const setSearch = (search: string) => {
-    setParams(prev => ({ ...prev, search, page: 1 })) // Reset para página 1 ao buscar
+    setParams(prev => ({ ...prev, search, page: 1 }))
   }
 
   const setLimit = (limit: number) => {
@@ -74,17 +75,25 @@ export function usePagination<T = any>(
     setParams(prev => ({ ...prev, sortBy: field, sortOrder: order, page: 1 }))
   }
 
-  const setFilters = (filters: Record<string, any>) => {
-    setParams(prev => ({ 
-      ...prev, 
-      ...filters, 
-      page: 1
-      // Remove a preservação explícita do search, deixe o sistema gerenciar naturalmente
-    }))
-  }
+  const setFilters = (newFilters: Record<string, any>) => {
+    setParams(prev => {
+      const filterKeys = Object.keys(newFilters);
+      const hasChanged = filterKeys.some(key => prev[key] !== newFilters[key]);
+
+      return {
+        ...prev,
+        ...newFilters,
+        page: hasChanged ? 1 : prev.page,
+      };
+    });
+  };
 
   const refresh = () => {
     refetch()
+  }
+
+  const forceRefresh = async () => {
+    await refetch({ cancelRefetch: true })
   }
 
   return {
@@ -105,6 +114,7 @@ export function usePagination<T = any>(
     setLimit,
     setSortBy,
     setFilters,
-    refresh
+    refresh,
+    forceRefresh
   }
 }

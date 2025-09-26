@@ -24,6 +24,7 @@ interface CrudDialogProps<T> {
   refreshData: () => void
   buttonLabel?: string
   buttonIcon?: ReactNode
+  setPage?: (page: number) => void 
 }
 
 export function CrudDialog<T extends Record<string, any>>({
@@ -38,7 +39,8 @@ export function CrudDialog<T extends Record<string, any>>({
   onSuccess,
   refreshData,
   buttonLabel = "Novo item",
-  buttonIcon
+  buttonIcon,
+  setPage
 }: CrudDialogProps<T>) {
   const [formData, setFormData] = useState<T>(initialData)
   const queryClient = useQueryClient()
@@ -48,13 +50,20 @@ export function CrudDialog<T extends Record<string, any>>({
       const response = await api.post(endpoint, newItem)
       return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com o endpoint
-      queryClient.invalidateQueries({ 
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ 
         queryKey: [endpoint],
-        exact: false 
       })
-      refreshData()
+      
+      await queryClient.refetchQueries({
+        queryKey: [endpoint],
+        exact: false
+      })
+      
+      // Volta para página 1 se função setPage for fornecida (apenas para CREATE)
+      if (setPage) {
+        setPage(1)
+      }
       resetForm()
       setDialogOpen(false)
       toast.success(`Item cadastrado com sucesso`)
@@ -72,13 +81,19 @@ export function CrudDialog<T extends Record<string, any>>({
       const response = await api.put(`${endpoint}/${id}`, data)
       return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com o endpoint
-      queryClient.invalidateQueries({ 
+    onSuccess: async () => {
+      // FORÇA invalidação e refetch para UPDATE
+      await queryClient.invalidateQueries({ 
         queryKey: [endpoint],
-        exact: false 
+        exact: false,
+        refetchType: 'all'
       })
-      refreshData()
+      
+      await queryClient.refetchQueries({
+        queryKey: [endpoint],
+        exact: false
+      })
+      
       resetForm()
       setEditingItem(null)
       setDialogOpen(false)

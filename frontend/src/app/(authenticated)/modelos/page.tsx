@@ -7,10 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PaginationControls } from "@/components/PaginationControls"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
-import { getErrorMessage, logError } from "@/lib/errorUtils"
+import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
-import { PenLine, Plus, Trash2, Package } from "lucide-react"
-import { useState, useEffect } from "react"
+import { PenLine, Plus, Trash2 } from "lucide-react"
+import { useState } from "react"
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 
@@ -61,7 +61,6 @@ export default function ModelosPage() {
     setFilters,
     isLoading,
     error,
-    refresh
   } = usePagination<ModeloEntrega>('/modelos-entrega')
 
   const filterConfig = [
@@ -70,27 +69,19 @@ export default function ModelosPage() {
       label: 'Status',
       type: 'select' as const,
       options: [
+        { value: 'all', label: 'Todos' },
         { value: 'true', label: 'Ativos' },
         { value: 'false', label: 'Inativos' },
-        { value: 'all', label: 'Todos' }
       ],
       defaultValue: 'all'
     }
   ]
 
-  const handleFiltersChange = (filters: Record<string, string>) => {
-    const processedFilters = { ...filters }
-    if (processedFilters.ativo === 'all') {
-      delete processedFilters.ativo
-    }
-    setFilters(processedFilters)
-  }
-
   const { data: itensDisponiveis } = useQuery<Item[]>({
     queryKey: ['items-all'],
     queryFn: async () => {
       const response = await api.get('/items?page=1&limit=1000')
-      return response.data.data || response.data
+      return response.data.data || []
     }
   })
 
@@ -99,18 +90,12 @@ export default function ModelosPage() {
       const response = await api.post('/modelos-entrega', newModelo)
       return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/modelos-entrega'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/modelos-entrega'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      setPage(1)
       resetForm()
       setDialogOpen(false)
-      toast.success('Modelo de entrega cadastrado com sucesso!', {
-        duration: 3000,
-      })
+      toast.success('Modelo de entrega cadastrado com sucesso!')
     },
     onError: (error: any) => {
       logError('CriarModelo', error)
@@ -120,31 +105,16 @@ export default function ModelosPage() {
 
   const updateModeloMutation = useMutation({
     mutationFn: async (updatedModelo: any) => {
-      try {
-        const { id, ...data } = updatedModelo
-        const response = await api.put(`/modelos-entrega/${id}`, data)
-        return response.data
-      } catch (error: any) {
-        console.error('Erro detalhado ao atualizar modelo:', error)
-        if (error.response?.status === 400 && error.response?.data?.message) {
-          throw new Error(error.response.data.message)
-        }
-        throw error
-      }
+      const { id, ...data } = updatedModelo
+      const response = await api.put(`/modelos-entrega/${id}`, data)
+      return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/modelos-entrega'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/modelos-entrega'],
-        exact: false 
-      })
-      refresh()
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
       resetForm()
       setEditingModelo(null)
       setDialogOpen(false)
-      toast.success('Modelo de entrega atualizado com sucesso!', {
-        duration: 3000,
-      })
+      toast.success('Modelo de entrega atualizado com sucesso!')
     },
     onError: (error: any) => {
       logError('AtualizarModelo', error)
@@ -154,23 +124,12 @@ export default function ModelosPage() {
 
   const deleteModeloMutation = useMutation({
     mutationFn: async (modeloId: string) => {
-      try {
-        const response = await api.delete(`/modelos-entrega/${modeloId}`)
-        return response.data
-      } catch (error: any) {
-        throw error
-      }
+      const response = await api.delete(`/modelos-entrega/${modeloId}`)
+      return response.data
     },
-    onSuccess: () => {
-      // Invalida todas as queries que começam com '/modelos-entrega'
-      queryClient.invalidateQueries({ 
-        queryKey: ['/modelos-entrega'],
-        exact: false 
-      })
-      refresh()
-      toast.success('Modelo de entrega excluído com sucesso!', {
-        duration: 3000,
-      })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      toast.success('Modelo de entrega excluído com sucesso!')
     },
     onError: (error: any) => {
       logError('ExcluirModelo', error)
@@ -185,22 +144,18 @@ export default function ModelosPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!formData.nome.trim()) {
       toast.error('Nome do modelo é obrigatório')
       return
     }
-
     if (modeloItems.length === 0) {
       toast.error('Adicione pelo menos um item ao modelo')
       return
     }
-
     const submitData = {
       ...formData,
       items: modeloItems.filter(item => item.itemId && item.quantidade > 0)
     }
-
     if (editingModelo) {
       updateModeloMutation.mutate({ ...submitData, id: editingModelo.id })
     } else {
@@ -213,24 +168,16 @@ export default function ModelosPage() {
   }
 
   const handleEdit = (modelo: ModeloEntrega) => {
-    try {
-      console.log("Iniciando edição do modelo:", modelo)
-      setEditingModelo(modelo)
-      setFormData({
-        nome: modelo.nome,
-        descricao: modelo.descricao || '',
-      })
-      setModeloItems(modelo.modeloItems.map(mi => ({
-        itemId: mi.item.id,
-        quantidade: mi.quantidade
-      })))
-      setTimeout(() => {
-        setDialogOpen(true)
-      }, 0)
-    } catch (error) {
-      console.error("Erro ao preparar modelo para edição:", error)
-      toast.error("Erro ao abrir formulário de edição")
-    }
+    setEditingModelo(modelo)
+    setFormData({
+      nome: modelo.nome,
+      descricao: modelo.descricao || '',
+    })
+    setModeloItems(modelo.modeloItems.map(mi => ({
+      itemId: mi.item.id,
+      quantidade: mi.quantidade
+    })))
+    setDialogOpen(true)
   }
 
   const handleDelete = (modelo: ModeloEntrega) => {
@@ -275,7 +222,7 @@ export default function ModelosPage() {
   }
 
   const updateModeloItem = (index: number, field: string, value: any) => {
-    setModeloItems(prev => prev.map((item, i) => 
+    setModeloItems(prev => prev.map((item, i) =>
       i === index ? { ...item, [field]: value } : item
     ))
   }
@@ -289,11 +236,10 @@ export default function ModelosPage() {
             Gerencie os modelos padrão de entrega
           </p>
         </div>
-
         <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) handleCloseDialog();
-          }}>
+          if (!open) handleCloseDialog();
+          setDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -304,37 +250,23 @@ export default function ModelosPage() {
             <DialogHeader>
               <DialogTitle>{editingModelo ? 'Editar modelo' : 'Novo modelo'}</DialogTitle>
               <p id="dialog-description" className="text-sm text-muted-foreground">
-                {editingModelo 
-                  ? 'Altere os dados do modelo conforme necessário' 
+                {editingModelo
+                  ? 'Altere os dados do modelo conforme necessário'
                   : 'Preencha os dados para cadastrar um novo modelo de entrega'
                 }
               </p>
             </DialogHeader>
-
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="nome">Nome do modelo *</label>
-                  <Input 
-                    id="nome" 
-                    placeholder="Ex: Cesta Básica Padrão" 
-                    value={formData.nome}
-                    onChange={(e) => handleInputChange('nome', e.target.value)}
-                    required
-                  />
+                  <Input id="nome" placeholder="Ex: Cesta Básica Padrão" value={formData.nome} onChange={(e) => handleInputChange('nome', e.target.value)} required />
                 </div>
-
                 <div className="space-y-2">
                   <label htmlFor="descricao">Descrição</label>
-                  <Input 
-                    id="descricao" 
-                    placeholder="Descrição do modelo" 
-                    value={formData.descricao}
-                    onChange={(e) => handleInputChange('descricao', e.target.value)}
-                  />
+                  <Input id="descricao" placeholder="Descrição do modelo" value={formData.descricao} onChange={(e) => handleInputChange('descricao', e.target.value)} />
                 </div>
               </div>
-
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-medium">Itens do Modelo</h3>
@@ -343,11 +275,10 @@ export default function ModelosPage() {
                     Adicionar Item
                   </Button>
                 </div>
-
                 <div className="space-y-2">
                   {modeloItems.map((modeloItem, index) => (
                     <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                      <select 
+                      <select
                         className="flex-1 p-2 border rounded"
                         value={modeloItem.itemId}
                         onChange={(e) => updateModeloItem(index, 'itemId', e.target.value)}
@@ -359,8 +290,7 @@ export default function ModelosPage() {
                           </option>
                         ))}
                       </select>
-                      
-                      <Input 
+                      <Input
                         type="number"
                         min="0.1"
                         step="0.1"
@@ -369,18 +299,11 @@ export default function ModelosPage() {
                         value={modeloItem.quantidade}
                         onChange={(e) => updateModeloItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
                       />
-                      
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => removeItem(index)}
-                      >
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(index)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
-                  
                   {modeloItems.length === 0 && (
                     <p className="text-center text-muted-foreground py-4">
                       Nenhum item adicionado. Clique em "Adicionar Item" para começar.
@@ -388,13 +311,8 @@ export default function ModelosPage() {
                   )}
                 </div>
               </div>
-
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={createModeloMutation.isPending || updateModeloMutation.isPending}
-              >
-                {editingModelo 
+              <Button type="submit" className="w-full" disabled={createModeloMutation.isPending || updateModeloMutation.isPending}>
+                {editingModelo
                   ? (updateModeloMutation.isPending ? 'Atualizando...' : 'Atualizar modelo')
                   : (createModeloMutation.isPending ? 'Cadastrando...' : 'Cadastrar modelo')
                 }
@@ -403,19 +321,18 @@ export default function ModelosPage() {
           </DialogContent>
         </Dialog>
       </div>
-
       <PaginationControls
         pagination={pagination}
         searchValue={params.search}
+        filterValues={params}
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
         searchPlaceholder="Buscar por nome ou descrição..."
         isLoading={isLoading}
         filters={filterConfig}
-        onFiltersChange={handleFiltersChange}
+        onFiltersChange={setFilters}
       />
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -474,21 +391,10 @@ export default function ModelosPage() {
                     </div>
                   </TableCell>
                   <TableCell className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Editar modelo"
-                      onClick={() => handleEdit(modelo)}
-                    >
+                    <Button variant="ghost" size="icon" title="Editar modelo" onClick={() => handleEdit(modelo)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Excluir modelo"
-                      onClick={() => handleDelete(modelo)}
-                      disabled={deleteModeloMutation.isPending}
-                    >
+                    <Button variant="ghost" size="icon" title="Excluir modelo" onClick={() => handleDelete(modelo)} disabled={deleteModeloMutation.isPending}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
