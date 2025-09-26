@@ -67,7 +67,24 @@ export default function BeneficiariosPage() {
 
   const createBeneficiarioMutation = useMutation({
     mutationFn: async (newBeneficiario: { nome: string; endereco: string; telefone?: string; email?: string; dataNascimento?: string; observacoes?: string }) => {
-      const response = await api.post('/beneficiarios', newBeneficiario)
+      // Limpar campos vazios para evitar erro do Prisma
+      const cleanData = {
+        nome: newBeneficiario.nome,
+        endereco: newBeneficiario.endereco,
+        telefone: newBeneficiario.telefone?.trim() || undefined,
+        email: newBeneficiario.email?.trim() || undefined,
+        dataNascimento: newBeneficiario.dataNascimento?.trim() || undefined,
+        observacoes: newBeneficiario.observacoes?.trim() || undefined
+      }
+      
+      // Remove campos undefined
+      Object.keys(cleanData).forEach(key => {
+        if (cleanData[key as keyof typeof cleanData] === undefined) {
+          delete cleanData[key as keyof typeof cleanData]
+        }
+      })
+      
+      const response = await api.post('/beneficiarios', cleanData)
       return response.data
     },
     onSuccess: async () => {
@@ -85,7 +102,25 @@ export default function BeneficiariosPage() {
   const updateBeneficiarioMutation = useMutation({
     mutationFn: async (updatedBeneficiario: { id: string; nome: string; endereco: string; telefone?: string; email?: string; dataNascimento?: string; observacoes?: string }) => {
       const { id, ...data } = updatedBeneficiario
-      const response = await api.put(`/beneficiarios/${id}`, data)
+      
+      // Limpar campos vazios para evitar erro do Prisma
+      const cleanData = {
+        nome: data.nome,
+        endereco: data.endereco,
+        telefone: data.telefone?.trim() || undefined,
+        email: data.email?.trim() || undefined,
+        dataNascimento: data.dataNascimento?.trim() || undefined,
+        observacoes: data.observacoes?.trim() || undefined
+      }
+      
+      // Remove campos undefined
+      Object.keys(cleanData).forEach(key => {
+        if (cleanData[key as keyof typeof cleanData] === undefined) {
+          delete cleanData[key as keyof typeof cleanData]
+        }
+      })
+      
+      const response = await api.put(`/beneficiarios/${id}`, cleanData)
       return response.data
     },
     onSuccess: async () => {
@@ -122,8 +157,32 @@ export default function BeneficiariosPage() {
       toast.error('Nome é obrigatório')
       return
     }
+    if (formData.nome.trim().length < 2) {
+      toast.error('Nome deve ter pelo menos 2 caracteres')
+      return
+    }
+    if (formData.nome.trim().length > 100) {
+      toast.error('Nome deve ter no máximo 100 caracteres')
+      return
+    }
     if (!formData.endereco.trim()) {
       toast.error('Endereço é obrigatório')
+      return
+    }
+    if (formData.endereco.trim().length <= 5) {
+      toast.error('Endereço deve ter mais de 5 caracteres')
+      return
+    }
+    if (formData.telefone && (formData.telefone.trim().length < 10 || formData.telefone.trim().length > 15)) {
+      toast.error('Telefone deve ter entre 10 e 15 caracteres')
+      return
+    }
+    if (formData.email && formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      toast.error('Email deve ter um formato válido')
+      return
+    }
+    if (formData.observacoes && formData.observacoes.trim().length > 500) {
+      toast.error('Observações deve ter no máximo 500 caracteres')
       return
     }
     if (editingBeneficiario) {

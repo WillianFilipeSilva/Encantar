@@ -133,8 +133,20 @@ export default function ItensPage() {
       toast.error('Nome é obrigatório')
       return
     }
+    if (formData.nome.trim().length > 100) {
+      toast.error('Nome deve ter no máximo 100 caracteres')
+      return
+    }
     if (!formData.unidade.trim()) {
       toast.error('Unidade é obrigatória')
+      return
+    }
+    if (formData.unidade.trim().length > 20) {
+      toast.error('Unidade deve ter no máximo 20 caracteres')
+      return
+    }
+    if (formData.descricao && formData.descricao.trim().length > 500) {
+      toast.error('Descrição deve ter no máximo 500 caracteres')
       return
     }
     if (editingItem) {
