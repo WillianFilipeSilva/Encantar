@@ -201,18 +201,19 @@ export function PaginationControls({
             onChange={(e) => onLimitChange(parseInt(e.target.value))}
             className="px-3 py-1 border rounded-md text-sm"
           >
-            <option value="5">5</option>
             <option value="10">10</option>
             <option value="25">25</option>
             <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
           </select>
         </div>
       </div>
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-600">
-          Mostrando {((pagination?.page || 1) - 1) * (pagination?.limit || 10) + 1} a{' '}
-          {Math.min((pagination?.page || 1) * (pagination?.limit || 10), pagination?.total || 0)} de{' '}
+          Mostrando {((pagination?.page || 1) - 1) * (pagination?.limit || 50) + 1} a{' '}
+          {Math.min((pagination?.page || 1) * (pagination?.limit || 50), pagination?.total || 0)} de{' '}
           {pagination?.total || 0} resultados
         </div>
 

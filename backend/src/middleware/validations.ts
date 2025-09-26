@@ -17,8 +17,8 @@ export const commonValidations = {
     
   limit: query('limit')
     .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('Limite deve ser um número inteiro entre 1 e 100'),
+    .isInt({ min: 1, max: 500 })
+    .withMessage('Limite deve ser um número inteiro entre 1 e 500'),
 
   // Validações de texto
   nome: body('nome')

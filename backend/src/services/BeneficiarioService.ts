@@ -43,7 +43,7 @@ export class BeneficiarioService extends BaseService<
     };
   }> {
     if (page < 1) page = 1;
-    if (limit < 1 || limit > 100) limit = 10;
+    if (limit < 1 || limit > 500) limit = 10;
 
     return this.beneficiarioRepository.findAllWithRelations(
       page,

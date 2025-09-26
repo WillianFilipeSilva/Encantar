@@ -17,7 +17,7 @@ export abstract class BaseService<T, CreateData, UpdateData> {
   async findAll(page: number = 1, limit: number = 10, filters?: any) {
     // Validação de paginação
     if (page < 1) page = 1;
-    if (limit < 1 || limit > 100) limit = 10;
+    if (limit < 1 || limit > 500) limit = 10;
 
     return this.repository.findAll(page, limit, filters);
   }

@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls } from "@/components/PaginationControls"
@@ -222,15 +222,15 @@ export default function ItensPage() {
               Novo item
             </Button>
           </DialogTrigger>
-          <DialogContent aria-describedby="dialog-description">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingItem ? 'Editar item' : 'Novo item'}</DialogTitle>
-              <p id="dialog-description" className="text-sm text-muted-foreground">
+              <DialogDescription>
                 {editingItem
                   ? 'Altere os dados do item conforme necessário'
                   : 'Preencha os dados para cadastrar um novo item no sistema'
                 }
-              </p>
+              </DialogDescription>
             </DialogHeader>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">

@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls } from "@/components/PaginationControls"
@@ -261,16 +261,17 @@ export default function BeneficiariosPage() {
               Novo beneficiário
             </Button>
           </DialogTrigger>
-          <DialogContent aria-describedby="dialog-description">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingBeneficiario ? 'Editar beneficiário' : 'Novo beneficiário'}</DialogTitle>
-              <p id="dialog-description" className="text-sm text-muted-foreground">
-                {editingBeneficiario
-                  ? 'Altere os dados do beneficiário conforme necessário'
+              <DialogDescription>
+                {editingBeneficiario 
+                  ? 'Altere os dados do beneficiário conforme necessário' 
                   : 'Preencha os dados para cadastrar um novo beneficiário no sistema'
                 }
-              </p>
+              </DialogDescription>
             </DialogHeader>
+
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label htmlFor="nome">Nome *</label>

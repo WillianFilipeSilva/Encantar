@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/lib/axios"
 import toast from "react-hot-toast"
@@ -140,15 +140,15 @@ export function CrudDialog<T extends Record<string, any>>({
           {buttonLabel}
         </Button>
       </DialogTrigger>
-      <DialogContent aria-describedby="dialog-description">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{editingItem ? `Editar ${title}` : `Novo ${title}`}</DialogTitle>
-          <p id="dialog-description" className="text-sm text-muted-foreground">
+          <DialogDescription>
             {editingItem 
               ? `Altere os dados do ${title.toLowerCase()} conforme necessário` 
               : `Preencha os dados para cadastrar um novo ${title.toLowerCase()} no sistema`
             }
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
