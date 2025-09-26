@@ -39,10 +39,6 @@ export class ItemController extends BaseController<
       .isLength({ max: 500 })
       .withMessage("Descrição deve ter no máximo 500 caracteres")
       .trim(),
-    body("ativo")
-      .optional()
-      .isBoolean()
-      .withMessage("Ativo deve ser um valor booleano"),
   ];
 
   /**
@@ -69,10 +65,6 @@ export class ItemController extends BaseController<
       .isLength({ max: 500 })
       .withMessage("Descrição deve ter no máximo 500 caracteres")
       .trim(),
-    body("ativo")
-      .optional()
-      .isBoolean()
-      .withMessage("Ativo deve ser um valor booleano"),
   ];
 
   /**
@@ -567,9 +559,7 @@ export class ItemController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    if (query.ativo !== undefined) {
-      filters.ativo = query.ativo === "true";
-    }
+    // Removido filtro por 'ativo' pois o modelo Item não tem esse campo
 
     if (query.search) {
       filters.OR = [

@@ -11,6 +11,7 @@ import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
 import { PenLine, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { useEffect } from "react"
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 
@@ -77,13 +78,32 @@ export default function ModelosPage() {
     }
   ]
 
-  const { data: itensDisponiveis } = useQuery<Item[]>({
-    queryKey: ['items-all'],
+  const { data: itensDisponiveis = [], isLoading: isLoadingItems, error: itemsError } = useQuery<Item[]>({
+    queryKey: ['items-for-models'],
     queryFn: async () => {
-      const response = await api.get('/items?page=1&limit=1000')
-      return response.data.data || []
-    }
+      try {
+        const response = await api.get('/items?page=1&limit=100')
+        
+        if (response.data && response.data.data) {
+          return Array.isArray(response.data.data) ? response.data.data : []
+        } else {
+          return []
+        }
+      } catch (error: any) {
+        console.error('Erro ao buscar itens:', error)
+        return []
+      }
+    },
+    retry: 1,
+    staleTime: 0, // Sem cache para debug
   })
+
+  // Debug simplificado apenas quando há erro
+  useEffect(() => {
+    if (itemsError) {
+      console.error('Erro ao carregar itens:', itemsError)
+    }
+  }, [itemsError])
 
   const createModeloMutation = useMutation({
     mutationFn: async (newModelo: any) => {
@@ -154,7 +174,7 @@ export default function ModelosPage() {
     }
     const submitData = {
       ...formData,
-      items: modeloItems.filter(item => item.itemId && item.quantidade > 0)
+      modeloItems: modeloItems.filter(item => item.itemId && item.quantidade > 0)
     }
     if (editingModelo) {
       updateModeloMutation.mutate({ ...submitData, id: editingModelo.id })
@@ -269,8 +289,15 @@ export default function ModelosPage() {
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Itens do Modelo</h3>
-                  <Button type="button" onClick={addItem} size="sm">
+                  <div>
+                    <h3 className="text-lg font-medium">Itens do Modelo</h3>
+                    {isLoadingItems && <p className="text-sm text-blue-600">Carregando itens disponíveis...</p>}
+                    {itemsError && <p className="text-sm text-red-600">Erro ao carregar itens: {itemsError?.message}</p>}
+                    {!isLoadingItems && !itemsError && Array.isArray(itensDisponiveis) && (
+                      <p className="text-sm text-green-600">{itensDisponiveis.length} itens disponíveis</p>
+                    )}
+                  </div>
+                  <Button type="button" onClick={addItem} size="sm" disabled={isLoadingItems}>
                     <Plus className="mr-2 h-4 w-4" />
                     Adicionar Item
                   </Button>
@@ -284,7 +311,12 @@ export default function ModelosPage() {
                         onChange={(e) => updateModeloItem(index, 'itemId', e.target.value)}
                       >
                         <option value="">Selecione um item</option>
-                        {itensDisponiveis?.map(item => (
+                        {isLoadingItems && <option disabled>Carregando itens...</option>}
+                        {itemsError && <option disabled>Erro ao carregar itens</option>}
+                        {!isLoadingItems && !itemsError && itensDisponiveis?.length === 0 && (
+                          <option disabled>Nenhum item disponível</option>
+                        )}
+                        {Array.isArray(itensDisponiveis) && itensDisponiveis.map(item => (
                           <option key={item.id} value={item.id}>
                             {item.nome} ({item.unidade})
                           </option>
@@ -292,12 +324,12 @@ export default function ModelosPage() {
                       </select>
                       <Input
                         type="number"
-                        min="0.1"
-                        step="0.1"
+                        min="1"
+                        step="1"
                         placeholder="Qtd"
                         className="w-24"
                         value={modeloItem.quantidade}
-                        onChange={(e) => updateModeloItem(index, 'quantidade', parseFloat(e.target.value) || 0)}
+                        onChange={(e) => updateModeloItem(index, 'quantidade', parseInt(e.target.value) || 1)}
                       />
                       <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(index)}>
                         <Trash2 className="h-4 w-4" />

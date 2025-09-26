@@ -205,7 +205,7 @@ export interface RotaResponseDTO {
 export interface CreateModeloEntregaDTO {
   nome: string;
   descricao?: string;
-  items: Array<{
+  modeloItems: Array<{
     itemId: string;
     quantidade: number;
   }>;
@@ -215,7 +215,7 @@ export interface UpdateModeloEntregaDTO {
   nome?: string;
   descricao?: string;
   ativo?: boolean;
-  items?: Array<{
+  modeloItems?: Array<{
     itemId: string;
     quantidade: number;
   }>;
