@@ -5,7 +5,6 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 
-// Importar rotas
 import authRoutes from "./routes/auth";
 import beneficiarioRoutes from "./routes/beneficiario";
 import itemRoutes from "./routes/item";
@@ -14,27 +13,16 @@ import modeloEntregaRoutes from "./routes/modeloEntrega";
 import entregaRoutes from "./routes/entrega";
 import dashboardRoutes from "./routes/dashboard";
 
-// Importar Swagger
-// import { setupSwagger } from "./swagger/swagger";
-
-// Importar middleware
 import { errorHandler } from "./middleware/errorHandler";
 import { notFound } from "./middleware/notFound";
 
-// Importar database
 import DatabaseClient from "./utils/database";
 
-// Carregar variáveis de ambiente
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===========================================
-// CORS - DEVE VIR PRIMEIRO
-// ===========================================
-
-// CORS configurado para desenvolvimento
 app.use(
   cors({
     origin: [
@@ -53,7 +41,7 @@ app.use(
       "Access-Control-Allow-Headers"
     ],
     exposedHeaders: ["Set-Cookie"],
-    optionsSuccessStatus: 200, // Para suportar browsers legados
+    optionsSuccessStatus: 200,
     preflightContinue: false
   })
 );
@@ -62,10 +50,9 @@ app.use(
 // MIDDLEWARE DE SEGURANÇA
 // ===========================================
 
-// Rate limiting global
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP por janela
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: {
     error: "Muitas tentativas. Tente novamente em 15 minutos.",
     code: "RATE_LIMIT_EXCEEDED",
@@ -74,10 +61,9 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Rate limiting mais restrito para autenticação
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hora
-  max: 5, // máximo 5 tentativas por IP por hora
+  windowMs: 60 * 60 * 1000,
+  max: 5,
   message: {
     error: "Muitas tentativas de login. Tente novamente em 1 hora.",
     code: "AUTH_RATE_LIMIT_EXCEEDED",
@@ -86,11 +72,9 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Aplicar rate limiting global e específico para autenticação
 app.use(globalLimiter);
 app.use("/api/auth", authLimiter);
 
-// Helmet para headers de segurança
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -106,13 +90,13 @@ app.use(
         frameSrc: ["'none'"],
       },
     },
-    crossOriginEmbedderPolicy: false, // Desabilitado para desenvolvimento
-    crossOriginOpenerPolicy: false, // Desabilitado para desenvolvimento
-    crossOriginResourcePolicy: false, // Desabilitado para desenvolvimento
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
     dnsPrefetchControl: true,
     frameguard: { action: "deny" },
     hidePoweredBy: true,
-    hsts: false, // Desabilitado para desenvolvimento HTTP
+    hsts: false,
     ieNoOpen: true,
     noSniff: true,
     referrerPolicy: { policy: "same-origin" },
@@ -120,7 +104,6 @@ app.use(
   })
 );
 
-// Sistema de logging
 import logger, { httpLogger } from './utils/logger';
 app.use(httpLogger);
 app.use(morgan('combined', {
@@ -129,18 +112,9 @@ app.use(morgan('combined', {
   },
 }));
 
-// Parser de JSON com limite de tamanho
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// ===========================================
-// ROTAS
-// ===========================================
-
-// Configurar Swagger
-// setupSwagger(app);
-
-// Rota de health check
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -150,7 +124,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Rotas da API
 app.use("/api/auth", authRoutes);
 app.use("/api/beneficiarios", beneficiarioRoutes);
 app.use("/api/items", itemRoutes);
@@ -159,26 +132,14 @@ app.use("/api/modelos-entrega", modeloEntregaRoutes);
 app.use("/api/entregas", entregaRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// ===========================================
-// MIDDLEWARE DE ERRO
-// ===========================================
-
-// Rota não encontrada
 app.use(notFound);
 
-// Tratamento global de erros
 app.use(errorHandler);
-
-// ===========================================
-// INICIALIZAÇÃO DO SERVIDOR
-// ===========================================
 
 async function startServer() {
   try {
-    // Conecta ao banco de dados
     await DatabaseClient.connect();
 
-    // Inicia o servidor
     app.listen(PORT, () => {
       logger.info(`🚀 Servidor Encantar rodando na porta ${PORT}`);
       logger.info(`📊 Health check: http://localhost:${PORT}/health`);
@@ -191,7 +152,6 @@ async function startServer() {
   }
 }
 
-// Graceful shutdown
 process.on("SIGINT", async () => {
   logger.info("🛑 Recebido SIGINT. Encerrando servidor...");
   await DatabaseClient.disconnect();
@@ -204,7 +164,6 @@ process.on("SIGTERM", async () => {
   process.exit(0);
 });
 
-// Inicia o servidor
 startServer();
 
 export default app;

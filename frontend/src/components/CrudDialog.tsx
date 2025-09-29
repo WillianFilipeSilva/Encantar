@@ -60,7 +60,6 @@ export function CrudDialog<T extends Record<string, any>>({
         exact: false
       })
       
-      // Volta para página 1 se função setPage for fornecida (apenas para CREATE)
       if (setPage) {
         setPage(1)
       }
@@ -82,7 +81,6 @@ export function CrudDialog<T extends Record<string, any>>({
       return response.data
     },
     onSuccess: async () => {
-      // FORÇA invalidação e refetch para UPDATE
       await queryClient.invalidateQueries({ 
         queryKey: [endpoint],
         exact: false,

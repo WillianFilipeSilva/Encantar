@@ -7,7 +7,6 @@ export default function NotFoundPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redireciona para a página inicial quando a rota não for encontrada
     router.replace('/')
   }, [router])
 

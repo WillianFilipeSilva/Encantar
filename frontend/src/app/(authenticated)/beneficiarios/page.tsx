@@ -5,11 +5,12 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls } from "@/components/PaginationControls"
+import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
 import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
-import { PenLine, Plus, Trash2 } from "lucide-react"
+import { PenLine, Plus, UserCheck, UserX } from "lucide-react"
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
@@ -39,6 +40,13 @@ export default function BeneficiariosPage() {
 
   const queryClient = useQueryClient()
 
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    title: '',
+    description: '',
+    onConfirm: () => {}
+  })
+
   const {
     data,
     pagination,
@@ -67,7 +75,6 @@ export default function BeneficiariosPage() {
 
   const createBeneficiarioMutation = useMutation({
     mutationFn: async (newBeneficiario: { nome: string; endereco: string; telefone?: string; email?: string; dataNascimento?: string; observacoes?: string }) => {
-      // Limpar campos vazios para evitar erro do Prisma
       const cleanData = {
         nome: newBeneficiario.nome,
         endereco: newBeneficiario.endereco,
@@ -77,7 +84,6 @@ export default function BeneficiariosPage() {
         observacoes: newBeneficiario.observacoes?.trim() || undefined
       }
       
-      // Remove campos undefined
       Object.keys(cleanData).forEach(key => {
         if (cleanData[key as keyof typeof cleanData] === undefined) {
           delete cleanData[key as keyof typeof cleanData]
@@ -103,7 +109,6 @@ export default function BeneficiariosPage() {
     mutationFn: async (updatedBeneficiario: { id: string; nome: string; endereco: string; telefone?: string; email?: string; dataNascimento?: string; observacoes?: string }) => {
       const { id, ...data } = updatedBeneficiario
       
-      // Limpar campos vazios para evitar erro do Prisma
       const cleanData = {
         nome: data.nome,
         endereco: data.endereco,
@@ -113,7 +118,6 @@ export default function BeneficiariosPage() {
         observacoes: data.observacoes?.trim() || undefined
       }
       
-      // Remove campos undefined
       Object.keys(cleanData).forEach(key => {
         if (cleanData[key as keyof typeof cleanData] === undefined) {
           delete cleanData[key as keyof typeof cleanData]
@@ -136,18 +140,18 @@ export default function BeneficiariosPage() {
     }
   })
 
-  const deleteBeneficiarioMutation = useMutation({
-    mutationFn: async (beneficiarioId: string) => {
-      const response = await api.delete(`/beneficiarios/${beneficiarioId}`);
+  const toggleBeneficiarioStatusMutation = useMutation({
+    mutationFn: async ({ beneficiarioId, ativo }: { beneficiarioId: string; ativo: boolean }) => {
+      const response = await api.put(`/beneficiarios/${beneficiarioId}`, { ativo });
       return response.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (_, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['/beneficiarios'] });
-      toast.success('Beneficiário excluído com sucesso!');
+      toast.success(`Beneficiário ${variables.ativo ? 'ativado' : 'inativado'} com sucesso!`);
     },
     onError: (error: any) => {
-      logError('ExcluirBeneficiario', error);
-      showErrorToast('Erro ao excluir beneficiário', error);
+      logError('AlterarStatusBeneficiario', error);
+      showErrorToast('Erro ao alterar status do beneficiário', error);
     }
   })
 
@@ -209,30 +213,21 @@ export default function BeneficiariosPage() {
     setDialogOpen(true)
   }
 
-  const handleDelete = (beneficiario: Beneficiario) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <span>Tem certeza que deseja excluir o beneficiário "{beneficiario.nome}"?</span>
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              deleteBeneficiarioMutation.mutate(beneficiario.id);
-            }}
-            className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Excluir
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-200 px-3 py-1 rounded-md text-sm"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
+  const handleToggleStatus = (beneficiario: Beneficiario) => {
+    const newStatus = !beneficiario.ativo;
+    const action = newStatus ? 'ativar' : 'inativar';
+    
+    setConfirmDialog({
+      open: true,
+      title: `${newStatus ? 'Ativar' : 'Inativar'} Beneficiário`,
+      description: `Tem certeza que deseja ${action} o beneficiário "${beneficiario.nome}"?`,
+      onConfirm: () => {
+        toggleBeneficiarioStatusMutation.mutate({
+          beneficiarioId: beneficiario.id,
+          ativo: newStatus
+        });
+        setConfirmDialog(prev => ({ ...prev, open: false }));
+      }
     });
   }
 
@@ -365,8 +360,22 @@ export default function BeneficiariosPage() {
                     <Button variant="ghost" size="icon" title="Editar beneficiário" onClick={() => handleEdit(beneficiario)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" title="Excluir beneficiário" onClick={() => handleDelete(beneficiario)} disabled={deleteBeneficiarioMutation.isPending}>
-                      <Trash2 className="h-4 w-4" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title={beneficiario.ativo ? 'Inativar beneficiário' : 'Ativar beneficiário'}
+                      onClick={() => handleToggleStatus(beneficiario)} 
+                      disabled={toggleBeneficiarioStatusMutation.isPending}
+                      className={beneficiario.ativo 
+                        ? "text-orange-600 hover:text-orange-800 hover:bg-orange-50" 
+                        : "text-green-600 hover:text-green-800 hover:bg-green-50"
+                      }
+                    >
+                      {beneficiario.ativo ? (
+                        <UserX className="h-4 w-4" />
+                      ) : (
+                        <UserCheck className="h-4 w-4" />
+                      )}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -375,6 +384,18 @@ export default function BeneficiariosPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog(prev => ({ ...prev, open }))}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        variant="warning"
+        onConfirm={confirmDialog.onConfirm}
+        loading={toggleBeneficiarioStatusMutation.isPending}
+      />
     </div>
   )
 }

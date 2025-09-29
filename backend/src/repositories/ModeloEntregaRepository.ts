@@ -11,9 +11,12 @@ export class ModeloEntregaRepository extends BaseRepository<
     super(prisma, "modeloEntrega");
   }
 
-  /**
-   * Cria um novo modelo de entrega com seus itens
-   */
+  async delete(id: string): Promise<ModeloEntrega> {
+    return this.prisma.modeloEntrega.delete({
+      where: { id }
+    });
+  }
+
   async create(data: CreateModeloEntregaDTO): Promise<ModeloEntrega> {
     const { modeloItems, ...modeloData } = data;
 
@@ -38,9 +41,6 @@ export class ModeloEntregaRepository extends BaseRepository<
     });
   }
 
-  /**
-   * Atualiza um modelo de entrega com seus itens
-   */
   async update(id: string, data: UpdateModeloEntregaDTO): Promise<ModeloEntrega> {
     const { modeloItems, ...modeloData } = data;
 
@@ -51,7 +51,7 @@ export class ModeloEntregaRepository extends BaseRepository<
         descricao: modeloData.descricao,
         ativo: modeloData.ativo,
         modeloItems: modeloItems ? {
-          deleteMany: {}, // Remove todos os itens antigos
+          deleteMany: {},
           create: modeloItems.map((item: { itemId: string; quantidade: number }) => ({
             itemId: item.itemId,
             quantidade: item.quantidade
@@ -68,9 +68,6 @@ export class ModeloEntregaRepository extends BaseRepository<
     });
   }
 
-  /**
-   * Busca modelo por ID com itens
-   */
   async findById(id: string): Promise<ModeloEntrega | null> {
     return this.prisma.modeloEntrega.findUnique({
       where: { id },
@@ -84,9 +81,6 @@ export class ModeloEntregaRepository extends BaseRepository<
     });
   }
 
-  /**
-   * Busca todos os modelos com paginação e itens
-   */
   async findAll(
     page: number = 1,
     limit: number = 10,

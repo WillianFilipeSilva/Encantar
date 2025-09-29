@@ -39,7 +39,6 @@ export function useAuth() {
           }
         } catch (error) {
           console.error('Erro ao fazer parse do userData:', error)
-          // Se o userData está corrompido, limpa o localStorage
           localStorage.removeItem('@encantar:token')
           localStorage.removeItem('@encantar:refresh-token')
           localStorage.removeItem('@encantar:user')
@@ -59,7 +58,6 @@ export function useAuth() {
 
   const login = (userData: User, token: string, refreshToken?: string) => {
     try {
-      // Validar dados antes de salvar
       if (!userData || !userData.id || !token) {
         throw new Error('Dados de login inválidos')
       }
@@ -84,22 +82,18 @@ export function useAuth() {
   }
 
   const logout = () => {
-    // Limpar dados do localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('@encantar:token')
       localStorage.removeItem('@encantar:refresh-token')
       localStorage.removeItem('@encantar:user')
     }
     
-    // Atualizar estado
     setIsAuthenticated(false)
     setUser(null)
     
-    // Redirecionar para login
     router.push('/login')
   }
 
-  // Função para verificar se o token é válido
   const checkTokenValidity = () => {
     if (typeof window === 'undefined') return false
     
@@ -111,7 +105,6 @@ export function useAuth() {
     }
     
     try {
-      // Validar se o userData não está corrompido
       const parsedUser = JSON.parse(user)
       return parsedUser && parsedUser.id
     } catch {

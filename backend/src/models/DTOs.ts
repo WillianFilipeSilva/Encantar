@@ -3,10 +3,6 @@
  * Garantem validação e tipagem forte nas APIs
  */
 
-// ===========================================
-// DTOs BASE
-// ===========================================
-
 export interface BaseResponse<T> {
   success: boolean;
   data: T;
@@ -25,10 +21,6 @@ export interface PaginatedResponse<T> {
     hasPrev: boolean;
   };
 }
-
-// ===========================================
-// DTOs DE BENEFICIÁRIO
-// ===========================================
 
 export interface CreateBeneficiarioDTO {
   nome: string;
@@ -69,10 +61,6 @@ export interface BeneficiarioResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE ITEM
-// ===========================================
-
 export interface CreateItemDTO {
   nome: string;
   descricao?: string;
@@ -103,10 +91,6 @@ export interface ItemResponseDTO {
     nome: string;
   };
 }
-
-// ===========================================
-// DTOs DE ENTREGA
-// ===========================================
 
 export interface CreateEntregaItemDTO {
   itemId: string;
@@ -159,10 +143,6 @@ export interface EntregaResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE ROTA
-// ===========================================
-
 export interface CreateRotaDTO {
   nome: string;
   descricao?: string;
@@ -198,10 +178,6 @@ export interface RotaResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE MODELO DE ENTREGA
-// ===========================================
-
 export interface CreateModeloEntregaDTO {
   nome: string;
   descricao?: string;
@@ -220,10 +196,6 @@ export interface UpdateModeloEntregaDTO {
     quantidade: number;
   }>;
 }
-
-// ===========================================
-// DTOs DE TEMPLATE PDF
-// ===========================================
 
 export interface CreateTemplatePDFDTO {
   nome: string;
@@ -247,10 +219,6 @@ export interface TemplatePDFResponseDTO {
   criadoEm: Date;
   atualizadoEm: Date;
 }
-
-// ===========================================
-// DTOs DE FILTROS E QUERIES
-// ===========================================
 
 export interface BeneficiarioFiltersDTO {
   search?: string;
@@ -283,10 +251,6 @@ export interface RotaFiltersDTO {
   dataEntregaFim?: string;
 }
 
-// ===========================================
-// DTOs DE ESTATÍSTICAS (para dashboard futuro)
-// ===========================================
-
 export interface DashboardStatsDTO {
   totalEntregas: number;
   totalRotas: number;
@@ -305,10 +269,6 @@ export interface DashboardStatsDTO {
     quantidade: number;
   }>;
 }
-
-// ===========================================
-// DTOs DE VALIDAÇÃO
-// ===========================================
 
 export interface ValidationErrorDTO {
   field: string;

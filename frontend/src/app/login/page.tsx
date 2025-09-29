@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  // Redireciona para dashboard se já estiver logado
   useEffect(() => {
     if (!authLoading && user) {
       router.replace('/dashboard')
@@ -33,11 +32,9 @@ export default function LoginPage() {
         senha
       })
 
-      // O backend retorna: { success: true, data: AuthResponse }
       const authData = response.data.data
       const { user, accessToken, refreshToken } = authData
 
-      // Usar a função login do hook useAuth para salvar os dados
       const success = authLogin(user, accessToken, refreshToken)
       
       if (success) {

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls } from "@/components/PaginationControls"
+import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
 import { logError } from "@/lib/errorUtils"
@@ -31,6 +32,18 @@ export default function ItensPage() {
   })
 
   const queryClient = useQueryClient()
+
+  const {
+    openDialog: openDeleteDialog,
+    ConfirmDialogComponent: DeleteConfirmDialog,
+    isLoading: isDeleting
+  } = useConfirmDialog({
+    title: "Excluir Item",
+    description: "Esta ação não pode ser desfeita. O item será removido permanentemente do sistema.",
+    confirmText: "Sim, excluir",
+    cancelText: "Cancelar",
+    variant: 'danger'
+  })
 
   const {
     data,
@@ -171,29 +184,8 @@ export default function ItensPage() {
   }
 
   const handleDelete = (item: Item) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <span>Tem certeza que deseja excluir o item "{item.nome}"?</span>
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              deleteItemMutation.mutate(item.id);
-            }}
-            className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Excluir
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-200 px-3 py-1 rounded-md text-sm"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
+    openDeleteDialog(() => {
+      deleteItemMutation.mutate(item.id);
     });
   }
 
@@ -311,7 +303,14 @@ export default function ItensPage() {
                     <Button variant="ghost" size="icon" title="Editar item" onClick={() => handleEdit(item)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" title="Excluir item" onClick={() => handleDelete(item)} disabled={deleteItemMutation.isPending}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title="Excluir item" 
+                      onClick={() => handleDelete(item)} 
+                      disabled={deleteItemMutation.isPending || isDeleting}
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -321,6 +320,8 @@ export default function ItensPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <DeleteConfirmDialog />
     </div>
   )
 }

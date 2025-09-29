@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls } from "@/components/PaginationControls"
+import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
 import { logError } from "@/lib/errorUtils"
@@ -53,6 +54,18 @@ export default function ModelosPage() {
   const queryClient = useQueryClient()
 
   const {
+    openDialog: openDeleteDialog,
+    ConfirmDialogComponent: DeleteConfirmDialog,
+    isLoading: isDeleting
+  } = useConfirmDialog({
+    title: "Excluir Modelo",
+    description: "Esta ação não pode ser desfeita. O modelo e todos os seus itens serão removidos permanentemente.",
+    confirmText: "Sim, excluir",
+    cancelText: "Cancelar",
+    variant: 'danger'
+  })
+
+  const {
     data,
     pagination,
     params,
@@ -95,10 +108,9 @@ export default function ModelosPage() {
       }
     },
     retry: 1,
-    staleTime: 0, // Sem cache para debug
+    staleTime: 0,
   })
 
-  // Debug simplificado apenas quando há erro
   useEffect(() => {
     if (itemsError) {
       console.error('Erro ao carregar itens:', itemsError)
@@ -201,29 +213,9 @@ export default function ModelosPage() {
   }
 
   const handleDelete = (modelo: ModeloEntrega) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <span>Tem certeza que deseja excluir o modelo "{modelo.nome}"?</span>
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              deleteModeloMutation.mutate(modelo.id);
-            }}
-            className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Excluir
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-200 px-3 py-1 rounded-md text-sm"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
+    // ✅ Usando modal de confirmação bonito
+    openDeleteDialog(() => {
+      deleteModeloMutation.mutate(modelo.id);
     });
   }
 
@@ -426,7 +418,14 @@ export default function ModelosPage() {
                     <Button variant="ghost" size="icon" title="Editar modelo" onClick={() => handleEdit(modelo)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" title="Excluir modelo" onClick={() => handleDelete(modelo)} disabled={deleteModeloMutation.isPending}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title="Excluir modelo" 
+                      onClick={() => handleDelete(modelo)} 
+                      disabled={deleteModeloMutation.isPending || isDeleting}
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -436,6 +435,8 @@ export default function ModelosPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <DeleteConfirmDialog />
     </div>
   )
 }

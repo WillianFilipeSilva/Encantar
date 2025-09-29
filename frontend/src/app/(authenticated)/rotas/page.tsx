@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls } from "@/components/PaginationControls"
+import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
 import { formatDate } from "@/lib/utils"
@@ -44,6 +45,18 @@ export default function RotasPage() {
   })
 
   const queryClient = useQueryClient()
+
+  const {
+    openDialog: openDeleteDialog,
+    ConfirmDialogComponent: DeleteConfirmDialog,
+    isLoading: isDeleting
+  } = useConfirmDialog({
+    title: "Excluir Rota",
+    description: "Esta ação não pode ser desfeita. A rota e todas as entregas associadas serão removidas permanentemente.",
+    confirmText: "Sim, excluir",
+    cancelText: "Cancelar",
+    variant: 'danger'
+  })
 
   const {
     data,
@@ -157,29 +170,8 @@ export default function RotasPage() {
   }
 
   const handleDelete = (rota: Rota) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <span>Tem certeza que deseja excluir a rota "{rota.nome}"?</span>
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              deleteRotaMutation.mutate(rota.id);
-            }}
-            className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
-          >
-            Excluir
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="bg-gray-200 px-3 py-1 rounded-md text-sm"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    ), {
-      duration: 10000,
+    openDeleteDialog(() => {
+      deleteRotaMutation.mutate(rota.id);
     });
   }
 
@@ -315,7 +307,14 @@ export default function RotasPage() {
                     <Button variant="ghost" size="icon" title="Editar" onClick={() => handleEdit(rota)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" title="Excluir" onClick={() => handleDelete(rota)} disabled={deleteRotaMutation.isPending}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title="Excluir" 
+                      onClick={() => handleDelete(rota)} 
+                      disabled={deleteRotaMutation.isPending || isDeleting}
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -325,6 +324,8 @@ export default function RotasPage() {
           </TableBody>
         </Table>
       </div>
+      
+      <DeleteConfirmDialog />
     </div>
   )
 }

@@ -7,12 +7,9 @@ export default function CatchAllPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redireciona qualquer rota não encontrada para a página inicial
-    // que fará o redirecionamento apropriado (login ou dashboard)
     router.replace('/')
   }, [router])
 
-  // Mostra um loading enquanto redireciona
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center max-w-md mx-auto p-8">
