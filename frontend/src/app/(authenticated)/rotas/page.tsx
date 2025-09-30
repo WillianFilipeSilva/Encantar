@@ -22,7 +22,6 @@ interface Rota {
   nome: string
   descricao?: string
   dataEntrega?: string
-  observacoes?: string
   criadoEm: string
   entregas: Array<{
     id: string
@@ -40,8 +39,7 @@ export default function RotasPage() {
   const [formData, setFormData] = useState({
     nome: '',
     descricao: '',
-    dataEntrega: '',
-    observacoes: ''
+    dataEntrega: ''
   })
 
   const queryClient = useQueryClient()
@@ -93,7 +91,7 @@ export default function RotasPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
       setPage(1)
-      setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
+      setFormData({ nome: '', descricao: '', dataEntrega: '' })
       setDialogOpen(false)
       toast.success('Rota cadastrada com sucesso')
     },
@@ -111,7 +109,7 @@ export default function RotasPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
-      setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
+      setFormData({ nome: '', descricao: '', dataEntrega: '' })
       setEditingRota(null)
       setDialogOpen(false)
       toast.success('Rota atualizada com sucesso')
@@ -163,8 +161,7 @@ export default function RotasPage() {
     setFormData({
       nome: rota.nome,
       descricao: rota.descricao || '',
-      dataEntrega: rota.dataEntrega ? rota.dataEntrega.split('T')[0] : '',
-      observacoes: rota.observacoes || ''
+      dataEntrega: rota.dataEntrega ? rota.dataEntrega.split('T')[0] : ''
     })
     setDialogOpen(true)
   }
@@ -178,7 +175,7 @@ export default function RotasPage() {
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setEditingRota(null)
-    setFormData({ nome: '', descricao: '', dataEntrega: '', observacoes: '' })
+    setFormData({ nome: '', descricao: '', dataEntrega: '' })
   }
 
   return (
@@ -223,10 +220,6 @@ export default function RotasPage() {
                 <label htmlFor="dataEntrega">Data de entrega</label>
                 <Input id="dataEntrega" type="date" value={formData.dataEntrega} onChange={(e) => handleInputChange('dataEntrega', e.target.value)} />
               </div>
-              <div className="space-y-2">
-                <label htmlFor="observacoes">Observações</label>
-                <Input id="observacoes" placeholder="Observações sobre a rota" value={formData.observacoes} onChange={(e) => handleInputChange('observacoes', e.target.value)} />
-              </div>
               <Button type="submit" className="w-full" disabled={createRotaMutation.isPending || updateRotaMutation.isPending}>
                 {editingRota
                   ? (updateRotaMutation.isPending ? 'Atualizando...' : 'Atualizar rota')
@@ -244,7 +237,7 @@ export default function RotasPage() {
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nome, descrição ou observações..."
+        searchPlaceholder="Buscar por nome ou descrição..."
         isLoading={isLoading}
         filters={filterConfig}
         onFiltersChange={setFilters}

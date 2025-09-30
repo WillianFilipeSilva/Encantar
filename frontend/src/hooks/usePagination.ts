@@ -54,7 +54,19 @@ export function usePagination<T = any>(
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [endpoint, params],
     queryFn: async () => {
-      const response = await api.get<PaginationResponse<T>>(endpoint, { params })
+      // Limpar parâmetros vazios ou com valor 'all'
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(([key, value]) => {
+          // Manter parâmetros obrigatórios
+          if (['page', 'limit'].includes(key)) return true;
+          // Remover strings vazias e valores 'all'
+          if (typeof value === 'string' && (value === '' || value === 'all')) return false;
+          // Manter outros valores válidos
+          return value !== null && value !== undefined;
+        })
+      );
+      
+      const response = await api.get<PaginationResponse<T>>(endpoint, { params: cleanParams })
       return response.data
     },
   })

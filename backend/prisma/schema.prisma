@@ -11,6 +11,21 @@ datasource db {
 }
 
 // ===========================================
+// ENUMS
+// ===========================================
+
+enum UnidadeItem {
+  KG    // Quilograma
+  G     // Grama  
+  L     // Litro
+  ML    // Mililitro
+  UN    // Unidade
+  CX    // Caixa
+  PCT   // Pacote
+  LATA  // Lata
+}
+
+// ===========================================
 // ENTIDADES PRINCIPAIS
 // ===========================================
 
@@ -83,12 +98,13 @@ model Beneficiario {
 
 // Items que podem ser entregues
 model Item {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   nome        String
   descricao   String?
-  unidade     String   // Ex: "kg", "unidade", "litro", "caixa"
-  criadoEm    DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
+  unidade     UnidadeItem @default(UN)
+  ativo       Boolean     @default(true)
+  criadoEm    DateTime    @default(now())
+  atualizadoEm DateTime   @updatedAt
 
   // Auditoria
   criadoPorId    String
@@ -152,7 +168,6 @@ model Rota {
   nome        String
   descricao   String?
   dataEntrega DateTime?
-  observacoes String?
   criadoEm    DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 

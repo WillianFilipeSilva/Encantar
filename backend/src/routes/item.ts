@@ -52,6 +52,8 @@ router.get(
 router.get("/:id/stats", validateId, itemController.getItemStats.bind(itemController));
 router.post("/", validateCreate, itemController.create.bind(itemController));
 router.put("/:id", validateUpdate, itemController.update.bind(itemController));
+router.patch("/:id/inactivate", validateId, itemController.inactivate.bind(itemController));
+router.patch("/:id/activate", validateId, itemController.activate.bind(itemController));
 router.delete("/:id", validateId, itemController.delete.bind(itemController));
 
 export default router;

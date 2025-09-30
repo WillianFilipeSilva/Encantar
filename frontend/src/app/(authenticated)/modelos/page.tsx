@@ -34,7 +34,7 @@ interface ModeloEntrega {
 interface Item {
   id: string
   nome: string
-  unidade: string
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA'
 }
 
 interface ModeloItem {
@@ -77,18 +77,8 @@ export default function ModelosPage() {
     error,
   } = usePagination<ModeloEntrega>('/modelos-entrega')
 
-  const filterConfig = [
-    {
-      key: 'ativo',
-      label: 'Status',
-      type: 'select' as const,
-      options: [
-        { value: 'all', label: 'Todos' },
-        { value: 'true', label: 'Ativos' },
-        { value: 'false', label: 'Inativos' },
-      ],
-      defaultValue: 'all'
-    }
+  const filterConfig: any[] = [
+    // Modelos não têm filtros por agora
   ]
 
   const { data: itensDisponiveis = [], isLoading: isLoadingItems, error: itemsError } = useQuery<Item[]>({

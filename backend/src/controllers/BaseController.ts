@@ -198,8 +198,8 @@ export abstract class BaseController<T, CreateData, UpdateData> {
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo (se existir)
-    if (query.ativo !== undefined) {
+    // Filtro por ativo - só aplica se não for 'all' e não for vazio
+    if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
       filters.ativo = query.ativo === "true";
     }
 

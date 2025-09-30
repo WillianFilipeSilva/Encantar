@@ -89,7 +89,13 @@ export function PaginationControls({
   const clearFilters = () => {
     const resetFilters: Record<string, string> = {}
     filters.forEach(filter => {
-      resetFilters[filter.key] = filter.defaultValue || 'all'
+      // Para filtros do tipo select, usar 'all' como padrão
+      // Para outros tipos, usar string vazia
+      if (filter.type === 'select') {
+        resetFilters[filter.key] = 'all'
+      } else {
+        resetFilters[filter.key] = ''
+      }
     })
     if (onFiltersChange) {
       onFiltersChange(resetFilters)

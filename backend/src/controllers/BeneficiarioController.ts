@@ -49,8 +49,12 @@ export class BeneficiarioController extends BaseController<
         .run(req);
       await query("ativo")
         .optional()
-        .isBoolean()
-        .withMessage("Ativo deve ser true ou false")
+        .custom((value) => {
+          if (value && !['true', 'false', 'all'].includes(value.toLowerCase())) {
+            throw new Error("Ativo deve ser 'true', 'false' ou 'all'");
+          }
+          return true;
+        })
         .run(req);
 
       const errors = validationResult(req);
@@ -347,15 +351,16 @@ export class BeneficiarioController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo
-    if (query.ativo !== undefined) {
+    // Filtro por ativo - só aplica se não for 'all'
+    if (query.ativo !== undefined && query.ativo !== 'all') {
       filters.ativo = query.ativo === "true";
     }
 
-    // Filtro por busca
+    // Filtro por busca inteligente - busca em qualquer parte do texto
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
+        { observacoes: { contains: query.search, mode: "insensitive" } },
         { endereco: { contains: query.search, mode: "insensitive" } },
         { telefone: { contains: query.search, mode: "insensitive" } },
         { email: { contains: query.search, mode: "insensitive" } },

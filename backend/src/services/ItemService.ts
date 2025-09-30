@@ -32,8 +32,9 @@ export class ItemService extends BaseService<
       throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
     }
 
-    if (data.unidade.length > 20) {
-      throw CommonErrors.VALIDATION_ERROR("Unidade deve ter no máximo 20 caracteres");
+    const validUnidades = ['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'];
+    if (!validUnidades.includes(data.unidade)) {
+      throw CommonErrors.VALIDATION_ERROR("Unidade deve ser uma das opções válidas: " + validUnidades.join(', '));
     }
 
     if (data.descricao && data.descricao.length > 500) {
@@ -60,8 +61,9 @@ export class ItemService extends BaseService<
         throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
       }
 
-      if (data.unidade.length > 20) {
-        throw CommonErrors.VALIDATION_ERROR("Unidade deve ter no máximo 20 caracteres");
+      const validUnidades = ['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'];
+      if (!validUnidades.includes(data.unidade)) {
+        throw CommonErrors.VALIDATION_ERROR("Unidade deve ser uma das opções válidas: " + validUnidades.join(', '));
       }
     }
 
@@ -72,15 +74,13 @@ export class ItemService extends BaseService<
     ) {
       throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
     }
-  }
-
-  /**
+  }  /**
    * Transforma dados antes da criação
    */
   protected transformData(data: Item): any {
     return {
       nome: data.nome.trim(),
-      unidade: data.unidade.trim(),
+      unidade: data.unidade,
       descricao: data.descricao?.trim() || null
     };
   }
@@ -96,7 +96,7 @@ export class ItemService extends BaseService<
     }
 
     if (data.unidade !== undefined) {
-      transformed.unidade = data.unidade.trim();
+      transformed.unidade = data.unidade;
     }
 
     if (data.descricao !== undefined) {
@@ -256,6 +256,46 @@ export class ItemService extends BaseService<
     }
 
     return this.itemRepository.getItemStats(itemId);
+  }
+
+  /**
+   * Inativa um item
+   */
+  async inactivate(id: string, userId: string): Promise<Item> {
+    const item = await this.itemRepository.findById(id);
+    if (!item) {
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
+    }
+
+    if (!item.ativo) {
+      throw CommonErrors.VALIDATION_ERROR("Item já está inativo");
+    }
+
+    const auditData = await this.addAuditData({}, userId, "update");
+    return this.itemRepository.update(id, {
+      ativo: false,
+      ...auditData
+    });
+  }
+
+  /**
+   * Ativa um item
+   */
+  async activate(id: string, userId: string): Promise<Item> {
+    const item = await this.itemRepository.findById(id);
+    if (!item) {
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
+    }
+
+    if (item.ativo) {
+      throw CommonErrors.VALIDATION_ERROR("Item já está ativo");
+    }
+
+    const auditData = await this.addAuditData({}, userId, "update");
+    return this.itemRepository.update(id, {
+      ativo: true,
+      ...auditData
+    });
   }
 
   /**

@@ -8,7 +8,7 @@ import { prisma } from "../utils/database";
 const router = Router();
 
 const repository = new EntregaRepository(prisma);
-const service = new EntregaService(repository);
+const service = new EntregaService(repository, prisma);
 const controller = new EntregaController(service);
 
 router.use(authenticateToken);

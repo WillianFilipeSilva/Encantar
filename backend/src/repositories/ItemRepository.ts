@@ -174,10 +174,8 @@ export class ItemRepository extends BaseRepository<
   async findByUnidade(unidade: string) {
     return this.prisma.item.findMany({
       where: {
-        unidade: {
-          equals: unidade,
-          mode: "insensitive",
-        },
+        unidade: unidade as any, // Enum value
+        ativo: true,
       },
       select: {
         id: true,

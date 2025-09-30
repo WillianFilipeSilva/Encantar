@@ -31,9 +31,8 @@ export class ItemController extends BaseController<
     body("unidade")
       .notEmpty()
       .withMessage("Unidade é obrigatória")
-      .isLength({ max: 20 })
-      .withMessage("Unidade deve ter no máximo 20 caracteres")
-      .trim(),
+      .isIn(['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'])
+      .withMessage("Unidade deve ser uma das opções válidas: KG, G, L, ML, UN, CX, PCT, LATA"),
     body("descricao")
       .optional()
       .isLength({ max: 500 })
@@ -57,14 +56,17 @@ export class ItemController extends BaseController<
       .optional()
       .notEmpty()
       .withMessage("Unidade não pode estar vazia")
-      .isLength({ max: 20 })
-      .withMessage("Unidade deve ter no máximo 20 caracteres")
-      .trim(),
+      .isIn(['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'])
+      .withMessage("Unidade deve ser uma das opções válidas: KG, G, L, ML, UN, CX, PCT, LATA"),
     body("descricao")
       .optional()
       .isLength({ max: 500 })
       .withMessage("Descrição deve ter no máximo 500 caracteres")
       .trim(),
+    body("ativo")
+      .optional()
+      .isBoolean()
+      .withMessage("Ativo deve ser um valor booleano"),
   ];
 
   /**
@@ -95,17 +97,20 @@ export class ItemController extends BaseController<
     query("unidade")
       .optional()
       .custom((value) => {
-        if (value === "") return true; // Permite string vazia
-        if (value && value.length > 20) {
-          throw new Error("Unidade de busca deve ter no máximo 20 caracteres");
+        if (value === "" || value === "all") return true; // Permite string vazia ou 'all'
+        if (value && !['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'].includes(value)) {
+          throw new Error("Unidade deve ser uma das opções válidas");
         }
         return true;
-      })
-      .trim(),
+      }),
     query("ativo")
       .optional()
-      .isBoolean()
-      .withMessage("Ativo deve ser um valor booleano"),
+      .custom((value) => {
+        if (value && !['true', 'false', 'all'].includes(value.toLowerCase())) {
+          throw new Error("Ativo deve ser 'true', 'false' ou 'all'");
+        }
+        return true;
+      }),
   ];
 
   /**
@@ -523,6 +528,74 @@ export class ItemController extends BaseController<
   }
 
   /**
+   * Inativa um item
+   */
+  public async inactivate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: "Dados inválidos",
+          errors: errors.array(),
+        });
+        return;
+      }
+
+      const { id } = req.params;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      
+      const item = await this.itemService.inactivate(id, userId || '');
+
+      res.json({
+        success: true,
+        data: item,
+        message: "Item inativado com sucesso",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Ativa um item
+   */
+  public async activate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: "Dados inválidos",
+          errors: errors.array(),
+        });
+        return;
+      }
+
+      const { id } = req.params;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      
+      const item = await this.itemService.activate(id, userId || '');
+
+      res.json({
+        success: true,
+        data: item,
+        message: "Item ativado com sucesso",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Exclui um item (soft delete)
    */
   public async delete(
@@ -559,12 +632,16 @@ export class ItemController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Removido filtro por 'ativo' pois o modelo Item não tem esse campo
+    // Filtro por ativo - só aplica se não for 'all' e não for vazio
+    if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
+      filters.ativo = query.ativo === "true";
+    }
 
+    // Busca inteligente - prioridade: nome, descricao
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
-        { unidade: { contains: query.search, mode: "insensitive" } },
+        { descricao: { contains: query.search, mode: "insensitive" } },
       ];
     }
 
@@ -575,11 +652,8 @@ export class ItemController extends BaseController<
       };
     }
 
-    if (query.unidade) {
-      filters.unidade = {
-        equals: query.unidade,
-        mode: "insensitive"
-      };
+    if (query.unidade && query.unidade !== 'all' && query.unidade !== '') {
+      filters.unidade = query.unidade;
     }
 
     if (query.dataInicio) {

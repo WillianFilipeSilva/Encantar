@@ -64,13 +64,13 @@ export interface BeneficiarioResponseDTO {
 export interface CreateItemDTO {
   nome: string;
   descricao?: string;
-  unidade: string;
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA';
 }
 
 export interface UpdateItemDTO {
   nome?: string;
   descricao?: string;
-  unidade?: string;
+  unidade?: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA';
   ativo?: boolean;
 }
 
@@ -78,7 +78,7 @@ export interface ItemResponseDTO {
   id: string;
   nome: string;
   descricao?: string | null;
-  unidade: string;
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA';
   ativo: boolean;
   criadoEm: Date;
   atualizadoEm: Date;

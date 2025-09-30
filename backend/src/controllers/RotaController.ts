@@ -98,12 +98,11 @@ export class RotaController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por busca
+    // Busca inteligente - prioridade: nome, descricao
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
         { descricao: { contains: query.search, mode: "insensitive" } },
-        { observacoes: { contains: query.search, mode: "insensitive" } },
       ];
     }
 

@@ -19,7 +19,8 @@ interface Item {
   id: string
   nome: string
   descricao: string
-  unidade: string
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA'
+  ativo: boolean
 }
 
 export default function ItensPage() {
@@ -28,19 +29,18 @@ export default function ItensPage() {
   const [formData, setFormData] = useState({
     nome: '',
     descricao: '',
-    unidade: ''
+    unidade: 'UN' as 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA'
   })
 
   const queryClient = useQueryClient()
 
   const {
-    openDialog: openDeleteDialog,
-    ConfirmDialogComponent: DeleteConfirmDialog,
-    isLoading: isDeleting
+    openDialog: openInactivateDialog,
+    ConfirmDialogComponent: InactivateConfirmDialog
   } = useConfirmDialog({
-    title: "Excluir Item",
-    description: "Esta ação não pode ser desfeita. O item será removido permanentemente do sistema.",
-    confirmText: "Sim, excluir",
+    title: "Inativar Item",
+    description: "O item será inativado e não poderá mais ser usado em novas entregas.",
+    confirmText: "Sim, inativar",
     cancelText: "Cancelar",
     variant: 'danger'
   })
@@ -65,14 +65,14 @@ export default function ItensPage() {
       type: 'select' as const,
       options: [
         { value: 'all', label: 'Todas' },
-        { value: 'kg', label: 'Quilograma (kg)' },
-        { value: 'g', label: 'Grama (g)' },
-        { value: 'l', label: 'Litro (l)' },
-        { value: 'ml', label: 'Mililitro (ml)' },
-        { value: 'un', label: 'Unidade (un)' },
-        { value: 'cx', label: 'Caixa (cx)' },
-        { value: 'pct', label: 'Pacote (pct)' },
-        { value: 'lata', label: 'Lata (lata)' },
+        { value: 'KG', label: 'Quilograma (kg)' },
+        { value: 'G', label: 'Grama (g)' },
+        { value: 'L', label: 'Litro (l)' },
+        { value: 'ML', label: 'Mililitro (ml)' },
+        { value: 'UN', label: 'Unidade (un)' },
+        { value: 'CX', label: 'Caixa (cx)' },
+        { value: 'PCT', label: 'Pacote (pct)' },
+        { value: 'LATA', label: 'Lata (lata)' },
       ],
       defaultValue: 'all'
     },
@@ -81,11 +81,11 @@ export default function ItensPage() {
       label: 'Status',
       type: 'select' as const,
       options: [
-        { value: 'all', label: 'Todos' },
         { value: 'true', label: 'Ativos' },
         { value: 'false', label: 'Inativos' },
+        { value: 'all', label: 'Todos' },
       ],
-      defaultValue: 'all'
+      defaultValue: 'true'
     }
   ]
 
@@ -96,7 +96,7 @@ export default function ItensPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/items'] })
-      setFormData({ nome: '', descricao: '', unidade: '' })
+      setFormData({ nome: '', descricao: '', unidade: 'UN' })
       setDialogOpen(false)
       toast.success('Item cadastrado com sucesso!')
     },
@@ -114,7 +114,7 @@ export default function ItensPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/items'] })
-      setFormData({ nome: '', descricao: '', unidade: '' })
+      setFormData({ nome: '', descricao: '', unidade: 'UN' })
       setEditingItem(null)
       setDialogOpen(false)
       toast.success('Item atualizado com sucesso!')
@@ -125,18 +125,33 @@ export default function ItensPage() {
     }
   })
 
-  const deleteItemMutation = useMutation({
+  const inactivateItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      const response = await api.delete(`/items/${itemId}`);
+      const response = await api.patch(`/items/${itemId}/inactivate`);
       return response.data;
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/items'] });
-      toast.success('Item excluído com sucesso!');
+      toast.success('Item inativado com sucesso!');
     },
     onError: (error: any) => {
-      logError('ExcluirItem', error);
-      showErrorToast('Erro ao excluir item', error);
+      logError('InativarItem', error);
+      showErrorToast('Erro ao inativar item', error);
+    }
+  })
+
+  const activateItemMutation = useMutation({
+    mutationFn: async (itemId: string) => {
+      const response = await api.patch(`/items/${itemId}/activate`);
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/items'] });
+      toast.success('Item ativado com sucesso!');
+    },
+    onError: (error: any) => {
+      logError('AtivarItem', error);
+      showErrorToast('Erro ao ativar item', error);
     }
   })
 
@@ -150,12 +165,13 @@ export default function ItensPage() {
       toast.error('Nome deve ter no máximo 100 caracteres')
       return
     }
-    if (!formData.unidade.trim()) {
+    if (!formData.unidade) {
       toast.error('Unidade é obrigatória')
       return
     }
-    if (formData.unidade.trim().length > 20) {
-      toast.error('Unidade deve ter no máximo 20 caracteres')
+    const validUnidades = ['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'];
+    if (!validUnidades.includes(formData.unidade)) {
+      toast.error('Unidade deve ser uma das opções válidas')
       return
     }
     if (formData.descricao && formData.descricao.trim().length > 500) {
@@ -183,16 +199,10 @@ export default function ItensPage() {
     setDialogOpen(true)
   }
 
-  const handleDelete = (item: Item) => {
-    openDeleteDialog(() => {
-      deleteItemMutation.mutate(item.id);
-    });
-  }
-
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setEditingItem(null)
-    setFormData({ nome: '', descricao: '', unidade: '' })
+    setFormData({ nome: '', descricao: '', unidade: 'UN' })
   }
 
   return (
@@ -235,7 +245,22 @@ export default function ItensPage() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="unidade">Unidade *</label>
-                <Input id="unidade" placeholder="Ex: kg, unidade, litro, caixa" value={formData.unidade} onChange={(e) => handleInputChange('unidade', e.target.value)} required />
+                <select 
+                  id="unidade" 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={formData.unidade} 
+                  onChange={(e) => handleInputChange('unidade', e.target.value as any)}
+                  required
+                >
+                  <option value="KG">Quilograma (kg)</option>
+                  <option value="G">Grama (g)</option>
+                  <option value="L">Litro (l)</option>
+                  <option value="ML">Mililitro (ml)</option>
+                  <option value="UN">Unidade (un)</option>
+                  <option value="CX">Caixa (cx)</option>
+                  <option value="PCT">Pacote (pct)</option>
+                  <option value="LATA">Lata (lata)</option>
+                </select>
               </div>
               <Button type="submit" className="w-full" disabled={createItemMutation.isPending || updateItemMutation.isPending}>
                 {editingItem
@@ -254,7 +279,7 @@ export default function ItensPage() {
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nome, descrição ou unidade..."
+        searchPlaceholder="Buscar por nome ou descrição..."
         isLoading={isLoading}
         filters={filterConfig}
         onFiltersChange={setFilters}
@@ -266,13 +291,14 @@ export default function ItensPage() {
               <TableHead>Nome</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Unidade</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="w-[120px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     <span className="ml-2">Carregando itens...</span>
@@ -281,7 +307,7 @@ export default function ItensPage() {
               </TableRow>
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8">
+                <TableCell colSpan={5} className="text-center py-8">
                   <div className="text-red-600">
                     Erro ao carregar itens: {error?.message || 'Erro desconhecido'}
                   </div>
@@ -289,7 +315,7 @@ export default function ItensPage() {
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   {params.search ? 'Nenhum item encontrado para a busca.' : 'Nenhum item cadastrado.'}
                 </TableCell>
               </TableRow>
@@ -299,20 +325,42 @@ export default function ItensPage() {
                   <TableCell className="font-medium">{item.nome}</TableCell>
                   <TableCell>{item.descricao || '-'}</TableCell>
                   <TableCell>{item.unidade}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      item.ativo 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {item.ativo ? 'Ativo' : 'Inativo'}
+                    </span>
+                  </TableCell>
                   <TableCell className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" title="Editar item" onClick={() => handleEdit(item)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Excluir item" 
-                      onClick={() => handleDelete(item)} 
-                      disabled={deleteItemMutation.isPending || isDeleting}
-                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {item.ativo ? (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        title="Inativar item" 
+                        onClick={() => openInactivateDialog(() => inactivateItemMutation.mutate(item.id))}
+                        disabled={inactivateItemMutation.isPending}
+                        className="text-orange-600 hover:text-orange-800 hover:bg-orange-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        title="Ativar item" 
+                        onClick={() => activateItemMutation.mutate(item.id)}
+                        disabled={activateItemMutation.isPending}
+                        className="text-green-600 hover:text-green-800 hover:bg-green-50"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -321,7 +369,7 @@ export default function ItensPage() {
         </Table>
       </div>
       
-      <DeleteConfirmDialog />
+      <InactivateConfirmDialog />
     </div>
   )
 }

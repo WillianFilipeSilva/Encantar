@@ -309,7 +309,7 @@ export default function BeneficiariosPage() {
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nome, endereço, telefone ou email..."
+        searchPlaceholder="Buscar por nome, observações, endereço, telefone ou email..."
         isLoading={isLoading}
         filters={filterConfig}
         onFiltersChange={setFilters}
@@ -322,13 +322,14 @@ export default function BeneficiariosPage() {
               <TableHead>Endereço</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Observações</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                     <span className="ml-2">Carregando beneficiários...</span>
@@ -337,7 +338,7 @@ export default function BeneficiariosPage() {
               </TableRow>
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   <div className="text-red-600">
                     Erro ao carregar beneficiários: {error?.message || 'Erro desconhecido'}
                   </div>
@@ -345,7 +346,7 @@ export default function BeneficiariosPage() {
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   {params.search ? 'Nenhum beneficiário encontrado para a busca.' : 'Nenhum beneficiário cadastrado.'}
                 </TableCell>
               </TableRow>
@@ -356,6 +357,9 @@ export default function BeneficiariosPage() {
                   <TableCell>{beneficiario.endereco}</TableCell>
                   <TableCell>{beneficiario.telefone || '-'}</TableCell>
                   <TableCell>{beneficiario.email || '-'}</TableCell>
+                  <TableCell className="max-w-xs truncate" title={beneficiario.observacoes || ''}>
+                    {beneficiario.observacoes || '-'}
+                  </TableCell>
                   <TableCell className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" title="Editar beneficiário" onClick={() => handleEdit(beneficiario)}>
                       <PenLine className="h-4 w-4" />

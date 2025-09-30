@@ -49,7 +49,8 @@ interface Item {
   id: string
   nome: string
   descricao: string
-  unidade: string
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA'
+  ativo: boolean
 }
 
 interface ModeloEntrega {
