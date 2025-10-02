@@ -167,7 +167,7 @@ model Rota {
   id          String   @id @default(cuid())
   nome        String
   descricao   String?
-  dataEntrega DateTime?
+  dataEntrega DateTime? @db.Date
   criadoEm    DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 

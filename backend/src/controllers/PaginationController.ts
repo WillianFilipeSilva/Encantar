@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
+import { createDateFromString, serializeDateForAPI, serializeDateTimeForAPI } from '../utils/dateUtils'
 
 const prisma = new PrismaClient()
 
@@ -123,8 +124,8 @@ export class RotaController extends BaseController {
 
       const dateFilter = dataInicio && dataFim ? {
         dataEntrega: {
-          gte: new Date(dataInicio as string),
-          lte: new Date(dataFim as string)
+          gte: createDateFromString(dataInicio as string),
+          lte: createDateFromString(dataFim as string)
         }
       } : {}
 

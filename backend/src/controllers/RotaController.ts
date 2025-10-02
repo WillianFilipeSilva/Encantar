@@ -5,6 +5,7 @@ import { RotaService } from "../services/RotaService";
 import { CreateRotaDTO, UpdateRotaDTO } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
 import { query, validationResult } from "express-validator";
+import { createDateFromString, serializeDateForAPI, serializeDateTimeForAPI } from "../utils/dateUtils";
 
 export class RotaController extends BaseController<
   Rota,
@@ -58,9 +59,17 @@ export class RotaController extends BaseController<
         filters
       );
 
+      // Serializar datas para evitar problemas de timezone no frontend
+      const serializedData = result.data.map(rota => ({
+        ...rota,
+        dataEntrega: serializeDateForAPI(rota.dataEntrega),
+        criadoEm: serializeDateTimeForAPI(rota.criadoEm),
+        atualizadoEm: serializeDateTimeForAPI(rota.atualizadoEm)
+      }));
+
       res.json({
         success: true,
-        data: result.data,
+        data: serializedData,
         pagination: result.pagination,
       });
     } catch (error) {
@@ -81,9 +90,17 @@ export class RotaController extends BaseController<
 
       const result = await this.rotaService.findByIdWithRelations(id);
 
+      // Serializar data para evitar problemas de timezone no frontend
+      const serializedResult = {
+        ...result,
+        dataEntrega: serializeDateForAPI(result?.dataEntrega),
+        criadoEm: serializeDateTimeForAPI(result?.criadoEm),
+        atualizadoEm: serializeDateTimeForAPI(result?.atualizadoEm)
+      };
+
       res.json({
         success: true,
-        data: result,
+        data: serializedResult,
       });
     } catch (error) {
       next(error);
@@ -103,17 +120,23 @@ export class RotaController extends BaseController<
       ];
     }
 
-    if (query.dataInicio) {
+    if (query.dataInicio && query.dataFim) {
+      const dataInicio = createDateFromString(query.dataInicio);
+      const dataFim = createDateFromString(query.dataFim);
+      
       filters.dataEntrega = {
-        ...filters.dataEntrega,
-        gte: new Date(query.dataInicio),
+        gte: dataInicio,
+        lte: dataFim
       };
-    }
-
-    if (query.dataFim) {
+    } else if (query.dataInicio) {
+      const dataInicio = createDateFromString(query.dataInicio);
       filters.dataEntrega = {
-        ...filters.dataEntrega,
-        lte: new Date(query.dataFim),
+        gte: dataInicio
+      };
+    } else if (query.dataFim) {
+      const dataFim = createDateFromString(query.dataFim);
+      filters.dataEntrega = {
+        lte: dataFim
       };
     }
 

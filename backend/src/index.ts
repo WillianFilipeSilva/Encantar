@@ -14,6 +14,7 @@ import entregaRoutes from "./routes/entrega";
 import dashboardRoutes from "./routes/dashboard";
 
 import { errorHandler } from "./middleware/errorHandler";
+import { formatBrazilDateTime } from "./utils/dateUtils";
 import { notFound } from "./middleware/notFound";
 
 import DatabaseClient from "./utils/database";
@@ -114,7 +115,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
-    timestamp: new Date().toISOString(),
+    timestamp: formatBrazilDateTime(new Date()),
     environment: process.env.NODE_ENV || "development",
     version: "1.0.0",
   });

@@ -9,6 +9,7 @@ import {
 } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
 import { body, query, validationResult } from "express-validator";
+import { createDateFromString, createBrazilTimestamp, toStartOfDayBrazil, toEndOfDayBrazil, serializeDateForAPI } from "../utils/dateUtils";
 
 export class BeneficiarioController extends BaseController<
   Beneficiario,
@@ -71,9 +72,16 @@ export class BeneficiarioController extends BaseController<
         filters
       );
 
+      const serializedData = result.data.map((beneficiario: any) => ({
+        ...beneficiario,
+        dataNascimento: beneficiario.dataNascimento ? serializeDateForAPI(beneficiario.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(beneficiario.criadoEm),
+        atualizadoEm: serializeDateForAPI(beneficiario.atualizadoEm),
+      }));
+
       res.json({
         success: true,
-        data: result.data,
+        data: serializedData,
         pagination: result.pagination,
       });
     } catch (error) {
@@ -94,9 +102,16 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.findByIdWithRelations(id);
 
+      const serializedData = {
+        ...result,
+        dataNascimento: result.dataNascimento ? serializeDateForAPI(result.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(result.criadoEm),
+        atualizadoEm: serializeDateForAPI(result.atualizadoEm),
+      };
+
       res.json({
         success: true,
-        data: result,
+        data: serializedData,
       });
     } catch (error) {
       next(error);
@@ -151,9 +166,16 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.create(data, userId);
 
+      const serializedData = {
+        ...result,
+        dataNascimento: result.dataNascimento ? serializeDateForAPI(result.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(result.criadoEm),
+        atualizadoEm: serializeDateForAPI(result.atualizadoEm),
+      };
+
       res.status(201).json({
         success: true,
-        data: result,
+        data: serializedData,
         message: "Beneficiário criado com sucesso",
       });
     } catch (error) {
@@ -218,9 +240,16 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.update(id, data, userId);
 
+      const serializedData = {
+        ...result,
+        dataNascimento: result.dataNascimento ? serializeDateForAPI(result.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(result.criadoEm),
+        atualizadoEm: serializeDateForAPI(result.atualizadoEm),
+      };
+
       res.json({
         success: true,
-        data: result,
+        data: serializedData,
         message: "Beneficiário atualizado com sucesso",
       });
     } catch (error) {
@@ -280,9 +309,16 @@ export class BeneficiarioController extends BaseController<
         limit
       );
 
+      const serializedData = result.map((beneficiario: any) => ({
+        ...beneficiario,
+        dataNascimento: beneficiario.dataNascimento ? serializeDateForAPI(beneficiario.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(beneficiario.criadoEm),
+        atualizadoEm: serializeDateForAPI(beneficiario.atualizadoEm),
+      }));
+
       res.json({
         success: true,
-        data: result,
+        data: serializedData,
       });
     } catch (error) {
       next(error);
@@ -296,9 +332,16 @@ export class BeneficiarioController extends BaseController<
     try {
       const result = await this.beneficiarioService.findActiveForSelection();
 
+      const serializedData = result.map((beneficiario: any) => ({
+        ...beneficiario,
+        dataNascimento: beneficiario.dataNascimento ? serializeDateForAPI(beneficiario.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(beneficiario.criadoEm),
+        atualizadoEm: serializeDateForAPI(beneficiario.atualizadoEm),
+      }));
+
       res.json({
         success: true,
-        data: result,
+        data: serializedData,
       });
     } catch (error) {
       next(error);
@@ -324,9 +367,16 @@ export class BeneficiarioController extends BaseController<
       const limit = parseInt(req.query.limit as string) || 10;
       const result = await this.beneficiarioService.findTopBeneficiarios(limit);
 
+      const serializedData = result.map((beneficiario: any) => ({
+        ...beneficiario,
+        dataNascimento: beneficiario.dataNascimento ? serializeDateForAPI(beneficiario.dataNascimento) : null,
+        criadoEm: serializeDateForAPI(beneficiario.criadoEm),
+        atualizadoEm: serializeDateForAPI(beneficiario.atualizadoEm),
+      }));
+
       res.json({
         success: true,
-        data: result,
+        data: serializedData,
       });
     } catch (error) {
       next(error);
@@ -354,16 +404,18 @@ export class BeneficiarioController extends BaseController<
     }
 
     if (query.dataInicio) {
+      const startDate = createDateFromString(query.dataInicio);
       filters.criadoEm = {
         ...filters.criadoEm,
-        gte: new Date(query.dataInicio),
+        gte: toStartOfDayBrazil(startDate),
       };
     }
 
     if (query.dataFim) {
+      const endDate = createDateFromString(query.dataFim);
       filters.criadoEm = {
         ...filters.criadoEm,
-        lte: new Date(query.dataFim),
+        lte: toEndOfDayBrazil(endDate),
       };
     }
 

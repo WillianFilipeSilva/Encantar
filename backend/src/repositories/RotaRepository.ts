@@ -1,6 +1,7 @@
 import { PrismaClient, Rota } from "@prisma/client";
 import { BaseRepository } from "./BaseRepository";
 import { CreateRotaDTO, UpdateRotaDTO } from "../models/DTOs";
+import { createDateFromString, createBrazilTimestamp } from "../utils/dateUtils";
 
 export class RotaRepository extends BaseRepository<
   Rota,
@@ -30,7 +31,7 @@ export class RotaRepository extends BaseRepository<
 
     if (data.dataEntrega) {
       if (typeof data.dataEntrega === 'string') {
-        createData.dataEntrega = new Date(data.dataEntrega + 'T00:00:00.000Z');
+        createData.dataEntrega = createDateFromString(data.dataEntrega);
       } else {
         createData.dataEntrega = data.dataEntrega;
       }
@@ -66,7 +67,7 @@ export class RotaRepository extends BaseRepository<
 
     if (data.dataEntrega !== undefined) {
       if (typeof data.dataEntrega === 'string') {
-        updateData.dataEntrega = new Date(data.dataEntrega + 'T00:00:00.000Z');
+        updateData.dataEntrega = createDateFromString(data.dataEntrega);
       } else {
         updateData.dataEntrega = data.dataEntrega;
       }
@@ -222,16 +223,16 @@ export class RotaRepository extends BaseRepository<
 
     if (filters?.dataInicio && filters?.dataFim) {
       where.dataEntrega = {
-        gte: new Date(filters.dataInicio + 'T00:00:00.000Z'),
-        lte: new Date(filters.dataFim + 'T23:59:59.999Z')
+        gte: createDateFromString(filters.dataInicio),
+        lte: createDateFromString(filters.dataFim)
       };
     } else if (filters?.dataInicio) {
       where.dataEntrega = {
-        gte: new Date(filters.dataInicio + 'T00:00:00.000Z')
+        gte: createDateFromString(filters.dataInicio)
       };
     } else if (filters?.dataFim) {
       where.dataEntrega = {
-        lte: new Date(filters.dataFim + 'T23:59:59.999Z')
+        lte: createDateFromString(filters.dataFim)
       };
     }
 

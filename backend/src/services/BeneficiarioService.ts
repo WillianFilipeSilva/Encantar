@@ -7,6 +7,7 @@ import {
   BeneficiarioResponseDTO,
 } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
+import { createDateFromString } from "../utils/dateUtils";
 
 export class BeneficiarioService extends BaseService<
   Beneficiario,
@@ -122,11 +123,7 @@ export class BeneficiarioService extends BaseService<
     if (data.dataNascimento) {
       try {
         if (typeof data.dataNascimento === 'string') {
-          if (data.dataNascimento.includes('T')) {
-            processed.dataNascimento = new Date(data.dataNascimento);
-          } else {
-            processed.dataNascimento = new Date(`${data.dataNascimento}T00:00:00.000Z`);
-          }
+          processed.dataNascimento = createDateFromString(data.dataNascimento);
         }
       } catch (error) {
         console.error("Erro ao converter data de nascimento:", error);
@@ -235,7 +232,7 @@ export class BeneficiarioService extends BaseService<
 
     if (data.dataNascimento && data.dataNascimento.trim() !== "") {
       try {
-        new Date(data.dataNascimento);
+        createDateFromString(data.dataNascimento);
       } catch (error) {
         throw CommonErrors.BAD_REQUEST("Data de nascimento inválida");
       }
@@ -284,7 +281,7 @@ export class BeneficiarioService extends BaseService<
 
     if (data.dataNascimento !== undefined && data.dataNascimento !== null && data.dataNascimento.trim() !== "") {
       try {
-        new Date(data.dataNascimento);
+        createDateFromString(data.dataNascimento);
       } catch (error) {
         throw CommonErrors.BAD_REQUEST("Data de nascimento inválida");
       }

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BaseService } from "../services/BaseService";
+import { createDateFromString, toStartOfDayBrazil, toEndOfDayBrazil } from "../utils/dateUtils";
 
 /**
  * Classe base para todos os controllers
@@ -206,16 +207,18 @@ export abstract class BaseController<T, CreateData, UpdateData> {
     }
 
     if (query.dataInicio) {
+      const startDate = createDateFromString(query.dataInicio);
       filters.criadoEm = {
         ...filters.criadoEm,
-        gte: new Date(query.dataInicio),
+        gte: toStartOfDayBrazil(startDate),
       };
     }
 
     if (query.dataFim) {
+      const endDate = createDateFromString(query.dataFim);
       filters.criadoEm = {
         ...filters.criadoEm,
-        lte: new Date(query.dataFim),
+        lte: toEndOfDayBrazil(endDate),
       };
     }
 

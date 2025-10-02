@@ -9,6 +9,7 @@ import {
   JWTPayload,
   JWTConfig,
 } from "../models/Auth";
+import { createBrazilTimestamp } from "../utils/dateUtils";
 import { CommonErrors } from "../middleware/errorHandler";
 import { randomBytes } from "crypto";
 
@@ -94,7 +95,7 @@ export class AuthService {
 
     await this.prisma.convite.update({
       where: { id: convite.id },
-      data: { usado: true, usadoEm: new Date() },
+      data: { usado: true, usadoEm: createBrazilTimestamp() },
     });
 
     const tokens = this.generateTokens({
@@ -128,7 +129,7 @@ export class AuthService {
 
     const token = randomBytes(32).toString("hex");
 
-    const expiraEm = new Date();
+    const expiraEm = createBrazilTimestamp();
     expiraEm.setMinutes(expiraEm.getMinutes() + 15);
 
     const convite = await this.prisma.convite.create({
@@ -203,7 +204,7 @@ export class AuthService {
       throw CommonErrors.BAD_REQUEST("Convite já foi utilizado");
     }
 
-    if (convite.expiraEm < new Date()) {
+    if (convite.expiraEm < createBrazilTimestamp()) {
       throw CommonErrors.BAD_REQUEST("Convite expirado");
     }
 

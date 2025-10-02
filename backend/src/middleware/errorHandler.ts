@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { formatBrazilDateTime } from "../utils/dateUtils";
 
 /**
  * Interface para erros customizados
@@ -49,7 +50,7 @@ export const errorHandler = (
       body: req.body,
       query: req.query,
       params: req.params,
-      timestamp: new Date().toISOString(),
+      timestamp: formatBrazilDateTime(new Date()),
     });
   }
 
@@ -70,7 +71,7 @@ export const errorHandler = (
       details: {
         url: req.url,
         method: req.method,
-        timestamp: new Date().toISOString(),
+        timestamp: formatBrazilDateTime(new Date()),
       },
     }),
   };
