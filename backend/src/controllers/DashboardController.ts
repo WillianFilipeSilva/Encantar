@@ -9,14 +9,12 @@ export class DashboardController {
    */
   getStats = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-      // Buscar estatísticas gerais
       const [totalBeneficiarios, totalEntregas, totalRotas] = await Promise.all([
         prisma.beneficiario.count(),
         prisma.entrega.count(),
         prisma.rota.count(),
       ]);
 
-      // Buscar entregas recentes
       const entregasRecentes = await prisma.entrega.findMany({
         take: 5,
         orderBy: {
@@ -31,7 +29,6 @@ export class DashboardController {
         },
       });
 
-      // Formatar dados
       const dashboardData = {
         totalBeneficiarios,
         totalEntregas,
@@ -49,7 +46,7 @@ export class DashboardController {
           modeloEntrega: {
             nome: 'Entrega Padrão',
           },
-          status: 'PENDENTE', // Status padrão por enquanto
+          status: 'PENDENTE',
           dataEntrega: entrega.criadoEm,
         })),
       };

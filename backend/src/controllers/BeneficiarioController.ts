@@ -9,7 +9,6 @@ import {
 } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
 import { body, query, validationResult } from "express-validator";
-import { CacheManager } from "../utils/cache/cacheManager";
 
 export class BeneficiarioController extends BaseController<
   Beneficiario,
@@ -109,7 +108,6 @@ export class BeneficiarioController extends BaseController<
    */
   create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Validação dos dados
       await body("nome")
         .notEmpty()
         .withMessage("Nome é obrigatório")
@@ -153,9 +151,6 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.create(data, userId);
 
-      // Invalida o cache após criação
-      CacheManager.Beneficiario.invalidateAll();
-
       res.status(201).json({
         success: true,
         data: result,
@@ -177,7 +172,6 @@ export class BeneficiarioController extends BaseController<
         throw CommonErrors.BAD_REQUEST("ID é obrigatório");
       }
 
-      // Validação dos dados
       await body("nome")
         .optional({ checkFalsy: true })
         .isLength({ min: 2, max: 100 })
@@ -224,9 +218,6 @@ export class BeneficiarioController extends BaseController<
 
       const result = await this.beneficiarioService.update(id, data, userId);
 
-      // Invalida o cache após atualização
-      CacheManager.Beneficiario.invalidateOne(id);
-
       res.json({
         success: true,
         data: result,
@@ -249,9 +240,6 @@ export class BeneficiarioController extends BaseController<
       }
 
       await this.beneficiarioService.delete(id);
-
-      // Invalida o cache após remoção
-      CacheManager.Beneficiario.invalidateOne(id);
 
       res.json({
         success: true,
@@ -351,12 +339,10 @@ export class BeneficiarioController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo - só aplica se não for 'all'
     if (query.ativo !== undefined && query.ativo !== 'all') {
       filters.ativo = query.ativo === "true";
     }
 
-    // Filtro por busca inteligente - busca em qualquer parte do texto
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
@@ -367,7 +353,6 @@ export class BeneficiarioController extends BaseController<
       ];
     }
 
-    // Filtro por data
     if (query.dataInicio) {
       filters.criadoEm = {
         ...filters.criadoEm,

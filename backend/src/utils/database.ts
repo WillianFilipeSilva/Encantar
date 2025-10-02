@@ -17,7 +17,6 @@ class DatabaseClient {
         errorFormat: "pretty",
       });
 
-      // Event listeners para logs
       if (process.env.NODE_ENV === "development") {
         const client = DatabaseClient.instance as PrismaClient & {
           $on(event: 'query', listener: (event: { query: string; duration: number }) => void): void;
@@ -90,8 +89,6 @@ class DatabaseClient {
   }
 }
 
-// Exporta a instância do Prisma
 export const prisma = DatabaseClient.getInstance();
 
-// Exporta a classe para métodos utilitários
 export default DatabaseClient;

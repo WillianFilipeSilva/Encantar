@@ -70,10 +70,7 @@ export abstract class BaseController<T, CreateData, UpdateData> {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const data = req.body;
-      const userId = (req as any).user?.id; // Assumindo que o middleware de auth adiciona o user
-
-      console.log('DEBUG - userId no controller:', userId); // Debug temporário
-      console.log('DEBUG - req.user:', (req as any).user); // Debug temporário
+      const userId = (req as any).user?.id;
 
       const result = await this.service.create(data, userId);
 
@@ -198,20 +195,16 @@ export abstract class BaseController<T, CreateData, UpdateData> {
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo - só aplica se não for 'all' e não for vazio
     if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
       filters.ativo = query.ativo === "true";
     }
 
-    // Filtro por busca (se existir)
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
-        // Adicionar outros campos de busca conforme necessário
       ];
     }
 
-    // Filtro por data (se existir)
     if (query.dataInicio) {
       filters.criadoEm = {
         ...filters.criadoEm,
@@ -236,7 +229,6 @@ export abstract class BaseController<T, CreateData, UpdateData> {
     req: Request,
     operation: string
   ): Promise<boolean> {
-    // Implementar lógica de permissões se necessário
     return true;
   }
 

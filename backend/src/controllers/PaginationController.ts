@@ -1,4 +1,3 @@
-// Backend - Controller Base para Paginação
 import { Request, Response } from 'express'
 import { PrismaClient } from '@prisma/client'
 
@@ -40,7 +39,6 @@ export class BaseController {
 
     const skip = (page - 1) * limit
 
-    // Construir condições de busca
     const searchConditions = search
       ? {
           OR: searchFields.map(field => ({
@@ -57,7 +55,6 @@ export class BaseController {
       ...additionalWhere
     }
 
-    // Buscar dados com paginação
     const [data, total] = await Promise.all([
       model.findMany({
         where: whereClause,
@@ -85,16 +82,15 @@ export class BaseController {
   }
 }
 
-// Beneficiários Controller
 export class BeneficiarioController extends BaseController {
   async index(req: Request, res: Response) {
     try {
       const result = await this.paginate(
         prisma.beneficiario,
         req.query,
-        ['nome', 'endereco', 'telefone', 'email', 'observacoes'], // campos de busca
-        undefined, // include
-        { ativo: true } // filtro adicional - só ativos
+        ['nome', 'endereco', 'telefone', 'email', 'observacoes'],
+        undefined,
+        { ativo: true }
       )
 
       res.json(result)
@@ -104,7 +100,6 @@ export class BeneficiarioController extends BaseController {
   }
 }
 
-// Itens Controller
 export class ItemController extends BaseController {
   async index(req: Request, res: Response) {
     try {
@@ -121,13 +116,11 @@ export class ItemController extends BaseController {
   }
 }
 
-// Rotas Controller
 export class RotaController extends BaseController {
   async index(req: Request, res: Response) {
     try {
       const { dataInicio, dataFim } = req.query
 
-      // Filtro de data personalizado
       const dateFilter = dataInicio && dataFim ? {
         dataEntrega: {
           gte: new Date(dataInicio as string),
@@ -139,7 +132,7 @@ export class RotaController extends BaseController {
         prisma.rota,
         req.query,
         ['nome', 'descricao', 'observacoes'],
-        { entregas: { include: { beneficiario: true } } }, // incluir entregas
+        { entregas: { include: { beneficiario: true } } },
         dateFilter
       )
 

@@ -44,6 +44,9 @@ export default function DashboardPage() {
       const response = await api.get('/dashboard')
       return response.data.data
     },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
 
   if (error) {

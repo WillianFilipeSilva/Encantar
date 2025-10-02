@@ -116,7 +116,6 @@ export class ItemService extends BaseService<
   async create(data: CreateItemDTO, userId: string): Promise<Item> {
     await this.validateCreateData(data);
 
-    // Verifica se já existe um item com o mesmo nome
     const exists = await this.itemRepository.existsByNome(data.nome);
     if (exists) {
       throw CommonErrors.CONFLICT("Já existe um item com este nome");
@@ -137,13 +136,11 @@ export class ItemService extends BaseService<
   async update(id: string, data: UpdateItemDTO, userId: string): Promise<Item> {
     await this.validateUpdateData(data);
 
-    // Verifica se o item existe
     const existingItem = await this.itemRepository.findById(id);
     if (!existingItem) {
       throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    // Verifica se já existe outro item com o mesmo nome
     if (data.nome && data.nome !== existingItem.nome) {
       const exists = await this.itemRepository.existsByNome(data.nome, id);
       if (exists) {
@@ -166,7 +163,6 @@ export class ItemService extends BaseService<
   ) {
     const where: any = {};
 
-    // Filtros
     if (filters.nome) {
       where.nome = {
         contains: filters.nome,
@@ -208,6 +204,17 @@ export class ItemService extends BaseService<
     }
 
     return this.itemRepository.findByNome(nome.trim(), limit);
+  }
+
+  /**
+   * Busca itens para autocomplete
+   */
+  async search(searchTerm: string, activeOnly: boolean = true): Promise<Pick<Item, 'id' | 'nome' | 'unidade' | 'descricao'>[]> {
+    if (!searchTerm || searchTerm.trim().length < 1) {
+      return [];
+    }
+
+    return this.itemRepository.findByNome(searchTerm.trim(), 50);
   }
 
   /**
@@ -307,7 +314,6 @@ export class ItemService extends BaseService<
       throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    // Verifica se o item está sendo usado em entregas
     const entregaItems = await this.itemRepository.count({
       entregaItems: {
         some: { itemId: id }

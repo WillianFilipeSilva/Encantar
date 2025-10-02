@@ -69,6 +69,9 @@ export function usePagination<T = any>(
       const response = await api.get<PaginationResponse<T>>(endpoint, { params: cleanParams })
       return response.data
     },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
 
   const setPage = (page: number) => {

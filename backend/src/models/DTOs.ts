@@ -113,6 +113,7 @@ export interface UpdateEntregaDTO {
   beneficiarioId?: string;
   rotaId?: string;
   observacoes?: string;
+  status?: string;
   items?: UpdateEntregaItemDTO[];
 }
 

@@ -78,14 +78,15 @@ export default function ModelosPage() {
   } = usePagination<ModeloEntrega>('/modelos-entrega')
 
   const filterConfig: any[] = [
-    // Modelos não têm filtros por agora
   ]
 
   const { data: itensDisponiveis = [], isLoading: isLoadingItems, error: itemsError } = useQuery<Item[]>({
-    queryKey: ['items-for-models'],
+    queryKey: ['items-ativos-for-models'],
     queryFn: async () => {
       try {
-        const response = await api.get('/items?page=1&limit=100')
+        console.log('Buscando itens ativos...')
+        const response = await api.get('/items/active?page=1&limit=100')
+        console.log('Resposta da API:', response.data)
         
         if (response.data && response.data.data) {
           return Array.isArray(response.data.data) ? response.data.data : []
@@ -93,12 +94,14 @@ export default function ModelosPage() {
           return []
         }
       } catch (error: any) {
-        console.error('Erro ao buscar itens:', error)
+        console.error('Erro ao buscar itens ativos:', error)
         return []
       }
     },
     retry: 1,
     staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
 
   useEffect(() => {
@@ -203,7 +206,6 @@ export default function ModelosPage() {
   }
 
   const handleDelete = (modelo: ModeloEntrega) => {
-    // ✅ Usando modal de confirmação bonito
     openDeleteDialog(() => {
       deleteModeloMutation.mutate(modelo.id);
     });
@@ -285,39 +287,47 @@ export default function ModelosPage() {
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  {modeloItems.map((modeloItem, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                      <select
-                        className="flex-1 p-2 border rounded"
-                        value={modeloItem.itemId}
-                        onChange={(e) => updateModeloItem(index, 'itemId', e.target.value)}
-                      >
-                        <option value="">Selecione um item</option>
-                        {isLoadingItems && <option disabled>Carregando itens...</option>}
-                        {itemsError && <option disabled>Erro ao carregar itens</option>}
-                        {!isLoadingItems && !itemsError && itensDisponiveis?.length === 0 && (
-                          <option disabled>Nenhum item disponível</option>
-                        )}
-                        {Array.isArray(itensDisponiveis) && itensDisponiveis.map(item => (
-                          <option key={item.id} value={item.id}>
-                            {item.nome} ({item.unidade})
-                          </option>
-                        ))}
-                      </select>
-                      <Input
-                        type="number"
-                        min="1"
-                        step="1"
-                        placeholder="Qtd"
-                        className="w-24"
-                        value={modeloItem.quantidade}
-                        onChange={(e) => updateModeloItem(index, 'quantidade', parseInt(e.target.value) || 1)}
-                      />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(index)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                  {modeloItems.map((modeloItem, index) => {
+                    // Filtrar itens disponíveis excluindo os já selecionados (exceto o atual)
+                    const itensDisponiveisParaSelecao = Array.isArray(itensDisponiveis) ? itensDisponiveis.filter(item => 
+                      item.id === modeloItem.itemId || // Manter o item atual selecionado
+                      !modeloItems.some(mi => mi.itemId === item.id) // Excluir itens já selecionados
+                    ) : []
+
+                    return (
+                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                        <select
+                          className="flex-1 p-2 border rounded"
+                          value={modeloItem.itemId}
+                          onChange={(e) => updateModeloItem(index, 'itemId', e.target.value)}
+                        >
+                          <option value="">Selecione um item</option>
+                          {isLoadingItems && <option disabled>Carregando itens...</option>}
+                          {itemsError && <option disabled>Erro ao carregar itens</option>}
+                          {!isLoadingItems && !itemsError && itensDisponiveisParaSelecao.length === 0 && (
+                            <option disabled>Nenhum item disponível</option>
+                          )}
+                          {itensDisponiveisParaSelecao.map(item => (
+                            <option key={item.id} value={item.id}>
+                              {item.nome} ({item.unidade})
+                            </option>
+                          ))}
+                        </select>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="Qtd"
+                          className="w-24"
+                          value={modeloItem.quantidade}
+                          onChange={(e) => updateModeloItem(index, 'quantidade', parseInt(e.target.value) || 1)}
+                        />
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )
+                  })}
                   {modeloItems.length === 0 && (
                     <p className="text-center text-muted-foreground py-4">
                       Nenhum item adicionado. Clique em "Adicionar Item" para começar.

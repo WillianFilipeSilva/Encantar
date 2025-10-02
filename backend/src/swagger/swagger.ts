@@ -164,10 +164,8 @@ const swaggerDocument = {
 };
 
 export function setupSwagger(app: Express) {
-  // Rota para documentação do Swagger
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   
-  // Rota para download do arquivo OpenAPI em JSON
   app.get("/api-docs.json", (req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerDocument);

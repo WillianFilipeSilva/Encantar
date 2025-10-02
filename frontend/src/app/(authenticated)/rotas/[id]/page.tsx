@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { AutocompleteInput } from "@/components/AutocompleteInput"
 import { api } from "@/lib/axios"
 import { formatDate } from "@/lib/utils"
 import { getErrorMessage, logError } from "@/lib/errorUtils"
@@ -43,6 +44,8 @@ interface Beneficiario {
   id: string
   nome: string
   endereco: string
+  telefone?: string
+  ativo: boolean
 }
 
 interface Item {
@@ -89,11 +92,12 @@ export default function RotaDetalhesPage() {
     beneficiarioId: '',
     observacoes: ''
   })
-  const [salvarComoModelo, setSalvarComoModelo] = useState(false)
-  const [nomeModelo, setNomeModelo] = useState('')
+  const [selectedBeneficiario, setSelectedBeneficiario] = useState<Beneficiario | null>(null)
   const [usarModelo, setUsarModelo] = useState(false)
   const [modeloSelecionado, setModeloSelecionado] = useState<string>('')
-  const [itemsSelecionados, setItemsSelecionados] = useState<Array<{id: string, quantidade: number}>>([])
+  const [entregaItems, setEntregaItems] = useState<Array<{itemId: string, quantidade: number}>>([])
+  const [isSearchingBeneficiarios, setIsSearchingBeneficiarios] = useState(false)
+  const [isSearchingItens, setIsSearchingItens] = useState(false)
 
   const { data: rota, isLoading, error } = useQuery<RotaDetalhes>({
     queryKey: ['rota', params.id],
@@ -101,38 +105,81 @@ export default function RotaDetalhesPage() {
       const response = await api.get(`/rotas/${params.id}`)
       console.log('Dados da rota recebidos:', response.data)
       return response.data.data || response.data
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
 
+  // Query de beneficiários corrigida com limit máximo de 500
   const { data: beneficiarios, isLoading: isLoadingBeneficiarios } = useQuery<Beneficiario[]>({
     queryKey: ['beneficiarios'],
     queryFn: async () => {
-      const response = await api.get('/beneficiarios?page=1&limit=1000')
+      const response = await api.get('/beneficiarios?page=1&limit=500')
       return response.data.data || response.data || []
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
 
   const { data: itens, isLoading: isLoadingItens } = useQuery<Item[]>({
-    queryKey: ['itens'],
+    queryKey: ['itens-ativos'],
     queryFn: async () => {
       try {
-        const response = await api.get('/items?page=1&limit=1000')
-        console.log('Dados de itens recebidos:', response.data)
+        const response = await api.get('/items/active?page=1&limit=500')
+        console.log('Dados de itens ativos recebidos:', response.data)
         return response.data.data || response.data || []
       } catch (error) {
-        console.error('Erro ao buscar itens:', error)
+        console.error('Erro ao buscar itens ativos:', error)
         return []
       }
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 1
   })
 
   const { data: modelos, isLoading: isLoadingModelos } = useQuery<ModeloEntrega[]>({
     queryKey: ['modelos'],
     queryFn: async () => {
-      const response = await api.get('/modelos-entrega?page=1&limit=1000')
+      const response = await api.get('/modelos-entrega?page=1&limit=500')
       return response.data.data || response.data || []
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   })
+
+  // Funções de busca para autocomplete
+  const searchBeneficiarios = async (searchTerm: string) => {
+    if (searchTerm.length < 1) return []
+    setIsSearchingBeneficiarios(true)
+    try {
+      const response = await api.get(`/entregas/beneficiarios/search?q=${encodeURIComponent(searchTerm)}`)
+      return response.data?.data || response.data || []
+    } catch (error) {
+      console.error('Erro ao buscar beneficiários:', error)
+      return []
+    } finally {
+      setIsSearchingBeneficiarios(false)
+    }
+  }
+
+  const searchItens = async (searchTerm: string) => {
+    if (searchTerm.length < 1) return []
+    setIsSearchingItens(true)
+    try {
+      const response = await api.get(`/entregas/itens/search?q=${encodeURIComponent(searchTerm)}`)
+      return response.data?.data || response.data || []
+    } catch (error) {
+      console.error('Erro ao buscar itens:', error)
+      return []
+    } finally {
+      setIsSearchingItens(false)
+    }
+  }
 
   const createEntregaMutation = useMutation({
     mutationFn: async (newEntrega: any) => {
@@ -206,20 +253,15 @@ export default function RotaDetalhesPage() {
   })
 
   useEffect(() => {
-    if (itens && itemsSelecionados.length === 0) {
-      setItemsSelecionados(itens.map(item => ({ id: item.id, quantidade: 0 })))
-    }
-  }, [itens, itemsSelecionados.length])
+    // Não precisamos mais inicializar itemsSelecionados
+  }, [])
 
   const resetForm = () => {
     setFormData({ beneficiarioId: '', observacoes: '' })
-    setSalvarComoModelo(false)
-    setNomeModelo('')
+    setSelectedBeneficiario(null)
     setUsarModelo(false)
     setModeloSelecionado('')
-    if (itens) {
-      setItemsSelecionados(itens.map(item => ({ id: item.id, quantidade: 0 })))
-    }
+    setEntregaItems([])
   }
 
   const handleSubmitEntrega = (e: React.FormEvent) => {
@@ -230,7 +272,7 @@ export default function RotaDetalhesPage() {
       return
     }
 
-    const itensComQuantidade = itemsSelecionados.filter(item => item.quantidade > 0)
+    const itensComQuantidade = entregaItems.filter(item => item.quantidade > 0)
     if (itensComQuantidade.length === 0) {
       toast.error('Adicione pelo menos um item com quantidade')
       return
@@ -240,7 +282,7 @@ export default function RotaDetalhesPage() {
       beneficiarioId: formData.beneficiarioId,
       observacoes: formData.observacoes,
       items: itensComQuantidade.map(item => ({
-        itemId: item.id,
+        itemId: item.itemId,
         quantidade: item.quantidade
       }))
     }
@@ -251,34 +293,50 @@ export default function RotaDetalhesPage() {
   const handleCarregarModelo = () => {
     const modelo = modelos?.find(m => m.id === modeloSelecionado)
     if (modelo) {
-      setItemsSelecionados(prev => 
-        prev.map(item => {
-          const modeloItem = modelo.modeloItems.find(mi => mi.item.id === item.id)
-          return {
-            ...item,
-            quantidade: modeloItem ? modeloItem.quantidade : 0
-          }
-        })
-      )
+      setEntregaItems(modelo.modeloItems.map(mi => ({
+        itemId: mi.item.id,
+        quantidade: mi.quantidade
+      })))
       toast.success('Modelo carregado com sucesso!')
     }
   }
 
-  const updateQuantidade = (itemId: string, quantidade: number) => {
-    setItemsSelecionados(prev => 
-      prev.map(item => 
-        item.id === itemId ? { ...item, quantidade: Math.max(0, quantidade) } : item
-      )
-    )
+  // Funções para gerenciar itens da entrega
+  const addEntregaItem = () => {
+    setEntregaItems(prev => [...prev, { itemId: '', quantidade: 1 }])
   }
 
-  const alterarStatusTodasEntregas = async (novoStatus: string) => {
-    try {
-      await api.patch(`/rotas/${params.id}/entregas/status`, { status: novoStatus })
-    } catch (error) {
-      console.error('Erro ao alterar status das entregas:', error)
-    }
+  const removeEntregaItem = (index: number) => {
+    setEntregaItems(prev => prev.filter((_, i) => i !== index))
   }
+
+  const updateEntregaItem = (index: number, field: string, value: any) => {
+    setEntregaItems(prev => prev.map((item, i) =>
+      i === index ? { ...item, [field]: value } : item
+    ))
+  }
+
+  const updateAllEntregasStatusMutation = useMutation({
+    mutationFn: async (novoStatus: string) => {
+      const response = await api.patch(`/rotas/${params.id}/entregas/status`, { status: novoStatus })
+      return response.data
+    },
+    onSuccess: () => {
+      // Invalida queries relacionadas à rota específica
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === 'rota' || 
+          query.queryKey[0] === '/rotas'
+      })
+      toast.success('Status de todas as entregas atualizado!', {
+        duration: 3000,
+      })
+    },
+    onError: (error: any) => {
+      logError('AtualizarStatusTodas', error)
+      showErrorToast('Erro ao atualizar status das entregas', error)
+    }
+  })
 
   if (isLoading || isLoadingBeneficiarios || isLoadingItens || isLoadingModelos) {
     return <div className="p-4 text-center">Carregando detalhes da rota...</div>
@@ -399,56 +457,94 @@ export default function RotaDetalhesPage() {
               {/* Seleção de beneficiário */}
               <div className="space-y-2">
                 <label htmlFor="beneficiario">Beneficiário *</label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  value={formData.beneficiarioId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, beneficiarioId: e.target.value }))}
-                  required
-                >
-                  <option value="">Selecione o beneficiário</option>
-                  {Array.isArray(beneficiarios) && beneficiarios.map(beneficiario => (
-                    <option key={beneficiario.id} value={beneficiario.id}>
-                      {beneficiario.nome} - {beneficiario.endereco}
-                    </option>
-                  ))}
-                </select>
+                <AutocompleteInput
+                  placeholder="Digite pelo menos 1 letra para buscar beneficiários..."
+                  value={selectedBeneficiario ? selectedBeneficiario.nome : ''}
+                  onSearch={async (searchTerm) => {
+                    if (searchTerm.length < 1) return []
+                    const results = await searchBeneficiarios(searchTerm)
+                    return results.map((beneficiario: Beneficiario) => ({
+                      id: beneficiario.id,
+                      label: beneficiario.nome,
+                      sublabel: beneficiario.endereco
+                    }))
+                  }}
+                  onSelect={(option) => {
+                    if (option) {
+                      setSelectedBeneficiario({ 
+                        id: option.id, 
+                        nome: option.label, 
+                        endereco: option.sublabel || '',
+                        ativo: true 
+                      })
+                      setFormData(prev => ({ ...prev, beneficiarioId: option.id }))
+                    }
+                  }}
+                  isLoading={isSearchingBeneficiarios}
+                />
               </div>
 
               {/* Itens da entrega */}
-              <div className="space-y-2">
-                <label>Itens da Entrega</label>
-                <div className="border rounded-md max-h-60 overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead>Unidade</TableHead>
-                        <TableHead className="w-32">Quantidade</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {Array.isArray(itens) && itens.map(itemData => {
-                        const itemSelecionado = itemsSelecionados.find(i => i.id === itemData.id)
-                        return (
-                          <TableRow key={itemData.id}>
-                            <TableCell className="font-medium">{itemData.nome}</TableCell>
-                            <TableCell>{itemData.unidade}</TableCell>
-                            <TableCell>
-                              <Input 
-                                type="number" 
-                                min="0" 
-                                step="0.1"
-                                placeholder="0"
-                                className="w-full"
-                                value={itemSelecionado?.quantidade || 0}
-                                onChange={(e) => updateQuantidade(itemData.id, parseFloat(e.target.value) || 0)}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium">Itens da Entrega</h3>
+                    {isLoadingItens && <p className="text-sm text-blue-600">Carregando itens disponíveis...</p>}
+                    {!isLoadingItens && Array.isArray(itens) && (
+                      <p className="text-sm text-green-600">{itens.length} itens disponíveis</p>
+                    )}
+                  </div>
+                  <Button type="button" onClick={addEntregaItem} size="sm" disabled={isLoadingItens}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar Item
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {entregaItems.map((entregaItem, index) => {
+                    // Filtrar itens disponíveis excluindo os já selecionados (exceto o atual)
+                    const itensDisponiveis = Array.isArray(itens) ? itens.filter(item => 
+                      item.id === entregaItem.itemId || // Manter o item atual selecionado
+                      !entregaItems.some(ei => ei.itemId === item.id) // Excluir itens já selecionados
+                    ) : []
+
+                    return (
+                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                        <select
+                          className="flex-1 p-2 border rounded"
+                          value={entregaItem.itemId}
+                          onChange={(e) => updateEntregaItem(index, 'itemId', e.target.value)}
+                        >
+                          <option value="">Selecione um item</option>
+                          {isLoadingItens && <option disabled>Carregando itens...</option>}
+                          {!isLoadingItens && itensDisponiveis.length === 0 && (
+                            <option disabled>Nenhum item disponível</option>
+                          )}
+                          {itensDisponiveis.map(item => (
+                            <option key={item.id} value={item.id}>
+                              {item.nome} ({item.unidade})
+                            </option>
+                          ))}
+                        </select>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          placeholder="Qtd"
+                          className="w-24"
+                          value={entregaItem.quantidade}
+                          onChange={(e) => updateEntregaItem(index, 'quantidade', parseInt(e.target.value) || 1)}
+                        />
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeEntregaItem(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )
+                  })}
+                  {entregaItems.length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">
+                      Nenhum item adicionado. Clique em "Adicionar Item" para começar.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -463,23 +559,8 @@ export default function RotaDetalhesPage() {
                 />
               </div>
 
-              {/* Salvar como modelo */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="salvarModelo"
-                    checked={salvarComoModelo}
-                    onChange={(e) => setSalvarComoModelo(e.target.checked)}
-                  />
-                  <label 
-                    htmlFor="salvarModelo" 
-                    className="text-sm font-medium cursor-pointer"
-                    title="Marcando esta opção os itens e quantidades serão salvos como modelos padrões"
-                  >
-                    Salvar como modelo
-                  </label>
-                </div>
+              {/* Botão de submit */}
+              <div className="flex justify-end">
                 <Button 
                   type="submit"
                   disabled={createEntregaMutation.isPending}
@@ -487,28 +568,17 @@ export default function RotaDetalhesPage() {
                   {createEntregaMutation.isPending ? 'Cadastrando...' : 'Confirmar Entrega'}
                 </Button>
               </div>
-
-              {salvarComoModelo && (
-                <div className="space-y-2">
-                  <label htmlFor="nomeModelo">Nome do modelo</label>
-                  <Input 
-                    id="nomeModelo" 
-                    placeholder="Ex: Cesta Básica Padrão"
-                    value={nomeModelo}
-                    onChange={(e) => setNomeModelo(e.target.value)}
-                  />
-                </div>
-              )}
             </form>
           </DialogContent>
         </Dialog>
 
         <Button 
           variant="outline"
-          onClick={() => alterarStatusTodasEntregas('ENTREGUE')}
+          onClick={() => updateAllEntregasStatusMutation.mutate('ENTREGUE')}
+          disabled={updateAllEntregasStatusMutation.isPending}
         >
           <CheckCircle className="mr-2 h-4 w-4" />
-          Marcar Todas como Entregues
+          {updateAllEntregasStatusMutation.isPending ? 'Atualizando...' : 'Marcar Todas como Entregues'}
         </Button>
 
         <Button variant="outline">
@@ -569,8 +639,8 @@ export default function RotaDetalhesPage() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        title="Marcar como pendente"
-                        onClick={() => updateEntregaStatusMutation.mutate({ entregaId: entrega.id, status: 'PENDENTE' })}
+                        title="Marcar como cancelada"
+                        onClick={() => updateEntregaStatusMutation.mutate({ entregaId: entrega.id, status: 'CANCELADA' })}
                       >
                         <XCircle className="h-4 w-4 text-yellow-600" />
                       </Button>

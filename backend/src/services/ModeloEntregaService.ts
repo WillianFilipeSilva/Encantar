@@ -13,6 +13,17 @@ export class ModeloEntregaService extends BaseService<
     super(repository);
   }
 
+  async search(searchTerm: string, page: number = 1, limit: number = 10) {
+    const filters = {
+      OR: [
+        { nome: { contains: searchTerm, mode: "insensitive" } },
+        { descricao: { contains: searchTerm, mode: "insensitive" } }
+      ]
+    };
+
+    return await this.repository.findAll(page, limit, filters);
+  }
+
   protected async validateCreateData(
     data: CreateModeloEntregaDTO
   ): Promise<void> {

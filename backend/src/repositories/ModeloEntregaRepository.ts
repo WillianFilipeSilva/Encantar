@@ -134,6 +134,10 @@ export class ModeloEntregaRepository extends BaseRepository<
   private buildWhereClause(filters?: any) {
     const where: any = {};
 
+    if (filters?.OR) {
+      where.OR = filters.OR;
+    }
+
     if (filters?.search) {
       where.OR = [
         { nome: { contains: filters.search, mode: 'insensitive' } },

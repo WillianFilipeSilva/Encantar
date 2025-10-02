@@ -18,7 +18,6 @@ export class AuthController {
    */
   login = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      // Validação dos dados
       await body("login")
         .notEmpty()
         .withMessage("Login é obrigatório")
@@ -36,7 +35,6 @@ export class AuthController {
           code: "VALIDATION_ERROR",
           details: errors.array(),
         });
-        return;
         return;
       }
 
@@ -56,7 +54,6 @@ export class AuthController {
    */
   register = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      // Validação dos dados
       await body("nome").notEmpty().withMessage("Nome é obrigatório").run(req);
       await body("login")
         .isLength({ min: 3 })
@@ -124,7 +121,6 @@ export class AuthController {
    */
   createInvite = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-      // Validação dos dados
       await body("email")
         .optional()
         .isEmail()
@@ -199,9 +195,6 @@ export class AuthController {
    */
   logout = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-      // Em um sistema mais robusto, você poderia manter uma blacklist de tokens
-      // Por enquanto, o logout é feito apenas no frontend
-
       res.json({
         success: true,
         message: "Logout realizado com sucesso",

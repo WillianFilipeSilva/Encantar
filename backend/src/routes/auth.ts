@@ -5,10 +5,6 @@ import { authenticateToken } from "../middleware/auth";
 const router = Router();
 const authController = new AuthController();
 
-// ===========================================
-// ROTAS PÚBLICAS (sem autenticação)
-// ===========================================
-
 /**
  * POST /api/auth/login
  * Autentica um usuário
@@ -32,10 +28,6 @@ router.post("/refresh", authController.refresh);
  * Valida um token de convite
  */
 router.get("/invite/:token", authController.validateInvite);
-
-// ===========================================
-// ROTAS PROTEGIDAS (requer autenticação)
-// ===========================================
 
 /**
  * GET /api/auth/me

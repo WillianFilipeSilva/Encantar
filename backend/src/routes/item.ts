@@ -8,12 +8,10 @@ import { authenticateToken } from "../middleware/auth";
 const router = Router();
 const prisma = new PrismaClient();
 
-// Inicializa dependências
 const itemRepository = new ItemRepository(prisma);
 const itemService = new ItemService(itemRepository);
 const itemController = new ItemController(itemService);
 
-// Obtém validações
 const {
   validateCreate,
   validateUpdate,
@@ -24,10 +22,8 @@ const {
   validateLimit,
 } = itemController.getValidations();
 
-// Middleware de autenticação para todas as rotas
 router.use(authenticateToken);
 
-// Rotas CRUD básicas
 router.get("/", validateSearch, itemController.findAll.bind(itemController));
 router.get(
   "/with-relations",

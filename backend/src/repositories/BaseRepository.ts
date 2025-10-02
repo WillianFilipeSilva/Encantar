@@ -74,14 +74,12 @@ export abstract class BaseRepository<T, CreateData, UpdateData> {
    * Remove um registro (soft delete se tiver campo ativo)
    */
   async delete(id: string): Promise<T> {
-    // Tenta soft delete primeiro (se tiver campo ativo)
     try {
       return (this.prisma as any)[this.modelName].update({
         where: { id },
         data: { ativo: false },
       });
     } catch (error) {
-      // Se não tiver campo ativo, faz delete físico
       return (this.prisma as any)[this.modelName].delete({
         where: { id },
       });

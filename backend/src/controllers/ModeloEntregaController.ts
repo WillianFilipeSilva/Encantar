@@ -18,7 +18,6 @@ export class ModeloEntregaController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Busca inteligente - prioridade: nome, descricao
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },

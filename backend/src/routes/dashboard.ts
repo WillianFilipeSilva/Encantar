@@ -5,7 +5,6 @@ import { authenticateToken } from "../middleware/auth";
 const router = Router();
 const dashboardController = new DashboardController();
 
-// Aplicar middleware de autenticação a todas as rotas
 router.use(authenticateToken);
 
 /**

@@ -1,4 +1,3 @@
-// Beneficiários
 export const beneficiariosRoutes = {
   "/beneficiarios": {
     get: {
@@ -110,7 +109,6 @@ export const beneficiariosRoutes = {
   }
 };
 
-// Itens
 export const itensRoutes = {
   "/itens": {
     get: {
@@ -203,7 +201,6 @@ export const itensRoutes = {
   }
 };
 
-// Entregas
 export const entregasRoutes = {
   "/entregas": {
     get: {
@@ -312,7 +309,6 @@ export const entregasRoutes = {
   }
 };
 
-// Rotas de Entrega
 export const rotasRoutes = {
   "/rotas": {
     get: {

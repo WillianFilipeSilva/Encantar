@@ -183,6 +183,17 @@ export class BeneficiarioService extends BaseService<
   }
 
   /**
+   * Busca beneficiários para autocomplete
+   */
+  async search(searchTerm: string, activeOnly: boolean = true): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
+    if (!searchTerm || searchTerm.trim().length < 1) {
+      return [];
+    }
+
+    return this.beneficiarioRepository.findByNome(searchTerm.trim(), 50);
+  }
+
+  /**
    * Busca beneficiários ativos para seleção
    */
   async findActiveForSelection(): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {

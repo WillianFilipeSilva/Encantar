@@ -33,7 +33,6 @@ export class AuthService {
   async login(loginData: LoginData): Promise<AuthResponse> {
     const { login, senha } = loginData;
 
-    // Busca o administrador
     const administrador = await this.prisma.administrador.findUnique({
       where: { login },
     });
@@ -46,13 +45,11 @@ export class AuthService {
       throw CommonErrors.UNAUTHORIZED("Conta desativada");
     }
 
-    // Verifica a senha
     const senhaValida = await bcrypt.compare(senha, administrador.senha);
     if (!senhaValida) {
       throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
     }
 
-    // Gera os tokens
     const tokens = this.generateTokens({
       id: administrador.id,
       login: administrador.login,
@@ -75,10 +72,8 @@ export class AuthService {
   async register(registerData: RegisterData): Promise<AuthResponse> {
     const { nome, login, senha, token } = registerData;
 
-    // Valida o convite
     const convite = await this.validateInvite(token);
 
-    // Verifica se o login já existe
     const loginExiste = await this.prisma.administrador.findUnique({
       where: { login },
     });
@@ -87,10 +82,8 @@ export class AuthService {
       throw CommonErrors.CONFLICT("Login já está em uso");
     }
 
-    // Criptografa a senha
     const senhaHash = await bcrypt.hash(senha, 12);
 
-    // Cria o administrador
     const administrador = await this.prisma.administrador.create({
       data: {
         nome,
@@ -99,13 +92,11 @@ export class AuthService {
       },
     });
 
-    // Marca o convite como usado
     await this.prisma.convite.update({
       where: { id: convite.id },
       data: { usado: true, usadoEm: new Date() },
     });
 
-    // Gera os tokens
     const tokens = this.generateTokens({
       id: administrador.id,
       login: administrador.login,
@@ -135,14 +126,11 @@ export class AuthService {
       throw CommonErrors.BAD_REQUEST("Email ou telefone é obrigatório");
     }
 
-    // Gera token único
     const token = randomBytes(32).toString("hex");
 
-    // Define expiração (15 minutos)
     const expiraEm = new Date();
     expiraEm.setMinutes(expiraEm.getMinutes() + 15);
 
-    // Cria o convite
     const convite = await this.prisma.convite.create({
       data: {
         email,
@@ -166,13 +154,11 @@ export class AuthService {
     refreshToken: string
   ): Promise<{ accessToken: string; expiresIn: number }> {
     try {
-      // Verifica o refresh token
       const payload = jwt.verify(
         refreshToken,
         this.jwtConfig.refreshSecret
       ) as JWTPayload;
 
-      // Busca o administrador
       const administrador = await this.prisma.administrador.findUnique({
         where: { id: payload.id },
       });
@@ -181,7 +167,6 @@ export class AuthService {
         throw CommonErrors.UNAUTHORIZED("Token inválido");
       }
 
-      // Gera novo access token
       const accessToken = jwt.sign(
         {
           id: administrador.id,
@@ -261,7 +246,7 @@ export class AuthService {
       case "d":
         return value * 60 * 60 * 24;
       default:
-        return 15 * 60; // 15 minutos padrão
+        return 15 * 60;
     }
   }
 

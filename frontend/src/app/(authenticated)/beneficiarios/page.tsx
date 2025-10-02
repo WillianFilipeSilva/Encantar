@@ -57,6 +57,7 @@ export default function BeneficiariosPage() {
     setFilters,
     isLoading,
     error,
+    refresh
   } = usePagination<Beneficiario>('/beneficiarios')
 
   const filterConfig = [
@@ -69,7 +70,7 @@ export default function BeneficiariosPage() {
         { value: 'true', label: 'Ativos' },
         { value: 'false', label: 'Inativos' },
       ],
-      defaultValue: 'all'
+      defaultValue: 'true'
     }
   ]
 

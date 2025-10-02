@@ -40,7 +40,6 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  // Log do erro para desenvolvimento
   if (process.env.NODE_ENV === "development") {
     console.error("🚨 Erro capturado:", {
       message: error.message,
@@ -54,7 +53,6 @@ export const errorHandler = (
     });
   }
 
-  // Se não é um erro operacional, transforma em erro genérico
   if (!error.isOperational) {
     error = new CustomError(
       "Erro interno do servidor",
@@ -63,7 +61,6 @@ export const errorHandler = (
     );
   }
 
-  // Resposta padronizada
   const response = {
     success: false,
     error: error.message,

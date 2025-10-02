@@ -15,7 +15,6 @@ export abstract class BaseService<T, CreateData, UpdateData> {
    * Busca todos os registros com paginação
    */
   async findAll(page: number = 1, limit: number = 10, filters?: any) {
-    // Validação de paginação
     if (page < 1) page = 1;
     if (limit < 1 || limit > 500) limit = 10;
 
@@ -42,10 +41,8 @@ export abstract class BaseService<T, CreateData, UpdateData> {
    * Cria um novo registro
    */
   async create(data: CreateData, userId?: string): Promise<T> {
-    // Validação básica
     await this.validateCreateData(data);
 
-    // Adiciona dados de auditoria se necessário
     const createData = await this.addAuditData(data, userId, "create");
 
     return this.repository.create(createData);
@@ -59,13 +56,10 @@ export abstract class BaseService<T, CreateData, UpdateData> {
       throw new Error("ID é obrigatório");
     }
 
-    // Verifica se o registro existe
     await this.findById(id);
 
-    // Validação básica
     await this.validateUpdateData(data);
 
-    // Adiciona dados de auditoria se necessário
     const updateData = await this.addAuditData(data, userId, "update");
 
     return this.repository.update(id, updateData);
@@ -79,7 +73,6 @@ export abstract class BaseService<T, CreateData, UpdateData> {
       throw new Error("ID é obrigatório");
     }
 
-    // Verifica se o registro existe
     await this.findById(id);
 
     return this.repository.delete(id);
@@ -93,7 +86,6 @@ export abstract class BaseService<T, CreateData, UpdateData> {
       throw new Error("ID é obrigatório");
     }
 
-    // Verifica se o registro existe
     await this.findById(id);
 
     return this.repository.hardDelete(id);
@@ -124,14 +116,12 @@ export abstract class BaseService<T, CreateData, UpdateData> {
    * Método para validação de dados de criação (deve ser implementado nas classes filhas)
    */
   protected async validateCreateData(data: CreateData): Promise<void> {
-    // Implementar validações específicas nas classes filhas
   }
 
   /**
    * Método para validação de dados de atualização (deve ser implementado nas classes filhas)
    */
   protected async validateUpdateData(data: UpdateData): Promise<void> {
-    // Implementar validações específicas nas classes filhas
   }
 
   /**

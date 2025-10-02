@@ -2,7 +2,6 @@ import winston from 'winston';
 import 'winston-daily-rotate-file';
 import path from 'path';
 
-// Níveis de log personalizados
 const levels = {
   error: 0,
   warn: 1,
@@ -11,7 +10,6 @@ const levels = {
   debug: 4,
 };
 
-// Cores para cada nível no console
 const colors = {
   error: 'red',
   warn: 'yellow',
@@ -20,10 +18,8 @@ const colors = {
   debug: 'white',
 };
 
-// Adiciona cores ao Winston
 winston.addColors(colors);
 
-// Formato dos logs
 const format = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
@@ -31,7 +27,6 @@ const format = winston.format.combine(
   winston.format.json()
 );
 
-// Formato para console
 const consoleFormat = winston.format.combine(
   winston.format.colorize({ all: true }),
   winston.format.printf(
@@ -39,16 +34,12 @@ const consoleFormat = winston.format.combine(
   )
 );
 
-// Define o nível de log baseado no ambiente
 const level = process.env.NODE_ENV === 'production' ? 'info' : 'debug';
 
-// Transports
 const transports = [
-  // Console
   new winston.transports.Console({
     format: consoleFormat,
   }),
-  // Arquivo de erros
   new winston.transports.DailyRotateFile({
     filename: path.join('logs', 'error-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
@@ -57,7 +48,6 @@ const transports = [
     maxFiles: '14d',
     level: 'error',
   }),
-  // Arquivo de logs gerais
   new winston.transports.DailyRotateFile({
     filename: path.join('logs', 'combined-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
@@ -67,7 +57,6 @@ const transports = [
   }),
 ];
 
-// Cria o logger
 const logger = winston.createLogger({
   level,
   levels,
@@ -75,7 +64,6 @@ const logger = winston.createLogger({
   transports,
 });
 
-// Helper para logs HTTP
 export const httpLogger = (req: any, res: any, next: any) => {
   const start = Date.now();
   res.on('finish', () => {
@@ -87,5 +75,4 @@ export const httpLogger = (req: any, res: any, next: any) => {
   next();
 };
 
-// Exporta o logger
 export default logger;

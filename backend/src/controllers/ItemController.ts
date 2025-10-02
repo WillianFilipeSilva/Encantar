@@ -44,7 +44,7 @@ export class ItemController extends BaseController<
    * Validação para atualização de item
    */
   private validateUpdate = [
-    param("id").matches(/^[a-z0-9]+$/).withMessage("ID inválido"),
+    param("id").matches(/^[a-z0-9-]+$/).withMessage("ID inválido"),
     body("nome")
       .optional()
       .notEmpty()
@@ -84,7 +84,7 @@ export class ItemController extends BaseController<
     query("nome")
       .optional()
       .custom((value) => {
-        if (value === "") return true; // Permite string vazia
+        if (value === "") return true;
         if (value && value.length < 2) {
           throw new Error("Nome de busca deve ter pelo menos 2 caracteres se fornecido");
         }
@@ -97,7 +97,7 @@ export class ItemController extends BaseController<
     query("unidade")
       .optional()
       .custom((value) => {
-        if (value === "" || value === "all") return true; // Permite string vazia ou 'all'
+        if (value === "" || value === "all") return true;
         if (value && !['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'].includes(value)) {
           throw new Error("Unidade deve ser uma das opções válidas");
         }
@@ -117,7 +117,7 @@ export class ItemController extends BaseController<
    * Validação para ID
    */
   private validateId = [
-    param("id").matches(/^[a-z0-9]+$/).withMessage("ID inválido"),
+    param("id").matches(/^[a-z0-9-]+$/).withMessage("ID inválido"),
   ];
 
   /**
@@ -632,12 +632,10 @@ export class ItemController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo - só aplica se não for 'all' e não for vazio
     if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
       filters.ativo = query.ativo === "true";
     }
 
-    // Busca inteligente - prioridade: nome, descricao
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },

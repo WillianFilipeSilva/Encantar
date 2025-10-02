@@ -23,7 +23,6 @@ export class RotaController extends BaseController<
    */
   findAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // Validação dos query parameters
       await query("page")
         .optional()
         .isInt({ min: 1 })
@@ -37,9 +36,8 @@ export class RotaController extends BaseController<
       await query("search")
         .optional()
         .custom((value) => {
-          // Se está presente e não é vazio, deve ter pelo menos 2 caracteres
-          if (value && value.trim().length > 0 && value.trim().length < 2) {
-            throw new Error("Busca deve ter pelo menos 2 caracteres");
+          if (value && value.trim().length > 0 && value.trim().length < 1) {
+            throw new Error("Busca deve ter pelo menos 1 caracter");
           }
           return true;
         })
@@ -98,7 +96,6 @@ export class RotaController extends BaseController<
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Busca inteligente - prioridade: nome, descricao
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
@@ -106,7 +103,6 @@ export class RotaController extends BaseController<
       ];
     }
 
-    // Filtro por data de entrega
     if (query.dataInicio) {
       filters.dataEntrega = {
         ...filters.dataEntrega,
