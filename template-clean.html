@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>{{nomeRota}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 8px;
+            line-height: 1.1;
+            margin: 8px;
+            color: #333;
+            background: #fff;
+        }
+        
+        .cabecalho {
+            text-align: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+        }
+        
+        .titulo-rota {
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+            color: #222;
+        }
+        
+        .info-basica {
+            font-size: 7px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 2px;
+            color: #666;
+        }
+        
+        .entregas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .entrega {
+            border: 1px solid #eee;
+            border-radius: 3px;
+            background: #fff;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            overflow: hidden;
+        }
+        
+        .entrega-header {
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 4px 6px;
+            font-size: 8px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #333;
+        }
+        
+        .checkbox {
+            width: 10px;
+            height: 10px;
+            border: 1px solid #999;
+            border-radius: 2px;
+            display: inline-block;
+            background: #fff;
+        }
+        
+        .entrega-body {
+            padding: 6px;
+            background: #fff;
+        }
+        
+        .endereco {
+            font-size: 7px;
+            margin-bottom: 3px;
+            color: #555;
+            line-height: 1.2;
+        }
+        
+        .contato {
+            font-size: 6px;
+            margin-bottom: 4px;
+            color: #777;
+        }
+        
+        .observacao {
+            font-size: 6px;
+            font-style: italic;
+            margin-bottom: 4px;
+            padding: 3px 4px;
+            background: #fff;
+            border-left: 2px solid #ddd;
+            color: #666;
+        }
+        
+        .itens-section {
+            border-top: 1px solid #f0f0f0;
+            padding-top: 4px;
+            margin-top: 4px;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 6px;
+            padding: 1px 0;
+            line-height: 1.1;
+            border-bottom: 1px dotted #f5f5f5;
+        }
+        
+        .item:last-child {
+            border-bottom: none;
+        }
+        
+        .item-nome {
+            flex: 1;
+            color: #444;
+        }
+        
+        .item-qtd {
+            font-weight: bold;
+            min-width: 22px;
+            text-align: right;
+            color: #666;
+            font-size: 7px;
+        }
+        
+        .observacoes-linha {
+            border-top: 1px solid #f0f0f0;
+            margin-top: 6px;
+            padding-top: 4px;
+        }
+        
+        .obs-label {
+            font-size: 5px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        
+        .linha-obs {
+            height: 12px;
+            width: 100%;
+        }
+        
+        .rodape {
+            display: none;
+        }
+        
+        /* Otimizações para impressão */
+        @media print {
+            body {
+                margin: 5mm;
+                font-size: 7px;
+                color: #000;
+            }
+            
+            .cabecalho {
+                margin-bottom: 6px;
+                padding-bottom: 4px;
+                border-bottom: 1px solid #ccc;
+            }
+            
+            .titulo-rota {
+                font-size: 12px;
+                color: #000;
+            }
+            
+            .info-basica {
+                color: #333;
+            }
+            
+            .entregas-grid {
+                gap: 4px;
+                margin-top: 6px;
+            }
+            
+            .entrega {
+                border: 1px solid #ddd;
+                background: #fff;
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            .entrega-header {
+                background: #fff;
+                border-bottom: 1px solid #ddd;
+                color: #333;
+            }
+            
+            .entrega-body {
+                padding: 4px;
+                background: #fff;
+            }
+            
+            .observacao {
+                background: #fff;
+                border-left: 1px solid #ccc;
+            }
+            
+            .checkbox {
+                border: 1px solid #666;
+                background: #fff;
+            }
+            
+            .item-qtd {
+                background: none;
+                border: none;
+            }
+        }
+        
+        /* Layout responsivo */
+        @media (max-width: 21cm) {
+            .entregas-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Garante que todas as 8 entregas caibam em uma página */
+        .entregas-grid {
+            max-height: 92vh;
+            overflow: visible;
+        }
+        
+        /* Espaçamento inteligente entre grupos de 4 */
+        .entrega:nth-child(4) {
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cabecalho">
+        <div class="titulo-rota">{{nomeRota}}</div>
+        <div class="info-basica">
+            <span>{{dataEntrega}}</span>
+            <span>{{totalBeneficiarios}} Entregas</span>
+            <span>{{totalItens}} Itens</span>
+        </div>
+    </div>
+    
+    <div class="entregas-grid">
+        {{#each beneficiarios}}
+        <div class="entrega">
+            <div class="entrega-header">
+                <span>{{nome}}</span>
+                <div class="checkbox"></div>
+            </div>
+            
+            <div class="entrega-body">
+                <div class="endereco">{{endereco}}</div>
+                
+                {{#if telefone}}
+                <div class="contato">{{telefone}}</div>
+                {{/if}}
+                
+                {{#if observacoes}}
+                <div class="observacao">{{observacoes}}</div>
+                {{/if}}
+                
+                {{#if itens}}
+                <div class="itens-section">
+                    {{#each itens}}
+                    <div class="item">
+                        <span class="item-nome">{{nome}}</span>
+                        <span class="item-qtd">{{quantidade}} {{unidade}}</span>
+                    </div>
+                    {{/each}}
+                </div>
+                {{/if}}
+                
+                <div class="observacoes-linha">
+                    <div class="obs-label">Observações</div>
+                    <div class="linha-obs"></div>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</body>
+</html>

@@ -23,7 +23,7 @@ export default function HomePage() {
       <div className="text-center max-w-md mx-auto p-8">
         <div className="mb-8">
           <img 
-            src="/logo.png" 
+            src="/logo.jpg" 
             alt="Encantar Logo" 
             className="w-24 h-24 object-contain mx-auto mb-4 animate-pulse"
           />

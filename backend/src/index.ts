@@ -12,6 +12,7 @@ import rotaRoutes from "./routes/rota";
 import modeloEntregaRoutes from "./routes/modeloEntrega";
 import entregaRoutes from "./routes/entrega";
 import dashboardRoutes from "./routes/dashboard";
+import templatePDFRoutes from "./routes/templatePDF";
 
 import { errorHandler } from "./middleware/errorHandler";
 import { formatBrazilDateTime } from "./utils/dateUtils";
@@ -128,6 +129,7 @@ app.use("/api/rotas", rotaRoutes);
 app.use("/api/modelos-entrega", modeloEntregaRoutes);
 app.use("/api/entregas", entregaRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/templates", templatePDFRoutes);
 
 app.use(notFound);
 

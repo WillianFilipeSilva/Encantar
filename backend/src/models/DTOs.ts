@@ -283,3 +283,26 @@ export interface ErrorResponseDTO {
   code: string;
   details?: ValidationErrorDTO[];
 }
+
+export interface CreateTemplatePDFDTO {
+  nome: string;
+  descricao?: string;
+  conteudo: string;
+}
+
+export interface UpdateTemplatePDFDTO {
+  nome?: string;
+  descricao?: string;
+  conteudo?: string;
+  ativo?: boolean;
+}
+
+export interface TemplatePDFResponseDTO {
+  id: string;
+  nome: string;
+  descricao?: string | null;
+  conteudo: string;
+  ativo: boolean;
+  criadoEm: Date;
+  atualizadoEm: Date;
+}

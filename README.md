@@ -204,7 +204,7 @@ encantar/
 │   │   ├── hooks/          # Custom hooks
 │   │   └── lib/            # Utilitários e configurações
 │   ├── public/
-│   │   └── logo.png        # Logo da aplicação
+│   │   └── logo.jpg        # Logo da aplicação
 │   ├── Dockerfile.dev      # Container de desenvolvimento
 │   └── package.json
 ├── docker-compose.yml       # Orquestração dos containers

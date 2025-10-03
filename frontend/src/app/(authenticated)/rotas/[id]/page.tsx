@@ -14,6 +14,9 @@ import { ArrowLeft, CheckCircle, Package, PenLine, Plus, Printer, Trash2, XCircl
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import toast from 'react-hot-toast'
+import { rotaService } from "@/lib/services/rotaService"
+import { templateService } from "@/lib/services/templateService"
+import { PrintModal } from "@/components/PrintModal"
 
 interface RotaDetalhes {
   id: string
@@ -98,6 +101,7 @@ export default function RotaDetalhesPage() {
   const [entregaItems, setEntregaItems] = useState<Array<{itemId: string, quantidade: number}>>([])
   const [isSearchingBeneficiarios, setIsSearchingBeneficiarios] = useState(false)
   const [isSearchingItens, setIsSearchingItens] = useState(false)
+  const [printModalOpen, setPrintModalOpen] = useState(false)
 
   const { data: rota, isLoading, error } = useQuery<RotaDetalhes>({
     queryKey: ['rota', params.id],
@@ -150,6 +154,16 @@ export default function RotaDetalhesPage() {
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true
+  })
+
+  // Query para templates ativos
+  const { data: templatesAtivos } = useQuery({
+    queryKey: ['templates-ativos'],
+    queryFn: async () => {
+      const response = await templateService.findActive()
+      return response.data || []
+    },
+    staleTime: 30000, // Cache por 30 segundos
   })
 
   // Funções de busca para autocomplete
@@ -337,6 +351,14 @@ export default function RotaDetalhesPage() {
       showErrorToast('Erro ao atualizar status das entregas', error)
     }
   })
+
+  const handleGerarPDF = () => {
+    setPrintModalOpen(true)
+  }
+
+  const handleClosePrintModal = () => {
+    setPrintModalOpen(false)
+  }
 
   if (isLoading || isLoadingBeneficiarios || isLoadingItens || isLoadingModelos) {
     return <div className="p-4 text-center">Carregando detalhes da rota...</div>
@@ -581,7 +603,10 @@ export default function RotaDetalhesPage() {
           {updateAllEntregasStatusMutation.isPending ? 'Atualizando...' : 'Marcar Todas como Entregues'}
         </Button>
 
-        <Button variant="outline">
+        <Button 
+          variant="outline"
+          onClick={handleGerarPDF}
+        >
           <Printer className="mr-2 h-4 w-4" />
           Imprimir Rota
         </Button>
@@ -692,6 +717,15 @@ export default function RotaDetalhesPage() {
           </TableBody>
         </Table>
       </div>
+      
+      {rota && (
+        <PrintModal
+          rotaId={rota.id}
+          rotaNome={rota.nome}
+          isOpen={printModalOpen}
+          onClose={handleClosePrintModal}
+        />
+      )}
     </div>
   )
 }

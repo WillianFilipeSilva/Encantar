@@ -11,11 +11,12 @@ import { api } from "@/lib/axios"
 import { formatDate } from "@/lib/utils"
 import { logError } from "@/lib/errorUtils"
 import { showErrorToast } from "@/components/ErrorToast"
-import { Eye, PenLine, Plus, Trash2 } from "lucide-react"
+import { Eye, PenLine, Plus, Printer, Trash2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
+import { PrintModal } from "@/components/PrintModal"
 
 interface Rota {
   id: string
@@ -41,6 +42,8 @@ export default function RotasPage() {
     descricao: '',
     dataEntrega: ''
   })
+  const [printModalOpen, setPrintModalOpen] = useState(false)
+  const [selectedRotaForPrint, setSelectedRotaForPrint] = useState<Rota | null>(null)
 
   const queryClient = useQueryClient()
 
@@ -172,6 +175,16 @@ export default function RotasPage() {
     });
   }
 
+  const handlePrint = (rota: Rota) => {
+    setSelectedRotaForPrint(rota)
+    setPrintModalOpen(true)
+  }
+
+  const handleClosePrintModal = () => {
+    setPrintModalOpen(false)
+    setSelectedRotaForPrint(null)
+  }
+
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setEditingRota(null)
@@ -297,6 +310,9 @@ export default function RotasPage() {
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
+                    <Button variant="ghost" size="icon" title="Imprimir" onClick={() => handlePrint(rota)}>
+                      <Printer className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="icon" title="Editar" onClick={() => handleEdit(rota)}>
                       <PenLine className="h-4 w-4" />
                     </Button>
@@ -319,6 +335,15 @@ export default function RotasPage() {
       </div>
       
       <DeleteConfirmDialog />
+      
+      {selectedRotaForPrint && (
+        <PrintModal
+          rotaId={selectedRotaForPrint.id}
+          rotaNome={selectedRotaForPrint.nome}
+          isOpen={printModalOpen}
+          onClose={handleClosePrintModal}
+        />
+      )}
     </div>
   )
 }

@@ -63,7 +63,7 @@ export default function LoginPage() {
         <div className="p-6 pb-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <img 
-              src="/logo.png" 
+              src="/logo.jpg" 
               alt="Encantar Logo" 
               className="w-12 h-12 object-contain"
             />

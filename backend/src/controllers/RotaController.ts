@@ -6,6 +6,9 @@ import { CreateRotaDTO, UpdateRotaDTO } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
 import { query, validationResult } from "express-validator";
 import { createDateFromString, serializeDateForAPI, serializeDateTimeForAPI } from "../utils/dateUtils";
+import { PDFService } from "../utils/pdfService";
+import { TemplatePDFService } from "../services/TemplatePDFService";
+import { TemplatePDFRepository } from "../repositories/TemplatePDFRepository";
 
 export class RotaController extends BaseController<
   Rota,
@@ -13,10 +16,12 @@ export class RotaController extends BaseController<
   UpdateRotaDTO
 > {
   private rotaService: RotaService;
+  private templateService: TemplatePDFService;
 
   constructor(rotaService: RotaService) {
     super(rotaService);
     this.rotaService = rotaService;
+    this.templateService = new TemplatePDFService(new TemplatePDFRepository());
   }
 
   /**
@@ -142,4 +147,101 @@ export class RotaController extends BaseController<
 
     return filters;
   }
+
+  /**
+   * GET /:id/pdf/:templateId - Gera PDF da rota usando um template específico
+   */
+  generatePDF = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, templateId } = req.params;
+
+      if (!id) {
+        throw CommonErrors.BAD_REQUEST("ID da rota é obrigatório");
+      }
+
+      if (!templateId) {
+        throw CommonErrors.BAD_REQUEST("ID do template é obrigatório");
+      }
+
+      // Busca a rota com todas as informações necessárias
+      const rota = await this.rotaService.findByIdWithRelations(id);
+      if (!rota) {
+        throw CommonErrors.NOT_FOUND("Rota não encontrada");
+      }
+
+      // Busca o template
+      const template = await this.templateService.findById(templateId);
+      if (!template) {
+        throw CommonErrors.NOT_FOUND("Template não encontrado");
+      }
+
+      if (!template.ativo) {
+        throw CommonErrors.BAD_REQUEST("Template está inativo");
+      }
+
+      // Gera o PDF
+      const pdfBuffer = await PDFService.generateRotaPDF({
+        rota,
+        template
+      });
+
+      // Define o nome do arquivo
+      const fileName = `rota-${rota.nome.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+
+      // Configura headers para download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      // Envia o PDF
+      res.send(pdfBuffer);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * GET /:id/pdf/preview/:templateId - Preview do PDF no navegador
+   */
+  previewPDF = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id, templateId } = req.params;
+
+      if (!id) {
+        throw CommonErrors.BAD_REQUEST("ID da rota é obrigatório");
+      }
+
+      if (!templateId) {
+        throw CommonErrors.BAD_REQUEST("ID do template é obrigatório");
+      }
+
+      // Busca a rota com todas as informações necessárias
+      const rota = await this.rotaService.findByIdWithRelations(id);
+      if (!rota) {
+        throw CommonErrors.NOT_FOUND("Rota não encontrada");
+      }
+
+      // Busca o template
+      const template = await this.templateService.findById(templateId);
+      if (!template) {
+        throw CommonErrors.NOT_FOUND("Template não encontrado");
+      }
+
+      // Gera o PDF
+      const pdfBuffer = await PDFService.generateRotaPDF({
+        rota,
+        template
+      });
+
+      // Configura headers para visualização no navegador
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline');
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      // Envia o PDF
+      res.send(pdfBuffer);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

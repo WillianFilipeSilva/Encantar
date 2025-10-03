@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   title: 'Encantar - Sistema de Entregas',
   description: 'Sistema de gerenciamento de entregas para ONGs',
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/logo.jpg',
+    shortcut: '/logo.jpg',
+    apple: '/logo.jpg',
   },
 }
 

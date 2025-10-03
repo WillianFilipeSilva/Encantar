@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Map, Users, LogOut, FileText } from 'lucide-react'
+import { LayoutDashboard, Package, Map, Users, LogOut, FileText, Printer } from 'lucide-react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,11 @@ const navigation = [
     label: 'Rotas',
     href: '/rotas',
     icon: Map
+  },
+  {
+    label: 'Templates',
+    href: '/templates',
+    icon: Printer
   }
 ]
 
@@ -51,7 +56,7 @@ export default function AuthenticatedLayout({
           <div className="flex h-16 items-center gap-3 border-b border-border px-6">
             <div className="flex items-center gap-3">
               <Image 
-                src="/logo.png" 
+                src="/logo.jpg" 
                 alt="Encantar" 
                 width={40} 
                 height={40} 
