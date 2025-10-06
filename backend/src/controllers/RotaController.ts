@@ -64,7 +64,6 @@ export class RotaController extends BaseController<
         filters
       );
 
-      // Serializar datas para evitar problemas de timezone no frontend
       const serializedData = result.data.map(rota => ({
         ...rota,
         dataEntrega: serializeDateForAPI(rota.dataEntrega),

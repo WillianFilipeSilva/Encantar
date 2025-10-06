@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 
 import authRoutes from "./routes/auth";
+import inviteRoutes from "./routes/invite";
 import beneficiarioRoutes from "./routes/beneficiario";
 import itemRoutes from "./routes/item";
 import rotaRoutes from "./routes/rota";
@@ -71,7 +72,8 @@ const authLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-app.use("/api/auth", authLimiter);
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/register", authLimiter);
 
 app.use(
   helmet({
@@ -123,6 +125,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/invite", inviteRoutes);
 app.use("/api/beneficiarios", beneficiarioRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/rotas", rotaRoutes);

@@ -16,6 +16,8 @@ export interface RegisterData {
   login: string;
   senha: string;
   token: string;
+  emailValidacao?: string;
+  telefoneValidacao?: string;
 }
 
 /**

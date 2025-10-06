@@ -24,22 +24,10 @@ router.post("/register", authController.register);
 router.post("/refresh", authController.refresh);
 
 /**
- * GET /api/auth/invite/:token
- * Valida um token de convite
- */
-router.get("/invite/:token", authController.validateInvite);
-
-/**
  * GET /api/auth/me
  * Retorna dados do usuário autenticado
  */
 router.get("/me", authenticateToken, authController.me);
-
-/**
- * POST /api/auth/invite
- * Cria um convite para novo administrador
- */
-router.post("/invite", authenticateToken, authController.createInvite);
 
 /**
  * POST /api/auth/logout

@@ -33,22 +33,15 @@ export class PDFService {
     const page = await browser.newPage();
 
     try {
-      // Compila o template Handlebars
       const template = Handlebars.compile(data.template.conteudo);
-      
-      // Prepara os dados para o template
       const templateData = this.prepareTemplateData(data.rota);
-      
-      // Gera o HTML final
       const html = template(templateData);
       
-      // Configura a página
       await page.setContent(html, { 
         waitUntil: 'networkidle0',
         timeout: 30000 
       });
 
-      // Configura as opções do PDF
       const pdfOptions = {
         format: 'A4' as const,
         printBackground: true,
@@ -61,7 +54,6 @@ export class PDFService {
         displayHeaderFooter: false
       };
 
-      // Gera o PDF
       const pdf = await page.pdf(pdfOptions);
       
       return Buffer.from(pdf);

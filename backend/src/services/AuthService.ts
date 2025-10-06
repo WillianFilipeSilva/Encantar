@@ -71,9 +71,9 @@ export class AuthService {
    * Registra um novo administrador via convite
    */
   async register(registerData: RegisterData): Promise<AuthResponse> {
-    const { nome, login, senha, token } = registerData;
+    const { nome, login, senha, token, emailValidacao, telefoneValidacao } = registerData;
 
-    const convite = await this.validateInvite(token);
+    const convite = await this.validateInviteForRegistration(token, emailValidacao, telefoneValidacao);
 
     const loginExiste = await this.prisma.administrador.findUnique({
       where: { login },
@@ -116,6 +116,7 @@ export class AuthService {
 
   /**
    * Cria um convite para novo administrador
+   * Apenas um convite ativo por administrador é permitido
    */
   async createInvite(
     inviteData: InviteData,
@@ -124,7 +125,21 @@ export class AuthService {
     const { email, telefone } = inviteData;
 
     if (!email && !telefone) {
-      throw CommonErrors.BAD_REQUEST("Email ou telefone é obrigatório");
+      throw CommonErrors.BAD_REQUEST("Email ou telefone é obrigatório para validação do convite");
+    }
+
+    const conviteAtivo = await this.prisma.convite.findFirst({
+      where: {
+        enviadoPorId,
+        usado: false,
+        expiraEm: {
+          gt: createBrazilTimestamp()
+        }
+      }
+    });
+
+    if (conviteAtivo) {
+      throw CommonErrors.CONFLICT("Já existe um convite ativo. Aguarde sua expiração antes de criar um novo.");
     }
 
     const token = randomBytes(32).toString("hex");
@@ -145,6 +160,33 @@ export class AuthService {
     return {
       token: convite.token,
       expiraEm: convite.expiraEm,
+    };
+  }
+
+  /**
+   * Busca o convite ativo do administrador
+   */
+  async getActiveInvite(enviadoPorId: string): Promise<{ token: string; expiraEm: Date } | null> {
+    const conviteAtivo = await this.prisma.convite.findFirst({
+      where: {
+        enviadoPorId,
+        usado: false,
+        expiraEm: {
+          gt: createBrazilTimestamp()
+        }
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+
+    if (!conviteAtivo) {
+      return null;
+    }
+
+    return {
+      token: conviteAtivo.token,
+      expiraEm: conviteAtivo.expiraEm,
     };
   }
 
@@ -206,6 +248,46 @@ export class AuthService {
 
     if (convite.expiraEm < createBrazilTimestamp()) {
       throw CommonErrors.BAD_REQUEST("Convite expirado");
+    }
+
+    return convite;
+  }
+
+  /**
+   * Valida um token de convite com email/telefone para registro
+   */
+  private async validateInviteForRegistration(
+    token: string, 
+    emailValidacao?: string, 
+    telefoneValidacao?: string
+  ) {
+    const convite = await this.prisma.convite.findUnique({
+      where: { token },
+      include: { enviadoPor: true },
+    });
+
+    if (!convite) {
+      throw CommonErrors.BAD_REQUEST("Convite inválido");
+    }
+
+    if (convite.usado) {
+      throw CommonErrors.BAD_REQUEST("Convite já foi utilizado");
+    }
+
+    if (convite.expiraEm < createBrazilTimestamp()) {
+      throw CommonErrors.BAD_REQUEST("Convite expirado");
+    }
+
+    if (convite.email && convite.email !== emailValidacao) {
+      throw CommonErrors.BAD_REQUEST("Email informado não confere com o convite");
+    }
+
+    if (convite.telefone && convite.telefone !== telefoneValidacao) {
+      throw CommonErrors.BAD_REQUEST("Telefone informado não confere com o convite");
+    }
+
+    if ((convite.email || convite.telefone) && !emailValidacao && !telefoneValidacao) {
+      throw CommonErrors.BAD_REQUEST("É necessário informar o email ou telefone para validar o convite");
     }
 
     return convite;

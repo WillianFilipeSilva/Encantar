@@ -67,6 +67,16 @@ export class AuthController {
         .notEmpty()
         .withMessage("Token do convite é obrigatório")
         .run(req);
+      await body("emailValidacao")
+        .optional()
+        .isEmail()
+        .withMessage("Email de validação inválido")
+        .run(req);
+      await body("telefoneValidacao")
+        .optional()
+        .isMobilePhone("pt-BR")
+        .withMessage("Telefone de validação inválido")
+        .run(req);
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -132,6 +142,14 @@ export class AuthController {
         .withMessage("Telefone inválido")
         .run(req);
 
+      await body().custom((value, { req }) => {
+        const { email, telefone } = req.body;
+        if (!email && !telefone) {
+          throw new Error('Email ou telefone é obrigatório');
+        }
+        return true;
+      }).run(req);
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
@@ -153,6 +171,20 @@ export class AuthController {
         success: true,
         data: result,
         message: "Convite criado com sucesso",
+      });
+    }
+  );
+
+  /**
+   * GET /active-invite - Retorna o convite ativo do usuário
+   */
+  getActiveInvite = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      const result = await this.authService.getActiveInvite(req.user!.id);
+
+      res.json({
+        success: true,
+        data: result,
       });
     }
   );
