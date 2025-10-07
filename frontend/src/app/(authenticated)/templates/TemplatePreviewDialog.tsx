@@ -22,7 +22,6 @@ export function TemplatePreviewDialog({ isOpen, onClose, template }: TemplatePre
   if (!template) return null
 
   const renderPreview = () => {
-    // Simula dados para preview
     const mockData = {
       nomeRota: "Rota Centro - Exemplo",
       dataEntrega: "15/10/2025",
@@ -38,12 +37,8 @@ export function TemplatePreviewDialog({ isOpen, onClose, template }: TemplatePre
 
     let htmlContent = template.conteudo
     
-    // Substitui variáveis simples
     htmlContent = htmlContent.replace(/\{\{nomeRota\}\}/g, mockData.nomeRota)
     htmlContent = htmlContent.replace(/\{\{dataEntrega\}\}/g, mockData.dataEntrega)
-    
-    // Para arrays mais complexos, uma implementação mais robusta seria necessária
-    // Por enquanto, apenas mostra o HTML "cru" com as substituições básicas
     
     return htmlContent
   }

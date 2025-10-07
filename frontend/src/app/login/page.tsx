@@ -33,14 +33,14 @@ export default function LoginPage() {
       })
 
       const authData = response.data.data
-      const { user, accessToken, refreshToken } = authData
+      const { user } = authData
 
-      const success = authLogin(user, accessToken, refreshToken)
+      const success = authLogin(user)
       
       if (success) {
         router.push('/dashboard')
       } else {
-        throw new Error('Erro ao salvar dados de login')
+        throw new Error('Erro ao processar login')
       }
     } catch (error: any) {
       console.error('Erro de login:', error)
@@ -69,7 +69,7 @@ export default function LoginPage() {
             />
             <div>
               <h3 className="text-2xl font-semibold leading-none tracking-tight">Encantar</h3>
-              <p className="text-sm text-gray-600 mt-1">Sistema de Entregas</p>
+              <p className="text-sm text-gray-600 mt-1">Sistema de Atendimentos</p>
             </div>
           </div>
         </div>
@@ -120,12 +120,6 @@ export default function LoginPage() {
               {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700 font-medium">Credenciais de acesso:</p>
-            <p className="text-sm text-blue-600">Login: <code>admin</code></p>
-            <p className="text-sm text-blue-600">Senha: <code>admin123</code></p>
-          </div>
         </div>
       </div>
     </div>

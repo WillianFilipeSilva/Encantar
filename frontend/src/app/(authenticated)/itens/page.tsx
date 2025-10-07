@@ -39,7 +39,7 @@ export default function ItensPage() {
     ConfirmDialogComponent: InactivateConfirmDialog
   } = useConfirmDialog({
     title: "Inativar Item",
-    description: "O item será inativado e não poderá mais ser usado em novas entregas.",
+    description: "O item será inativado e não poderá mais ser usado em novos atendimentos.",
     confirmText: "Sim, inativar",
     cancelText: "Cancelar",
     variant: 'danger'

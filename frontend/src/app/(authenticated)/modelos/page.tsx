@@ -120,7 +120,7 @@ export default function ModelosPage() {
       setPage(1)
       resetForm()
       setDialogOpen(false)
-      toast.success('Modelo de entrega cadastrado com sucesso!')
+      toast.success('Modelo de atendimento cadastrado com sucesso!')
     },
     onError: (error: any) => {
       logError('CriarModelo', error)
@@ -139,7 +139,7 @@ export default function ModelosPage() {
       resetForm()
       setEditingModelo(null)
       setDialogOpen(false)
-      toast.success('Modelo de entrega atualizado com sucesso!')
+      toast.success('Modelo de atendimento atualizado com sucesso!')
     },
     onError: (error: any) => {
       logError('AtualizarModelo', error)
@@ -154,7 +154,7 @@ export default function ModelosPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
-      toast.success('Modelo de entrega excluído com sucesso!')
+      toast.success('Modelo de atendimento excluído com sucesso!')
     },
     onError: (error: any) => {
       logError('ExcluirModelo', error)
@@ -235,9 +235,9 @@ export default function ModelosPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Modelos de Entrega</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Modelos de Atendimento</h1>
           <p className="text-muted-foreground">
-            Gerencie os modelos padrão de entrega
+            Gerencie os modelos padrão de atendimento
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => {
@@ -256,7 +256,7 @@ export default function ModelosPage() {
               <DialogDescription>
                 {editingModelo
                   ? 'Altere os dados do modelo conforme necessário'
-                  : 'Preencha os dados para cadastrar um novo modelo de entrega'
+                  : 'Preencha os dados para cadastrar um novo modelo de atendimento'
                 }
               </DialogDescription>
             </DialogHeader>

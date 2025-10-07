@@ -2,18 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-interface User {
-  id: string
-  nome: string
-  login: string
-}
+import { api } from '@/lib/axios'
+import { User } from '@/lib/types'
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -21,93 +18,77 @@ export function useAuth() {
   }, [])
 
   useEffect(() => {
-    if (!isClient) return
+    if (!isClient || hasCheckedAuth) return
 
-    const checkAuth = () => {
-      const token = localStorage.getItem('@encantar:token')
-      const userData = localStorage.getItem('@encantar:user')
-
-      if (token && userData && userData !== 'undefined' && userData !== 'null' && userData.trim() !== '') {
-        try {
-          const parsedUser = JSON.parse(userData)
-          
-          if (parsedUser && parsedUser.id) {
-            setIsAuthenticated(true)
-            setUser(parsedUser)
-          } else {
-            throw new Error('Dados do usuário inválidos')
+    const checkAuth = async () => {
+      try {
+        if (typeof window !== 'undefined') {
+          const path = window.location.pathname
+          if (path === '/login' || path.startsWith('/register/')) {
+            setIsAuthenticated(false)
+            setUser(null)
+            setIsLoading(false)
+            setHasCheckedAuth(true)
+            return
           }
-        } catch (error) {
-          console.error('Erro ao fazer parse do userData:', error)
-          localStorage.removeItem('@encantar:token')
-          localStorage.removeItem('@encantar:refresh-token')
-          localStorage.removeItem('@encantar:user')
+        }
+
+        const response = await api.get('/auth/me')
+
+        if (response.data.success && response.data.data) {
+          setIsAuthenticated(true)
+          setUser(response.data.data)
+        } else {
           setIsAuthenticated(false)
           setUser(null)
         }
-      } else {
+      } catch (error) {
         setIsAuthenticated(false)
         setUser(null)
       }
       
       setIsLoading(false)
+      setHasCheckedAuth(true)
     }
 
     checkAuth()
-  }, [isClient])
+  }, [isClient, hasCheckedAuth])
 
-  const login = (userData: User, token: string, refreshToken?: string) => {
+  const login = (userData: User) => {
     try {
-      if (!userData || !userData.id || !token) {
+      if (!userData || !userData.id) {
         throw new Error('Dados de login inválidos')
-      }
-
-      const userDataString = JSON.stringify(userData)
-
-      localStorage.setItem('@encantar:token', token)
-      localStorage.setItem('@encantar:user', userDataString)
-      
-      if (refreshToken) {
-        localStorage.setItem('@encantar:refresh-token', refreshToken)
       }
 
       setIsAuthenticated(true)
       setUser(userData)
+      setHasCheckedAuth(true)
       
       return true
     } catch (error) {
-      console.error('Erro ao salvar dados de login:', error)
+      console.error('Erro ao processar login:', error)
       return false
     }
   }
 
-  const logout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('@encantar:token')
-      localStorage.removeItem('@encantar:refresh-token')
-      localStorage.removeItem('@encantar:user')
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout')
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
     }
     
     setIsAuthenticated(false)
     setUser(null)
-    
+    setHasCheckedAuth(false)
     router.push('/login')
   }
 
-  const checkTokenValidity = () => {
-    if (typeof window === 'undefined') return false
-    
-    const token = localStorage.getItem('@encantar:token')
-    const user = localStorage.getItem('@encantar:user')
-    
-    if (!token || !user) {
-      return false
-    }
-    
+  const checkTokenValidity = async () => {
     try {
-      const parsedUser = JSON.parse(user)
-      return parsedUser && parsedUser.id
-    } catch {
+      const response = await api.get('/auth/me')
+      return response.data.success
+    } catch (error) {
       return false
     }
   }

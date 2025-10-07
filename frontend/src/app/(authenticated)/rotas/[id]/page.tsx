@@ -212,13 +212,13 @@ export default function RotaDetalhesPage() {
       })
       resetForm()
       setDialogOpen(false)
-      toast.success('Entrega cadastrada com sucesso!', {
+      toast.success('Atendimento cadastrado com sucesso!', {
         duration: 3000,
       })
     },
     onError: (error: any) => {
       logError('CriarEntrega', error)
-      showErrorToast('Erro ao cadastrar entrega', error)
+      showErrorToast('Erro ao cadastrar atendimento', error)
     }
   })
 
@@ -234,7 +234,7 @@ export default function RotaDetalhesPage() {
           query.queryKey[0] === 'rota' || 
           query.queryKey[0] === '/rotas'
       })
-      toast.success('Status da entrega atualizado!', {
+      toast.success('Status do atendimento atualizado!', {
         duration: 3000,
       })
     },
@@ -256,13 +256,13 @@ export default function RotaDetalhesPage() {
           query.queryKey[0] === 'rota' || 
           query.queryKey[0] === '/rotas'
       })
-      toast.success('Entrega excluída com sucesso!', {
+      toast.success('Atendimento excluído com sucesso!', {
         duration: 3000,
       })
     },
     onError: (error: any) => {
       logError('ExcluirEntrega', error)
-      showErrorToast('Erro ao excluir entrega', error)
+      showErrorToast('Erro ao excluir atendimento', error)
     }
   })
 
@@ -342,13 +342,13 @@ export default function RotaDetalhesPage() {
           query.queryKey[0] === 'rota' || 
           query.queryKey[0] === '/rotas'
       })
-      toast.success('Status de todas as entregas atualizado!', {
+      toast.success('Status de todos os atendimentos atualizado!', {
         duration: 3000,
       })
     },
     onError: (error: any) => {
       logError('AtualizarStatusTodas', error)
-      showErrorToast('Erro ao atualizar status das entregas', error)
+      showErrorToast('Erro ao atualizar status dos atendimentos', error)
     }
   })
 
@@ -395,11 +395,11 @@ export default function RotaDetalhesPage() {
           </p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Total de Entregas</p>
+          <p className="text-sm text-muted-foreground">Total de Atendimentos</p>
           <p className="text-lg font-semibold">{rota.entregas?.length || 0}</p>
         </div>
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Entregas Concluídas</p>
+          <p className="text-sm text-muted-foreground">Atendimentos Concluídos</p>
           <p className="text-lg font-semibold">
             {rota.entregas?.filter(e => e.status === 'ENTREGUE').length || 0}
           </p>
@@ -420,14 +420,14 @@ export default function RotaDetalhesPage() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Cadastrar Entrega
+              Cadastrar Atendimento
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl" aria-describedby="dialog-description">
             <DialogHeader>
-              <DialogTitle>Nova Entrega - {rota.nome}</DialogTitle>
+              <DialogTitle>Novo Atendimento - {rota.nome}</DialogTitle>
               <p id="dialog-description" className="text-sm text-muted-foreground">
-                Cadastre uma nova entrega para esta rota
+                Cadastre um novo atendimento para esta rota
               </p>
             </DialogHeader>
 
@@ -587,7 +587,7 @@ export default function RotaDetalhesPage() {
                   type="submit"
                   disabled={createEntregaMutation.isPending}
                 >
-                  {createEntregaMutation.isPending ? 'Cadastrando...' : 'Confirmar Entrega'}
+                  {createEntregaMutation.isPending ? 'Cadastrando...' : 'Confirmar Atendimento'}
                 </Button>
               </div>
             </form>
@@ -600,7 +600,7 @@ export default function RotaDetalhesPage() {
           disabled={updateAllEntregasStatusMutation.isPending}
         >
           <CheckCircle className="mr-2 h-4 w-4" />
-          {updateAllEntregasStatusMutation.isPending ? 'Atualizando...' : 'Marcar Todas como Entregues'}
+          {updateAllEntregasStatusMutation.isPending ? 'Atualizando...' : 'Marcar Todos como Entregues'}
         </Button>
 
         <Button 
@@ -612,10 +612,10 @@ export default function RotaDetalhesPage() {
         </Button>
       </div>
 
-      {/* Lista de Entregas */}
+      {/* Lista de Atendimentos */}
       <div className="rounded-md border">
         <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold">Entregas desta Rota</h2>
+          <h2 className="text-lg font-semibold">Atendimentos desta Rota</h2>
         </div>
         <Table>
           <TableHeader>

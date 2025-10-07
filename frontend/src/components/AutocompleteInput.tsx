@@ -52,7 +52,6 @@ export function AutocompleteInput({
   const optionsRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout>()
 
-  // Função de busca com useCallback para evitar recriações
   const performSearch = useCallback(async (term: string) => {
     if (term.length < minChars) {
       setOptions([])
@@ -73,19 +72,15 @@ export function AutocompleteInput({
     }
   }, [onSearch, minChars])
 
-  // Effect para debounce da busca
   useEffect(() => {
-    // Limpar timeout anterior
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
     }
 
-    // Se não deve buscar, não fazer nada
     if (!shouldSearch) {
       return
     }
 
-    // Se não tem termo ou está muito pequeno, limpar
     if (!searchTerm || searchTerm.length < minChars) {
       setOptions([])
       setIsSearching(false)
@@ -93,27 +88,23 @@ export function AutocompleteInput({
       return
     }
 
-    // Se foi selecionada uma opção e o termo é igual ao label, não buscar
     if (selectedOption && searchTerm === selectedOption.label) {
       setShouldSearch(false)
       return
     }
 
-    // Configurar nova busca com debounce de 1 segundo
     debounceRef.current = setTimeout(() => {
       performSearch(searchTerm)
-      setShouldSearch(false) // Resetar flag após buscar
+      setShouldSearch(false)
     }, 1000)
 
-    // Cleanup
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current)
       }
     }
-  }, [searchTerm, selectedOption, shouldSearch, performSearch]) // Adicionado shouldSearch
+  }, [searchTerm, selectedOption, shouldSearch, performSearch])
 
-  // Fechar dropdown quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -126,7 +117,6 @@ export function AutocompleteInput({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Gerenciar navegação por teclado
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen && e.key === 'Enter') {
       setIsOpen(true)
@@ -169,9 +159,8 @@ export function AutocompleteInput({
     setIsOpen(false)
     setHighlightedIndex(-1)
     setIsSearching(false)
-    setShouldSearch(false) // Parar de buscar
+    setShouldSearch(false)
     
-    // Limpar debounce
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
     }
@@ -186,9 +175,8 @@ export function AutocompleteInput({
     setOptions([])
     setHighlightedIndex(-1)
     setIsSearching(false)
-    setShouldSearch(false) // Parar de buscar
+    setShouldSearch(false)
     
-    // Limpar debounce
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
     }

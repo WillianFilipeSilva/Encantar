@@ -29,7 +29,6 @@ export default function RegisterPage() {
     telefoneValidacao: ''
   })
 
-  // Query para validar o convite
   const { data: inviteData, isLoading: isValidating, error } = useQuery({
     queryKey: ['validate-invite', token],
     queryFn: () => inviteService.validateInvite(token),
@@ -37,7 +36,6 @@ export default function RegisterPage() {
     retry: false,
   })
 
-  // Mutation para registro
   const registerMutation = useMutation({
     mutationFn: (data: {
       nome: string
@@ -48,11 +46,7 @@ export default function RegisterPage() {
       telefoneValidacao?: string
     }) => inviteService.register(data),
     onSuccess: (result) => {
-      // Salvar token no localStorage e redirecionar
-      localStorage.setItem('@encantar:token', result.accessToken)
-      localStorage.setItem('@encantar:refresh-token', result.refreshToken)
-      
-      login(result.user, result.accessToken, result.refreshToken)
+      login(result.user)
 
       toast.success('Cadastro realizado com sucesso!')
       router.push('/dashboard')
@@ -66,7 +60,6 @@ export default function RegisterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validações
     if (!formData.nome.trim()) {
       toast.error('Nome é obrigatório')
       return
@@ -77,8 +70,14 @@ export default function RegisterPage() {
       return
     }
 
-    if (formData.senha.length < 6) {
-      toast.error('Senha deve ter pelo menos 6 caracteres')
+    if (formData.senha.length < 8) {
+      toast.error('Senha deve ter pelo menos 8 caracteres')
+      return
+    }
+
+    const senhaRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/
+    if (!senhaRegex.test(formData.senha)) {
+      toast.error('Senha deve conter: 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial')
       return
     }
 
@@ -87,7 +86,6 @@ export default function RegisterPage() {
       return
     }
 
-    // Validações de segurança (email/telefone)
     if (inviteData?.email && !formData.emailValidacao.trim()) {
       toast.error('Email de validação é obrigatório')
       return
@@ -242,10 +240,10 @@ export default function RegisterPage() {
                 value={formData.senha}
                 onChange={(e) => handleInputChange('senha', e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
               />
               <p className="text-xs text-muted-foreground">
-                Mínimo 6 caracteres
+                Mínimo 8 caracteres (1 maiúscula, 1 minúscula, 1 número, 1 especial)
               </p>
             </div>
 
@@ -261,7 +259,6 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Campos de validação de segurança */}
             {(inviteData?.email || inviteData?.telefone) && (
               <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="text-sm font-medium text-blue-800">

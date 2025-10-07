@@ -130,6 +130,8 @@ export class RotaRepository extends BaseRepository<
             },
           },
         },
+        criadoPor: true,
+        modificadoPor: true,
       },
     });
   }
@@ -137,19 +139,15 @@ export class RotaRepository extends BaseRepository<
   async findById(id: string): Promise<Rota | null> {
     return this.prisma.rota.findUnique({
       where: { id },
-      include: {
-        entregas: {
-          include: {
-            beneficiario: true,
-            entregaItems: {
-              include: {
-                item: true,
-              },
-            },
-          },
-        },
-        criadoPor: true,
-        modificadoPor: true,
+      select: {
+        id: true,
+        nome: true,
+        descricao: true,
+        dataEntrega: true,
+        criadoEm: true,
+        atualizadoEm: true,
+        criadoPorId: true,
+        modificadoPorId: true,
       },
     });
   }

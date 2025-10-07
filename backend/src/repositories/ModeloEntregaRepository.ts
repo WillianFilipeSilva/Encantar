@@ -33,10 +33,28 @@ export class ModeloEntregaRepository extends BaseRepository<
       },
       include: {
         modeloItems: {
-          include: {
-            item: true
-          }
-        }
+          select: {
+            id: true,
+            quantidade: true,
+            item: {
+              select: {
+                id: true,
+                nome: true,
+                unidade: true,
+              },
+            },
+          },
+          orderBy: {
+            item: {
+              nome: "asc",
+            },
+          },
+        },
+        _count: {
+          select: {
+            modeloItems: true,
+          },
+        },
       }
     });
   }
@@ -60,10 +78,28 @@ export class ModeloEntregaRepository extends BaseRepository<
       },
       include: {
         modeloItems: {
-          include: {
-            item: true
-          }
-        }
+          select: {
+            id: true,
+            quantidade: true,
+            item: {
+              select: {
+                id: true,
+                nome: true,
+                unidade: true,
+              },
+            },
+          },
+          orderBy: {
+            item: {
+              nome: "asc",
+            },
+          },
+        },
+        _count: {
+          select: {
+            modeloItems: true,
+          },
+        },
       }
     });
   }
@@ -73,10 +109,28 @@ export class ModeloEntregaRepository extends BaseRepository<
       where: { id },
       include: {
         modeloItems: {
-          include: {
-            item: true
-          }
-        }
+          select: {
+            id: true,
+            quantidade: true,
+            item: {
+              select: {
+                id: true,
+                nome: true,
+                unidade: true,
+              },
+            },
+          },
+          orderBy: {
+            item: {
+              nome: "asc",
+            },
+          },
+        },
+        _count: {
+          select: {
+            modeloItems: true,
+          },
+        },
       }
     });
   }
@@ -106,10 +160,28 @@ export class ModeloEntregaRepository extends BaseRepository<
         take: limit,
         include: {
           modeloItems: {
-            include: {
-              item: true
-            }
-          }
+            select: {
+              id: true,
+              quantidade: true,
+              item: {
+                select: {
+                  id: true,
+                  nome: true,
+                  unidade: true,
+                },
+              },
+            },
+            orderBy: {
+              item: {
+                nome: "asc",
+              },
+            },
+          },
+          _count: {
+            select: {
+              modeloItems: true,
+            },
+          },
         },
         orderBy: { criadoEm: 'desc' }
       }),

@@ -21,7 +21,6 @@ export function PrintModal({ rotaId, rotaNome, isOpen, onClose }: PrintModalProp
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>('')
 
-  // Query para buscar templates ativos
   const { data: templates, isLoading } = useQuery({
     queryKey: ['templates-ativos'],
     queryFn: async () => {

@@ -1,3 +1,28 @@
+export interface User {
+  id: string
+  nome: string
+  login: string
+}
+
+export interface ApiResponse<T> {
+  success: boolean
+  data: T
+  message?: string
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
+}
+
 export interface TemplatePDF {
   id: string
   nome: string
@@ -19,23 +44,4 @@ export interface UpdateTemplatePDFDTO {
   descricao?: string
   conteudo?: string
   ativo?: boolean
-}
-
-export interface ApiResponse<T> {
-  success: boolean
-  data: T
-  message?: string
-}
-
-export interface PaginatedResponse<T> {
-  success: boolean
-  data: T[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-    hasNext: boolean
-    hasPrev: boolean
-  }
 }

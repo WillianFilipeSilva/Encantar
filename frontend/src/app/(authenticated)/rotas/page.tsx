@@ -53,7 +53,7 @@ export default function RotasPage() {
     isLoading: isDeleting
   } = useConfirmDialog({
     title: "Excluir Rota",
-    description: "Esta ação não pode ser desfeita. A rota e todas as entregas associadas serão removidas permanentemente.",
+    description: "Esta ação não pode ser desfeita. A rota e todos os atendimentos associados serão removidos permanentemente.",
     confirmText: "Sim, excluir",
     cancelText: "Cancelar",
     variant: 'danger'
@@ -197,7 +197,7 @@ export default function RotasPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Rotas</h1>
           <p className="text-muted-foreground">
-            Gerencie as rotas de entrega
+            Gerencie as rotas de atendimento
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => {
@@ -230,7 +230,7 @@ export default function RotasPage() {
                 <Input id="descricao" placeholder="Descrição da rota" value={formData.descricao} onChange={(e) => handleInputChange('descricao', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <label htmlFor="dataEntrega">Data de entrega</label>
+                <label htmlFor="dataEntrega">Data de atendimento</label>
                 <Input id="dataEntrega" type="date" value={formData.dataEntrega} onChange={(e) => handleInputChange('dataEntrega', e.target.value)} />
               </div>
               <Button type="submit" className="w-full" disabled={createRotaMutation.isPending || updateRotaMutation.isPending}>
@@ -261,8 +261,8 @@ export default function RotasPage() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Data de entrega</TableHead>
-              <TableHead>Qtd. Entregas</TableHead>
+              <TableHead>Data de atendimento</TableHead>
+              <TableHead>Qtd. Atendimentos</TableHead>
               <TableHead className="w-[150px]">Ações</TableHead>
             </TableRow>
           </TableHeader>

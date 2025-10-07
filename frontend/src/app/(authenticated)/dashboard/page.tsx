@@ -81,7 +81,7 @@ export default function DashboardPage() {
             <div className="mt-2 h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
           </div>
           <div className="rounded-lg border p-6">
-            <p className="text-sm text-muted-foreground">Entregas</p>
+            <p className="text-sm text-muted-foreground">Atendimentos</p>
             <div className="mt-2 h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
           </div>
           <div className="rounded-lg border p-6">
@@ -98,7 +98,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="rounded-lg border p-6">
-              <p className="text-sm text-muted-foreground">Entregas</p>
+              <p className="text-sm text-muted-foreground">Atendimentos</p>
               <p className="mt-2 text-3xl font-bold">{data?.totalEntregas || 0}</p>
             </div>
 
@@ -110,7 +110,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg border p-6">
-              <h2 className="text-lg font-medium">Entregas por status</h2>
+              <h2 className="text-lg font-medium">Atendimentos por status</h2>
 
               <div className="mt-4 space-y-2">
                 {data?.entregasPorStatus?.map((item) => (
@@ -125,7 +125,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="rounded-lg border p-6">
-              <h2 className="text-lg font-medium">Entregas recentes</h2>
+              <h2 className="text-lg font-medium">Atendimentos recentes</h2>
 
               <div className="mt-4">
                 <Table>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                     ) : (
                       <TableRow>
                         <TableCell colSpan={3} className="text-center text-muted-foreground">
-                          Nenhuma entrega recente
+                          Nenhum atendimento recente
                         </TableCell>
                       </TableRow>
                     )}

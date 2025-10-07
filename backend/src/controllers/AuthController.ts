@@ -41,9 +41,27 @@ export class AuthController {
       const loginData: LoginData = req.body;
       const result = await this.authService.login(loginData);
 
+      // Configurar cookies HttpOnly para tokens
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutos
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+      });
+
       res.json({
         success: true,
-        data: result,
+        data: {
+          user: result.user
+          // Não enviar tokens no body - estão nos cookies
+        },
         message: "Login realizado com sucesso",
       });
     }
@@ -60,8 +78,10 @@ export class AuthController {
         .withMessage("Login deve ter pelo menos 3 caracteres")
         .run(req);
       await body("senha")
-        .isLength({ min: 6 })
-        .withMessage("Senha deve ter pelo menos 6 caracteres")
+        .isLength({ min: 8 })
+        .withMessage("Senha deve ter pelo menos 8 caracteres")
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+        .withMessage("Senha deve conter: 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial")
         .run(req);
       await body("token")
         .notEmpty()
@@ -92,9 +112,27 @@ export class AuthController {
       const registerData: RegisterData = req.body;
       const result = await this.authService.register(registerData);
 
+      // Configurar cookies HttpOnly para tokens após registro
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutos
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+      });
+
       res.status(201).json({
         success: true,
-        data: result,
+        data: {
+          user: result.user
+          // Não enviar tokens no body - estão nos cookies
+        },
         message: "Usuário registrado com sucesso",
       });
     }
@@ -105,7 +143,8 @@ export class AuthController {
    */
   refresh = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const { refreshToken } = req.body;
+      // Primeiro tenta pegar do cookie, depois do body
+      const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
 
       if (!refreshToken) {
         res.status(400).json({
@@ -118,9 +157,20 @@ export class AuthController {
 
       const result = await this.authService.refreshToken(refreshToken);
 
+      // Atualizar cookie com novo access token
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutos
+      });
+
       res.json({
         success: true,
-        data: result,
+        data: {
+          expiresIn: result.expiresIn
+          // Não enviar tokens no body - estão nos cookies
+        },
         message: "Token renovado com sucesso",
       });
     }
@@ -223,10 +273,23 @@ export class AuthController {
   );
 
   /**
-   * POST /logout - Logout (invalida tokens no frontend)
+   * POST /logout - Logout e limpa cookies
    */
   logout = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      // Limpar cookies HttpOnly
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+
       res.json({
         success: true,
         message: "Logout realizado com sucesso",

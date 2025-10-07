@@ -5,7 +5,7 @@ import { CommonErrors } from "./errorHandler";
 import { prisma } from "../utils/database";
 
 /**
- * Middleware de autenticação JWT
+ * Middleware de autenticação JWT (suporta Authorization header e cookies)
  */
 export const authenticateToken = async (
   req: AuthenticatedRequest,
@@ -14,7 +14,9 @@ export const authenticateToken = async (
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1];
+    const headerToken = authHeader && authHeader.split(" ")[1];
+    
+    const token = headerToken || req.cookies?.accessToken;
 
     if (!token) {
       res.status(401).json({
@@ -73,7 +75,9 @@ export const optionalAuth = async (
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1];
+    const headerToken = authHeader && authHeader.split(" ")[1];
+    
+    const token = headerToken || req.cookies?.accessToken;
 
     if (token) {
       const authService = new AuthService(prisma);

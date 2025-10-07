@@ -61,14 +61,8 @@ export class BeneficiarioService extends BaseService<
     modificadoPor: { id: string; nome: string } | null;
     entregas: {
       id: string;
-      entregaItems: {
-        id: string;
-        item: {
-          id: string;
-          nome: string;
-          descricao: string | null;
-        };
-      }[];
+      status: string;
+      criadoEm: Date;
       rota: {
         id: string;
         nome: string;

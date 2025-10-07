@@ -9,8 +9,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Encantar - Sistema de Entregas',
-  description: 'Sistema de gerenciamento de entregas para ONGs',
+  title: 'Encantar - Sistema de Atendimentos',
+  description: 'Sistema de gerenciamento de atendimentos para ONGs',
   icons: {
     icon: '/logo.jpg',
     shortcut: '/logo.jpg',

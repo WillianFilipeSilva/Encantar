@@ -64,7 +64,7 @@ export class BeneficiarioRepository extends BaseRepository<
   }
 
   /**
-   * Busca beneficiário por ID com relacionamentos
+   * Busca beneficiário por ID com relacionamentos limitados
    */
   async findByIdWithRelations(id: string) {
     return this.prisma.beneficiario.findUnique({
@@ -83,12 +83,10 @@ export class BeneficiarioRepository extends BaseRepository<
           },
         },
         entregas: {
-          include: {
-            entregaItems: {
-              include: {
-                item: true,
-              },
-            },
+          select: {
+            id: true,
+            status: true,
+            criadoEm: true,
             rota: {
               select: {
                 id: true,
@@ -99,6 +97,7 @@ export class BeneficiarioRepository extends BaseRepository<
           orderBy: {
             criadoEm: "desc",
           },
+          take: 10,
         },
         _count: {
           select: {

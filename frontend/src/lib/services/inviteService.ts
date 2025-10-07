@@ -65,9 +65,6 @@ export const inviteService = {
       nome: string
       login: string
     }
-    accessToken: string
-    refreshToken: string
-    expiresIn: number
   }> {
     const response = await api.post('/auth/register', data)
     return response.data.data

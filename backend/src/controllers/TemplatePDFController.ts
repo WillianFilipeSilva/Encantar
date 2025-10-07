@@ -233,8 +233,8 @@ export class TemplatePDFController extends BaseController<
         .run(req);
       await query("limit")
         .optional()
-        .isInt({ min: 1, max: 50 })
-        .withMessage("Limit deve ser entre 1 e 50")
+        .isInt({ min: 1, max: 500 })
+        .withMessage("Limit deve ser entre 1 e 500")
         .run(req);
 
       const errors = validationResult(req);

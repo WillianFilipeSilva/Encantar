@@ -124,7 +124,7 @@ export function TemplateDialog({ isOpen, onClose, onSuccess, template }: Templat
               required
             />
             <p className="text-xs text-muted-foreground">
-              Use variáveis como: {'{'}{'{'} nomeRota {'}'}{'}'},  {'{'}{'{'} dataEntrega {'}'}{'}'},  {'{'}{'{'} beneficiarios {'}'}{'}'},  {'{'}{'{'} itens {'}'}{'}'} 
+              Use variáveis como: {'{'}{'{'} nomeRota {'}'}{'}'},  {'{'}{'{'} dataAtendimento {'}'}{'}'},  {'{'}{'{'} beneficiarios {'}'}{'}'},  {'{'}{'{'} itens {'}'}{'}'} 
             </p>
           </div>
 
