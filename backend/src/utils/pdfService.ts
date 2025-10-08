@@ -1,6 +1,6 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import Handlebars from 'handlebars';
-import { TemplatePDF, Rota, Beneficiario, Entrega } from '@prisma/client';
+import { TemplatePDF, Rota, Beneficiario, Atendimento } from '@prisma/client';
 import { formatBrazilDateTime } from './dateUtils';
 
 export interface PDFGenerationData {
@@ -67,57 +67,57 @@ export class PDFService {
       // Informações da rota
       nomeRota: rota.nome,
       descricaoRota: rota.descricao || '',
-      dataEntrega: rota.dataEntrega ? new Date(rota.dataEntrega).toLocaleDateString('pt-BR') : 'Não definida',
+      dataAtendimento: rota.dataAtendimento ? new Date(rota.dataAtendimento).toLocaleDateString('pt-BR') : 'Não definida',
       criadoEm: formatBrazilDateTime(rota.criadoEm),
       
       // Estatísticas
-      totalBeneficiarios: rota.entregas?.length || 0,
-      totalItens: rota.entregas?.reduce((total: number, entrega: any) => 
-        total + (entrega.entregaItems?.reduce((sum: number, item: any) => sum + item.quantidade, 0) || 0), 0
+      totalBeneficiarios: rota.atendimentos?.length || 0,
+      totalItens: rota.atendimentos?.reduce((total: number, atendimento: any) => 
+        total + (atendimento.atendimentoItems?.reduce((sum: number, item: any) => sum + item.quantidade, 0) || 0), 0
       ) || 0,
       
       // Data de geração
       dataGeracao: formatBrazilDateTime(new Date()),
       
-      // Lista de beneficiários com suas entregas
-      beneficiarios: rota.entregas?.map((entrega: any) => ({
-        id: entrega.beneficiario.id,
-        nome: entrega.beneficiario.nome,
-        endereco: entrega.beneficiario.endereco,
-        telefone: entrega.beneficiario.telefone || '',
-        email: entrega.beneficiario.email || '',
-        observacoes: entrega.observacoes || '',
-        status: entrega.status,
+      // Lista de beneficiários com suas atendimentos
+      beneficiarios: rota.atendimentos?.map((atendimento: any) => ({
+        id: atendimento.beneficiario.id,
+        nome: atendimento.beneficiario.nome,
+        endereco: atendimento.beneficiario.endereco,
+        telefone: atendimento.beneficiario.telefone || '',
+        email: atendimento.beneficiario.email || '',
+        observacoes: atendimento.observacoes || '',
+        status: atendimento.status,
         
         // Itens para este beneficiário
-        itens: entrega.entregaItems?.map((entregaItem: any) => ({
-          nome: entregaItem.item.nome,
-          quantidade: entregaItem.quantidade,
-          unidade: entregaItem.item.unidade
+        itens: atendimento.atendimentoItems?.map((atendimentoItem: any) => ({
+          nome: atendimentoItem.item.nome,
+          quantidade: atendimentoItem.quantidade,
+          unidade: atendimentoItem.item.unidade
         })) || [],
         
         // Total de itens para este beneficiário
-        totalItens: entrega.entregaItems?.reduce((sum: number, item: any) => sum + item.quantidade, 0) || 0
+        totalItens: atendimento.atendimentoItems?.reduce((sum: number, item: any) => sum + item.quantidade, 0) || 0
       })) || [],
       
       // Resumo de itens (agrupado)
-      resumoItens: this.getResumoItens(rota.entregas || [])
+      resumoItens: this.getResumoItens(rota.atendimentos || [])
     };
   }
 
-  private static getResumoItens(entregas: any[]) {
+  private static getResumoItens(atendimentos: any[]) {
     const resumo = new Map<string, { nome: string; quantidade: number; unidade: string }>();
     
-    entregas.forEach((entrega: any) => {
-      entrega.entregaItems?.forEach((entregaItem: any) => {
-        const key = entregaItem.item.nome;
+    atendimentos.forEach((atendimento: any) => {
+      atendimento.atendimentoItems?.forEach((atendimentoItem: any) => {
+        const key = atendimentoItem.item.nome;
         if (resumo.has(key)) {
-          resumo.get(key)!.quantidade += entregaItem.quantidade;
+          resumo.get(key)!.quantidade += atendimentoItem.quantidade;
         } else {
           resumo.set(key, {
-            nome: entregaItem.item.nome,
-            quantidade: entregaItem.quantidade,
-            unidade: entregaItem.item.unidade
+            nome: atendimentoItem.item.nome,
+            quantidade: atendimentoItem.quantidade,
+            unidade: atendimentoItem.item.unidade
           });
         }
       });

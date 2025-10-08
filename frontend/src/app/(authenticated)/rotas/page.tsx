@@ -22,9 +22,9 @@ interface Rota {
   id: string
   nome: string
   descricao?: string
-  dataEntrega?: string
+  dataAtendimento?: string
   criadoEm: string
-  entregas: Array<{
+  atendimentos: Array<{
     id: string
     status: string
     beneficiario: {
@@ -40,7 +40,7 @@ export default function RotasPage() {
   const [formData, setFormData] = useState({
     nome: '',
     descricao: '',
-    dataEntrega: ''
+    dataAtendimento: ''
   })
   const [printModalOpen, setPrintModalOpen] = useState(false)
   const [selectedRotaForPrint, setSelectedRotaForPrint] = useState<Rota | null>(null)
@@ -94,7 +94,7 @@ export default function RotasPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
       setPage(1)
-      setFormData({ nome: '', descricao: '', dataEntrega: '' })
+      setFormData({ nome: '', descricao: '', dataAtendimento: '' })
       setDialogOpen(false)
       toast.success('Rota cadastrada com sucesso')
     },
@@ -112,7 +112,7 @@ export default function RotasPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['/rotas'] })
-      setFormData({ nome: '', descricao: '', dataEntrega: '' })
+      setFormData({ nome: '', descricao: '', dataAtendimento: '' })
       setEditingRota(null)
       setDialogOpen(false)
       toast.success('Rota atualizada com sucesso')
@@ -146,7 +146,7 @@ export default function RotasPage() {
     }
     const submitData = {
       ...formData,
-      dataEntrega: formData.dataEntrega || null
+      dataAtendimento: formData.dataAtendimento || null
     }
     if (editingRota) {
       updateRotaMutation.mutate({ ...submitData, id: editingRota.id })
@@ -164,7 +164,7 @@ export default function RotasPage() {
     setFormData({
       nome: rota.nome,
       descricao: rota.descricao || '',
-      dataEntrega: rota.dataEntrega ? rota.dataEntrega.split('T')[0] : ''
+      dataAtendimento: rota.dataAtendimento ? rota.dataAtendimento.split('T')[0] : ''
     })
     setDialogOpen(true)
   }
@@ -188,7 +188,7 @@ export default function RotasPage() {
   const handleCloseDialog = () => {
     setDialogOpen(false)
     setEditingRota(null)
-    setFormData({ nome: '', descricao: '', dataEntrega: '' })
+    setFormData({ nome: '', descricao: '', dataAtendimento: '' })
   }
 
   return (
@@ -230,8 +230,8 @@ export default function RotasPage() {
                 <Input id="descricao" placeholder="Descrição da rota" value={formData.descricao} onChange={(e) => handleInputChange('descricao', e.target.value)} />
               </div>
               <div className="space-y-2">
-                <label htmlFor="dataEntrega">Data de atendimento</label>
-                <Input id="dataEntrega" type="date" value={formData.dataEntrega} onChange={(e) => handleInputChange('dataEntrega', e.target.value)} />
+                <label htmlFor="dataAtendimento">Data de atendimento</label>
+                <Input id="dataAtendimento" type="date" value={formData.dataAtendimento} onChange={(e) => handleInputChange('dataAtendimento', e.target.value)} />
               </div>
               <Button type="submit" className="w-full" disabled={createRotaMutation.isPending || updateRotaMutation.isPending}>
                 {editingRota
@@ -296,13 +296,13 @@ export default function RotasPage() {
                   <TableCell className="font-medium">{rota.nome}</TableCell>
                   <TableCell>{rota.descricao || '-'}</TableCell>
                   <TableCell>
-                    {rota.dataEntrega
-                      ? formatDate(rota.dataEntrega)
+                    {rota.dataAtendimento
+                      ? formatDate(rota.dataAtendimento)
                       : 'Não definida'
                     }
                   </TableCell>
                   <TableCell>
-                    <span className="font-semibold">{rota.entregas?.length || 0}</span>
+                    <span className="font-semibold">{rota.atendimentos?.length || 0}</span>
                   </TableCell>
                   <TableCell className="flex items-center gap-2">
                     <Link href={`/rotas/${rota.id}`}>

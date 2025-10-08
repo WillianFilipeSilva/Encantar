@@ -1,32 +1,32 @@
-import { Entrega } from "@prisma/client";
+import { Atendimento, $Enums } from "@prisma/client";
 import { BaseService } from "./BaseService";
-import { EntregaRepository } from "../repositories/EntregaRepository";
-import { CreateEntregaDTO, UpdateEntregaDTO } from "../models/DTOs";
+import { AtendimentoRepository } from "../repositories/AtendimentoRepository";
+import { CreateAtendimentoDTO, UpdateAtendimentoDTO } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
 import { PrismaClient } from "@prisma/client";
 
-export class EntregaService extends BaseService<
-  Entrega,
-  CreateEntregaDTO,
-  UpdateEntregaDTO
+export class AtendimentoService extends BaseService<
+  Atendimento,
+  CreateAtendimentoDTO,
+  UpdateAtendimentoDTO
 > {
   private prisma: PrismaClient;
 
-  constructor(repository: EntregaRepository, prisma: PrismaClient) {
+  constructor(repository: AtendimentoRepository, prisma: PrismaClient) {
     super(repository);
     this.prisma = prisma;
   }
 
   /**
-   * Override do método create para transformar items em entregaItems
+   * Override do método create para transformar items em atendimentoItems
    */
-  async create(data: CreateEntregaDTO, userId?: string): Promise<Entrega> {
+  async create(data: CreateAtendimentoDTO, userId?: string): Promise<Atendimento> {
     await this.validateCreateData(data);
 
     const { items, ...restData } = data;
     const createData = {
       ...restData,
-      entregaItems: {
+      atendimentoItems: {
         create: items.map(item => ({
           itemId: item.itemId,
           quantidade: item.quantidade
@@ -39,7 +39,7 @@ export class EntregaService extends BaseService<
     return this.repository.create(finalData);
   }
 
-  protected async validateCreateData(data: CreateEntregaDTO): Promise<void> {
+  protected async validateCreateData(data: CreateAtendimentoDTO): Promise<void> {
     if (!data.beneficiarioId) {
       throw CommonErrors.BAD_REQUEST("O beneficiário é obrigatório.");
     }
@@ -47,7 +47,7 @@ export class EntregaService extends BaseService<
       throw CommonErrors.BAD_REQUEST("A rota é obrigatória.");
     }
     if (!data.items || data.items.length === 0) {
-      throw CommonErrors.BAD_REQUEST("A entrega deve ter pelo menos um item.");
+      throw CommonErrors.BAD_REQUEST("A atendimento deve ter pelo menos um item.");
     }
 
     const itemIds = data.items.map(item => item.itemId);
@@ -71,11 +71,11 @@ export class EntregaService extends BaseService<
     const inactiveItems = items.filter(item => !item.ativo);
     if (inactiveItems.length > 0) {
       const inactiveNames = inactiveItems.map(item => item.nome).join(', ');
-      throw CommonErrors.BAD_REQUEST(`Os seguintes itens estão inativos e não podem ser usados em entregas: ${inactiveNames}`);
+      throw CommonErrors.BAD_REQUEST(`Os seguintes itens estão inativos e não podem ser usados em atendimentos: ${inactiveNames}`);
     }
   }
 
-  protected async validateUpdateData(data: UpdateEntregaDTO): Promise<void> {
+  protected async validateUpdateData(data: UpdateAtendimentoDTO): Promise<void> {
     if (data.items && data.items.length > 0) {
       const itemIds = data.items.map(item => item.itemId);
       const items = await this.prisma.item.findMany({
@@ -98,15 +98,15 @@ export class EntregaService extends BaseService<
       const inactiveItems = items.filter(item => !item.ativo);
       if (inactiveItems.length > 0) {
         const inactiveNames = inactiveItems.map(item => item.nome).join(', ');
-        throw CommonErrors.BAD_REQUEST(`Os seguintes itens estão inativos e não podem ser usados em entregas: ${inactiveNames}`);
+        throw CommonErrors.BAD_REQUEST(`Os seguintes itens estão inativos e não podem ser usados em atendimentos: ${inactiveNames}`);
       }
     }
   }
 
   /**
-   * Override do método update para transformar items em entregaItems
+   * Override do método update para transformar items em atendimentoItems
    */
-  async update(id: string, data: UpdateEntregaDTO, userId?: string): Promise<Entrega> {
+  async update(id: string, data: UpdateAtendimentoDTO, userId?: string): Promise<Atendimento> {
     await this.validateUpdateData(data);
 
     let updateData: any = { ...data };
@@ -114,7 +114,7 @@ export class EntregaService extends BaseService<
       const { items, ...restData } = data;
       updateData = {
         ...restData,
-        entregaItems: {
+        atendimentoItems: {
           create: items.map(item => ({
             itemId: item.itemId,
             quantidade: item.quantidade
@@ -129,9 +129,9 @@ export class EntregaService extends BaseService<
   }
 
   /**
-   * Atualizar status de todas as entregas de uma rota
+   * Atualizar status de todas as atendimentos de uma rota
    */
-  async updateStatusByRota(rotaId: string, status: string): Promise<void> {
-    return (this.repository as EntregaRepository).updateStatusByRota(rotaId, status);
+  async updateStatusByRota(rotaId: string, status: 'PENDENTE' | 'CONCLUIDO' | 'CANCELADO'): Promise<void> {
+    return (this.repository as AtendimentoRepository).updateStatusByRota(rotaId, status);
   }
 }

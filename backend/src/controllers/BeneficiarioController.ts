@@ -349,7 +349,7 @@ export class BeneficiarioController extends BaseController<
   };
 
   /**
-   * GET /top - Lista beneficiários com mais entregas
+   * GET /top - Lista beneficiários com mais atendimentos
    */
   findTop = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

@@ -6,35 +6,35 @@ import { useQuery } from "@tanstack/react-query"
 
 interface DashboardData {
   totalBeneficiarios: number
-  totalEntregas: number
+  totalAtendimentos: number
   totalRotas: number
-  entregasPorStatus: {
+  atendimentosPorStatus: {
     status: string
     total: number
   }[]
-  entregasRecentes: Array<{
+  atendimentosRecentes: Array<{
     id: string
     beneficiario: {
       nome: string
     }
-    modeloEntrega: {
+    modeloAtendimento: {
       nome: string
     }
     status: string
-    dataEntrega: string
+    dataAtendimento: string
   }>
 }
 
 const statusMap = {
   PENDENTE: 'Pendente',
-  CONCLUIDA: 'Concluída',
-  CANCELADA: 'Cancelada',
+  CONCLUIDO: 'Concluído',
+  CANCELADO: 'Cancelado',
 }
 
 const statusColorMap = {
   PENDENTE: 'text-yellow-500',
-  CONCLUIDA: 'text-green-500',
-  CANCELADA: 'text-red-500',
+  CONCLUIDO: 'text-green-500',
+  CANCELADO: 'text-red-500',
 }
 
 export default function DashboardPage() {
@@ -99,7 +99,7 @@ export default function DashboardPage() {
 
             <div className="rounded-lg border p-6">
               <p className="text-sm text-muted-foreground">Atendimentos</p>
-              <p className="mt-2 text-3xl font-bold">{data?.totalEntregas || 0}</p>
+              <p className="mt-2 text-3xl font-bold">{data?.totalAtendimentos || 0}</p>
             </div>
 
             <div className="rounded-lg border p-6">
@@ -113,7 +113,7 @@ export default function DashboardPage() {
               <h2 className="text-lg font-medium">Atendimentos por status</h2>
 
               <div className="mt-4 space-y-2">
-                {data?.entregasPorStatus?.map((item) => (
+                {data?.atendimentosPorStatus?.map((item) => (
                   <div key={item.status} className="flex items-center justify-between">
                     <span className={statusColorMap[item.status as keyof typeof statusColorMap]}>
                       {statusMap[item.status as keyof typeof statusMap]}
@@ -137,14 +137,14 @@ export default function DashboardPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data?.entregasRecentes?.length ? (
-                      data.entregasRecentes.map((entrega) => (
-                        <TableRow key={entrega.id}>
-                          <TableCell>{entrega.beneficiario.nome}</TableCell>
-                          <TableCell>{entrega.modeloEntrega.nome}</TableCell>
+                    {data?.atendimentosRecentes?.length ? (
+                      data.atendimentosRecentes.map((atendimento) => (
+                        <TableRow key={atendimento.id}>
+                          <TableCell>{atendimento.beneficiario.nome}</TableCell>
+                          <TableCell>{atendimento.modeloAtendimento.nome}</TableCell>
                           <TableCell>
-                            <span className={statusColorMap[entrega.status as keyof typeof statusColorMap]}>
-                              {statusMap[entrega.status as keyof typeof statusMap]}
+                            <span className={statusColorMap[atendimento.status as keyof typeof statusColorMap]}>
+                              {statusMap[atendimento.status as keyof typeof statusMap]}
                             </span>
                           </TableCell>
                         </TableRow>

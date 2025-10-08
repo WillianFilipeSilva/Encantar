@@ -32,7 +32,7 @@ export class BeneficiarioService extends BaseService<
     data: (Beneficiario & {
       criadoPor: { id: string; nome: string };
       modificadoPor: { id: string; nome: string } | null;
-      _count: { entregas: number };
+      _count: { atendimentos: number };
     })[];
     pagination: {
       page: number;
@@ -59,7 +59,7 @@ export class BeneficiarioService extends BaseService<
   async findByIdWithRelations(id: string): Promise<Beneficiario & {
     criadoPor: { id: string; nome: string };
     modificadoPor: { id: string; nome: string } | null;
-    entregas: {
+    atendimentos: {
       id: string;
       status: string;
       criadoEm: Date;
@@ -69,7 +69,7 @@ export class BeneficiarioService extends BaseService<
       };
     }[];
     _count: {
-      entregas: number;
+      atendimentos: number;
     };
   }> {
     if (!id) {
@@ -192,9 +192,9 @@ export class BeneficiarioService extends BaseService<
   }
 
   /**
-   * Busca top beneficiários com mais entregas
+   * Busca top beneficiários com mais atendimentos
    */
-  async findTopBeneficiarios(limit: number = 10): Promise<(Beneficiario & { _count: { entregas: number } })[]> {
+  async findTopBeneficiarios(limit: number = 10): Promise<(Beneficiario & { _count: { atendimentos: number } })[]> {
     if (limit < 1 || limit > 50) limit = 10;
 
     return this.beneficiarioRepository.findTopBeneficiarios(limit);

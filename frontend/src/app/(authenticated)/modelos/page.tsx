@@ -16,7 +16,7 @@ import { useEffect } from "react"
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import toast from 'react-hot-toast'
 
-interface ModeloEntrega {
+interface ModeloAtendimento {
   id: string
   nome: string
   descricao?: string
@@ -44,7 +44,7 @@ interface ModeloItem {
 
 export default function ModelosPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingModelo, setEditingModelo] = useState<ModeloEntrega | null>(null)
+  const [editingModelo, setEditingModelo] = useState<ModeloAtendimento | null>(null)
   const [formData, setFormData] = useState({
     nome: '',
     descricao: '',
@@ -75,7 +75,7 @@ export default function ModelosPage() {
     setFilters,
     isLoading,
     error,
-  } = usePagination<ModeloEntrega>('/modelos-entrega')
+  } = usePagination<ModeloAtendimento>('/modelos-atendimento')
 
   const filterConfig: any[] = [
   ]
@@ -112,11 +112,11 @@ export default function ModelosPage() {
 
   const createModeloMutation = useMutation({
     mutationFn: async (newModelo: any) => {
-      const response = await api.post('/modelos-entrega', newModelo)
+      const response = await api.post('/modelos-atendimento', newModelo)
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      await queryClient.invalidateQueries({ queryKey: ['/modelos-atendimento'] })
       setPage(1)
       resetForm()
       setDialogOpen(false)
@@ -131,11 +131,11 @@ export default function ModelosPage() {
   const updateModeloMutation = useMutation({
     mutationFn: async (updatedModelo: any) => {
       const { id, ...data } = updatedModelo
-      const response = await api.put(`/modelos-entrega/${id}`, data)
+      const response = await api.put(`/modelos-atendimento/${id}`, data)
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      await queryClient.invalidateQueries({ queryKey: ['/modelos-atendimento'] })
       resetForm()
       setEditingModelo(null)
       setDialogOpen(false)
@@ -149,11 +149,11 @@ export default function ModelosPage() {
 
   const deleteModeloMutation = useMutation({
     mutationFn: async (modeloId: string) => {
-      const response = await api.delete(`/modelos-entrega/${modeloId}`)
+      const response = await api.delete(`/modelos-atendimento/${modeloId}`)
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
+      await queryClient.invalidateQueries({ queryKey: ['/modelos-atendimento'] })
       toast.success('Modelo de atendimento excluído com sucesso!')
     },
     onError: (error: any) => {
@@ -192,7 +192,7 @@ export default function ModelosPage() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleEdit = (modelo: ModeloEntrega) => {
+  const handleEdit = (modelo: ModeloAtendimento) => {
     setEditingModelo(modelo)
     setFormData({
       nome: modelo.nome,
@@ -205,7 +205,7 @@ export default function ModelosPage() {
     setDialogOpen(true)
   }
 
-  const handleDelete = (modelo: ModeloEntrega) => {
+  const handleDelete = (modelo: ModeloAtendimento) => {
     openDeleteDialog(() => {
       deleteModeloMutation.mutate(modelo.id);
     });

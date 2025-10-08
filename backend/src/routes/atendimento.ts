@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { EntregaRepository } from "../repositories/EntregaRepository";
-import { EntregaService } from "../services/EntregaService";
-import { EntregaController } from "../controllers/EntregaController";
+import { AtendimentoRepository } from "../repositories/AtendimentoRepository";
+import { AtendimentoService } from "../services/AtendimentoService";
+import { AtendimentoController } from "../controllers/AtendimentoController";
 import { BeneficiarioService } from "../services/BeneficiarioService";
 import { BeneficiarioRepository } from "../repositories/BeneficiarioRepository";
 import { ItemService } from "../services/ItemService";
@@ -11,9 +11,9 @@ import { prisma } from "../utils/database";
 
 const router = Router();
 
-const repository = new EntregaRepository(prisma);
-const service = new EntregaService(repository, prisma);
-const controller = new EntregaController(service);
+const repository = new AtendimentoRepository(prisma);
+const service = new AtendimentoService(repository, prisma);
+const controller = new AtendimentoController(service);
 
 const beneficiarioRepository = new BeneficiarioRepository(prisma);
 const beneficiarioService = new BeneficiarioService(beneficiarioRepository);
@@ -68,17 +68,17 @@ router.patch("/:id/status", async (req, res) => {
       return res.status(400).json({ error: 'Status é obrigatório' });
     }
 
-    const validStatuses = ['PENDENTE', 'ENTREGUE', 'CANCELADA'];
+    const validStatuses = ['PENDENTE', 'CONCLUIDO', 'CANCELADO'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Status inválido. Use: PENDENTE, ENTREGUE ou CANCELADA' });
+      return res.status(400).json({ error: 'Status inválido. Use: PENDENTE, CONCLUIDO ou CANCELADO' });
     }
 
     const userId = (req as any).user?.id;
-    const updatedEntrega = await service.update(id, { status }, userId);
+    const updatedAtendimento = await service.update(id, { status }, userId);
     
-    return res.json({ data: updatedEntrega });
+    return res.json({ data: updatedAtendimento });
   } catch (error) {
-    console.error('Erro ao atualizar status da entrega:', error);
+    console.error('Erro ao atualizar status da atendimento:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

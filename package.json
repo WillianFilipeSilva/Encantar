@@ -1,7 +1,7 @@
 {
   "name": "encantar-project",
   "version": "1.0.0",
-  "description": "Sistema de gerenciamento de entregas e beneficiários",
+  "description": "Sistema de gerenciamento de atendimentos e beneficiários",
   "scripts": {
     "setup": "npm run install:all && npm run docker:config",
     "install:all": "cd backend && npm install && cd ../frontend && npm install && cd ..",
@@ -49,5 +49,8 @@
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "critters": "^0.0.23"
   }
 }

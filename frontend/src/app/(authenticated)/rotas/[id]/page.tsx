@@ -23,17 +23,17 @@ interface RotaDetalhes {
   nome: string
   descricao?: string
   observacoes?: string
-  dataEntrega?: string
-  entregas: Array<{
+  dataAtendimento?: string
+  atendimentos: Array<{
     id: string
-    status: 'PENDENTE' | 'ENTREGUE' | 'CANCELADA'
+    status: 'PENDENTE' | 'CONCLUIDO' | 'CANCELADO'
     observacoes?: string
     beneficiario: {
       nome: string
       endereco: string
       telefone?: string
     }
-    entregaItems: Array<{
+    atendimentoItems: Array<{
       quantidade: number
       item: {
         nome: string
@@ -59,7 +59,7 @@ interface Item {
   ativo: boolean
 }
 
-interface ModeloEntrega {
+interface ModeloAtendimento {
   id: string
   nome: string
   descricao?: string
@@ -75,14 +75,14 @@ interface ModeloEntrega {
 
 const statusMap = {
   PENDENTE: 'Pendente',
-  ENTREGUE: 'Entregue',
-  CANCELADA: 'Cancelada',
+  CONCLUIDO: 'Concluído',
+  CANCELADO: 'Cancelado',
 }
 
 const statusColorMap = {
   PENDENTE: 'text-yellow-600 bg-yellow-50',
-  ENTREGUE: 'text-green-600 bg-green-50',
-  CANCELADA: 'text-red-600 bg-red-50',
+  CONCLUIDO: 'text-green-600 bg-green-50',
+  CANCELADO: 'text-red-600 bg-red-50',
 }
 
 export default function RotaDetalhesPage() {
@@ -98,7 +98,7 @@ export default function RotaDetalhesPage() {
   const [selectedBeneficiario, setSelectedBeneficiario] = useState<Beneficiario | null>(null)
   const [usarModelo, setUsarModelo] = useState(false)
   const [modeloSelecionado, setModeloSelecionado] = useState<string>('')
-  const [entregaItems, setEntregaItems] = useState<Array<{itemId: string, quantidade: number}>>([])
+  const [atendimentoItems, setAtendimentoItems] = useState<Array<{itemId: string, quantidade: number}>>([])
   const [isSearchingBeneficiarios, setIsSearchingBeneficiarios] = useState(false)
   const [isSearchingItens, setIsSearchingItens] = useState(false)
   const [printModalOpen, setPrintModalOpen] = useState(false)
@@ -145,10 +145,10 @@ export default function RotaDetalhesPage() {
     retry: 1
   })
 
-  const { data: modelos, isLoading: isLoadingModelos } = useQuery<ModeloEntrega[]>({
+  const { data: modelos, isLoading: isLoadingModelos } = useQuery<ModeloAtendimento[]>({
     queryKey: ['modelos'],
     queryFn: async () => {
-      const response = await api.get('/modelos-entrega?page=1&limit=500')
+      const response = await api.get('/modelos-atendimento?page=1&limit=500')
       return response.data.data || response.data || []
     },
     staleTime: 0,
@@ -171,7 +171,7 @@ export default function RotaDetalhesPage() {
     if (searchTerm.length < 1) return []
     setIsSearchingBeneficiarios(true)
     try {
-      const response = await api.get(`/entregas/beneficiarios/search?q=${encodeURIComponent(searchTerm)}`)
+      const response = await api.get(`/atendimentos/beneficiarios/search?q=${encodeURIComponent(searchTerm)}`)
       return response.data?.data || response.data || []
     } catch (error) {
       console.error('Erro ao buscar beneficiários:', error)
@@ -185,7 +185,7 @@ export default function RotaDetalhesPage() {
     if (searchTerm.length < 1) return []
     setIsSearchingItens(true)
     try {
-      const response = await api.get(`/entregas/itens/search?q=${encodeURIComponent(searchTerm)}`)
+      const response = await api.get(`/atendimentos/itens/search?q=${encodeURIComponent(searchTerm)}`)
       return response.data?.data || response.data || []
     } catch (error) {
       console.error('Erro ao buscar itens:', error)
@@ -195,10 +195,10 @@ export default function RotaDetalhesPage() {
     }
   }
 
-  const createEntregaMutation = useMutation({
-    mutationFn: async (newEntrega: any) => {
-      const response = await api.post('/entregas', {
-        ...newEntrega,
+  const createAtendimentoMutation = useMutation({
+    mutationFn: async (newAtendimento: any) => {
+      const response = await api.post('/atendimentos', {
+        ...newAtendimento,
         rotaId: params.id
       })
       return response.data
@@ -217,14 +217,14 @@ export default function RotaDetalhesPage() {
       })
     },
     onError: (error: any) => {
-      logError('CriarEntrega', error)
+      logError('CriarAtendimento', error)
       showErrorToast('Erro ao cadastrar atendimento', error)
     }
   })
 
-  const updateEntregaStatusMutation = useMutation({
-    mutationFn: async ({ entregaId, status }: { entregaId: string, status: string }) => {
-      const response = await api.patch(`/entregas/${entregaId}/status`, { status })
+  const updateAtendimentoStatusMutation = useMutation({
+    mutationFn: async ({ atendimentoId, status }: { atendimentoId: string, status: string }) => {
+      const response = await api.patch(`/atendimentos/${atendimentoId}/status`, { status })
       return response.data
     },
     onSuccess: () => {
@@ -244,9 +244,9 @@ export default function RotaDetalhesPage() {
     }
   })
 
-  const deleteEntregaMutation = useMutation({
-    mutationFn: async (entregaId: string) => {
-      const response = await api.delete(`/entregas/${entregaId}`)
+  const deleteAtendimentoMutation = useMutation({
+    mutationFn: async (atendimentoId: string) => {
+      const response = await api.delete(`/atendimentos/${atendimentoId}`)
       return response.data
     },
     onSuccess: () => {
@@ -261,7 +261,7 @@ export default function RotaDetalhesPage() {
       })
     },
     onError: (error: any) => {
-      logError('ExcluirEntrega', error)
+      logError('ExcluirAtendimento', error)
       showErrorToast('Erro ao excluir atendimento', error)
     }
   })
@@ -275,10 +275,10 @@ export default function RotaDetalhesPage() {
     setSelectedBeneficiario(null)
     setUsarModelo(false)
     setModeloSelecionado('')
-    setEntregaItems([])
+    setAtendimentoItems([])
   }
 
-  const handleSubmitEntrega = (e: React.FormEvent) => {
+  const handleSubmitAtendimento = (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!formData.beneficiarioId) {
@@ -286,13 +286,13 @@ export default function RotaDetalhesPage() {
       return
     }
 
-    const itensComQuantidade = entregaItems.filter(item => item.quantidade > 0)
+    const itensComQuantidade = atendimentoItems.filter(item => item.quantidade > 0)
     if (itensComQuantidade.length === 0) {
       toast.error('Adicione pelo menos um item com quantidade')
       return
     }
 
-    const entregaData = {
+    const atendimentoData = {
       beneficiarioId: formData.beneficiarioId,
       observacoes: formData.observacoes,
       items: itensComQuantidade.map(item => ({
@@ -301,13 +301,13 @@ export default function RotaDetalhesPage() {
       }))
     }
 
-    createEntregaMutation.mutate(entregaData)
+    createAtendimentoMutation.mutate(atendimentoData)
   }
 
   const handleCarregarModelo = () => {
     const modelo = modelos?.find(m => m.id === modeloSelecionado)
     if (modelo) {
-      setEntregaItems(modelo.modeloItems.map(mi => ({
+      setAtendimentoItems(modelo.modeloItems.map(mi => ({
         itemId: mi.item.id,
         quantidade: mi.quantidade
       })))
@@ -315,24 +315,24 @@ export default function RotaDetalhesPage() {
     }
   }
 
-  // Funções para gerenciar itens da entrega
-  const addEntregaItem = () => {
-    setEntregaItems(prev => [...prev, { itemId: '', quantidade: 1 }])
+  // Funções para gerenciar itens do atendimento
+  const addAtendimentoItem = () => {
+    setAtendimentoItems(prev => [...prev, { itemId: '', quantidade: 1 }])
   }
 
-  const removeEntregaItem = (index: number) => {
-    setEntregaItems(prev => prev.filter((_, i) => i !== index))
+  const removeAtendimentoItem = (index: number) => {
+    setAtendimentoItems(prev => prev.filter((_, i) => i !== index))
   }
 
-  const updateEntregaItem = (index: number, field: string, value: any) => {
-    setEntregaItems(prev => prev.map((item, i) =>
+  const updateAtendimentoItem = (index: number, field: string, value: any) => {
+    setAtendimentoItems(prev => prev.map((item, i) =>
       i === index ? { ...item, [field]: value } : item
     ))
   }
 
-  const updateAllEntregasStatusMutation = useMutation({
+  const updateAllAtendimentosStatusMutation = useMutation({
     mutationFn: async (novoStatus: string) => {
-      const response = await api.patch(`/rotas/${params.id}/entregas/status`, { status: novoStatus })
+      const response = await api.patch(`/rotas/${params.id}/atendimentos/status`, { status: novoStatus })
       return response.data
     },
     onSuccess: () => {
@@ -386,22 +386,22 @@ export default function RotaDetalhesPage() {
       {/* Informações da Rota */}
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-muted-foreground">Data de Entrega</p>
+          <p className="text-sm text-muted-foreground">Data de Atendimento</p>
           <p className="text-lg font-semibold">
-            {rota.dataEntrega 
-              ? formatDate(rota.dataEntrega)
+            {rota.dataAtendimento 
+              ? formatDate(rota.dataAtendimento)
               : 'Não definida'
             }
           </p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Total de Atendimentos</p>
-          <p className="text-lg font-semibold">{rota.entregas?.length || 0}</p>
+          <p className="text-lg font-semibold">{rota.atendimentos?.length || 0}</p>
         </div>
         <div className="rounded-lg border p-4">
           <p className="text-sm text-muted-foreground">Atendimentos Concluídos</p>
           <p className="text-lg font-semibold">
-            {rota.entregas?.filter(e => e.status === 'ENTREGUE').length || 0}
+            {rota.atendimentos?.filter(e => e.status === 'CONCLUIDO').length || 0}
           </p>
         </div>
       </div>
@@ -431,11 +431,11 @@ export default function RotaDetalhesPage() {
               </p>
             </DialogHeader>
 
-            <form className="space-y-4" onSubmit={handleSubmitEntrega}>
+            <form className="space-y-4" onSubmit={handleSubmitAtendimento}>
               {/* Switch para usar modelo */}
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <h3 className="font-medium">Usar modelo de entrega</h3>
+                  <h3 className="font-medium">Usar modelo de atendimento</h3>
                   <p className="text-sm text-gray-600">
                     Carregue automaticamente os itens de um modelo existente
                   </p>
@@ -506,35 +506,35 @@ export default function RotaDetalhesPage() {
                 />
               </div>
 
-              {/* Itens da entrega */}
+              {/* Itens da atendimento */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium">Itens da Entrega</h3>
+                    <h3 className="text-lg font-medium">Itens da Atendimento</h3>
                     {isLoadingItens && <p className="text-sm text-blue-600">Carregando itens disponíveis...</p>}
                     {!isLoadingItens && Array.isArray(itens) && (
                       <p className="text-sm text-green-600">{itens.length} itens disponíveis</p>
                     )}
                   </div>
-                  <Button type="button" onClick={addEntregaItem} size="sm" disabled={isLoadingItens}>
+                  <Button type="button" onClick={addAtendimentoItem} size="sm" disabled={isLoadingItens}>
                     <Plus className="mr-2 h-4 w-4" />
                     Adicionar Item
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  {entregaItems.map((entregaItem, index) => {
+                  {atendimentoItems.map((atendimentoItem, index) => {
                     // Filtrar itens disponíveis excluindo os já selecionados (exceto o atual)
                     const itensDisponiveis = Array.isArray(itens) ? itens.filter(item => 
-                      item.id === entregaItem.itemId || // Manter o item atual selecionado
-                      !entregaItems.some(ei => ei.itemId === item.id) // Excluir itens já selecionados
+                      item.id === atendimentoItem.itemId || // Manter o item atual selecionado
+                      !atendimentoItems.some(ei => ei.itemId === item.id) // Excluir itens já selecionados
                     ) : []
 
                     return (
                       <div key={index} className="flex items-center gap-2 p-2 border rounded">
                         <select
                           className="flex-1 p-2 border rounded"
-                          value={entregaItem.itemId}
-                          onChange={(e) => updateEntregaItem(index, 'itemId', e.target.value)}
+                          value={atendimentoItem.itemId}
+                          onChange={(e) => updateAtendimentoItem(index, 'itemId', e.target.value)}
                         >
                           <option value="">Selecione um item</option>
                           {isLoadingItens && <option disabled>Carregando itens...</option>}
@@ -553,16 +553,16 @@ export default function RotaDetalhesPage() {
                           step="1"
                           placeholder="Qtd"
                           className="w-24"
-                          value={entregaItem.quantidade}
-                          onChange={(e) => updateEntregaItem(index, 'quantidade', parseInt(e.target.value) || 1)}
+                          value={atendimentoItem.quantidade}
+                          onChange={(e) => updateAtendimentoItem(index, 'quantidade', parseInt(e.target.value) || 1)}
                         />
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeEntregaItem(index)}>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeAtendimentoItem(index)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     )
                   })}
-                  {entregaItems.length === 0 && (
+                  {atendimentoItems.length === 0 && (
                     <p className="text-center text-muted-foreground py-4">
                       Nenhum item adicionado. Clique em "Adicionar Item" para começar.
                     </p>
@@ -575,7 +575,7 @@ export default function RotaDetalhesPage() {
                 <label htmlFor="observacoes">Observações</label>
                 <Input 
                   id="observacoes" 
-                  placeholder="Observações sobre a entrega"
+                  placeholder="Observações sobre a atendimento"
                   value={formData.observacoes}
                   onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
                 />
@@ -585,9 +585,9 @@ export default function RotaDetalhesPage() {
               <div className="flex justify-end">
                 <Button 
                   type="submit"
-                  disabled={createEntregaMutation.isPending}
+                  disabled={createAtendimentoMutation.isPending}
                 >
-                  {createEntregaMutation.isPending ? 'Cadastrando...' : 'Confirmar Atendimento'}
+                  {createAtendimentoMutation.isPending ? 'Cadastrando...' : 'Confirmar Atendimento'}
                 </Button>
               </div>
             </form>
@@ -596,11 +596,11 @@ export default function RotaDetalhesPage() {
 
         <Button 
           variant="outline"
-          onClick={() => updateAllEntregasStatusMutation.mutate('ENTREGUE')}
-          disabled={updateAllEntregasStatusMutation.isPending}
+          onClick={() => updateAllAtendimentosStatusMutation.mutate('CONCLUIDO')}
+          disabled={updateAllAtendimentosStatusMutation.isPending}
         >
           <CheckCircle className="mr-2 h-4 w-4" />
-          {updateAllEntregasStatusMutation.isPending ? 'Atualizando...' : 'Marcar Todos como Entregues'}
+          {updateAllAtendimentosStatusMutation.isPending ? 'Atualizando...' : 'Marcar Todos como Concluídos'}
         </Button>
 
         <Button 
@@ -628,44 +628,44 @@ export default function RotaDetalhesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.isArray(rota.entregas) && rota.entregas.length > 0 ? (
-              rota.entregas.map((entrega) => (
-                <TableRow key={entrega.id}>
+            {Array.isArray(rota.atendimentos) && rota.atendimentos.length > 0 ? (
+              rota.atendimentos.map((atendimento) => (
+                <TableRow key={atendimento.id}>
                   <TableCell className="font-medium">
-                    {entrega.beneficiario.nome}
+                    {atendimento.beneficiario.nome}
                   </TableCell>
-                  <TableCell>{entrega.beneficiario.endereco}</TableCell>
+                  <TableCell>{atendimento.beneficiario.endereco}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {Array.isArray(entrega.entregaItems) && entrega.entregaItems.map((entregaItem, index) => (
+                      {Array.isArray(atendimento.atendimentoItems) && atendimento.atendimentoItems.map((atendimentoItem, index) => (
                         <div key={index} className="text-sm">
-                          {entregaItem.quantidade} {entregaItem.item.unidade} - {entregaItem.item.nome}
+                          {atendimentoItem.quantidade} {atendimentoItem.item.unidade} - {atendimentoItem.item.nome}
                         </div>
                       ))}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColorMap[entrega.status]}`}>
-                      {statusMap[entrega.status]}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColorMap[atendimento.status]}`}>
+                      {statusMap[atendimento.status]}
                     </span>
                   </TableCell>
                   <TableCell className="flex items-center gap-2">
-                    {entrega.status === 'PENDENTE' && (
+                    {atendimento.status === 'PENDENTE' && (
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        title="Marcar como entregue"
-                        onClick={() => updateEntregaStatusMutation.mutate({ entregaId: entrega.id, status: 'ENTREGUE' })}
+                        title="Marcar como concluído"
+                        onClick={() => updateAtendimentoStatusMutation.mutate({ atendimentoId: atendimento.id, status: 'CONCLUIDO' })}
                       >
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       </Button>
                     )}
-                    {entrega.status === 'ENTREGUE' && (
+                    {atendimento.status === 'CONCLUIDO' && (
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        title="Marcar como cancelada"
-                        onClick={() => updateEntregaStatusMutation.mutate({ entregaId: entrega.id, status: 'CANCELADA' })}
+                        title="Marcar como cancelado"
+                        onClick={() => updateAtendimentoStatusMutation.mutate({ atendimentoId: atendimento.id, status: 'CANCELADO' })}
                       >
                         <XCircle className="h-4 w-4 text-yellow-600" />
                       </Button>
@@ -673,16 +673,16 @@ export default function RotaDetalhesPage() {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      title="Excluir entrega"
+                      title="Excluir atendimento"
                       onClick={() => {
                         toast((t) => (
                           <div className="flex flex-col gap-2">
-                            <span>Tem certeza que deseja excluir esta entrega?</span>
+                            <span>Tem certeza que deseja excluir esta atendimento?</span>
                             <div className="flex gap-2 justify-end">
                               <button
                                 onClick={() => {
                                   toast.dismiss(t.id);
-                                  deleteEntregaMutation.mutate(entrega.id);
+                                  deleteAtendimentoMutation.mutate(atendimento.id);
                                 }}
                                 className="bg-red-500 text-white px-3 py-1 rounded-md text-sm"
                               >
@@ -700,7 +700,7 @@ export default function RotaDetalhesPage() {
                           duration: 10000,
                         });
                       }}
-                      disabled={deleteEntregaMutation.isPending}
+                      disabled={deleteAtendimentoMutation.isPending}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -710,7 +710,7 @@ export default function RotaDetalhesPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  Nenhuma entrega cadastrada para esta rota
+                  Nenhum atendimento cadastrado para esta rota
                 </TableCell>
               </TableRow>
             )}

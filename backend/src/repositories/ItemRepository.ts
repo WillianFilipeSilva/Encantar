@@ -42,7 +42,7 @@ export class ItemRepository extends BaseRepository<
           },
           _count: {
             select: {
-              entregaItems: true,
+              atendimentoItems: true,
             },
           },
         },
@@ -82,9 +82,9 @@ export class ItemRepository extends BaseRepository<
             nome: true,
           },
         },
-        entregaItems: {
+        atendimentoItems: {
           include: {
-            entrega: {
+            atendimento: {
               include: {
                 beneficiario: {
                   select: {
@@ -96,14 +96,14 @@ export class ItemRepository extends BaseRepository<
             },
           },
           orderBy: {
-            entrega: {
+            atendimento: {
               criadoEm: "desc",
             },
           },
         },
         _count: {
           select: {
-            entregaItems: true,
+            atendimentoItems: true,
           },
         },
       },
@@ -198,12 +198,12 @@ export class ItemRepository extends BaseRepository<
       include: {
         _count: {
           select: {
-            entregaItems: true,
+            atendimentoItems: true,
           },
         },
       },
       orderBy: {
-        entregaItems: {
+        atendimentoItems: {
           _count: "desc",
         },
       },
@@ -227,10 +227,10 @@ export class ItemRepository extends BaseRepository<
   }
 
   /**
-   * Conta total de items entregues por item
+   * Conta total de items atendidos por item
    */
-  async countTotalEntregasByItem(itemId: string) {
-    const result = await this.prisma.entregaItem.aggregate({
+  async countTotalAtendimentosByItem(itemId: string) {
+    const result = await this.prisma.atendimentoItem.aggregate({
       where: { itemId },
       _sum: {
         quantidade: true,
@@ -244,15 +244,15 @@ export class ItemRepository extends BaseRepository<
    * Busca estatísticas de uso do item
    */
   async getItemStats(itemId: string) {
-    const [totalEntregas, totalQuantidade, entregaItems] = await Promise.all([
-      this.prisma.entregaItem.count({
+    const [totalAtendimentos, totalQuantidade, atendimentoItems] = await Promise.all([
+      this.prisma.atendimentoItem.count({
         where: { itemId },
       }),
-      this.countTotalEntregasByItem(itemId),
-      this.prisma.entregaItem.findMany({
+      this.countTotalAtendimentosByItem(itemId),
+      this.prisma.atendimentoItem.findMany({
         where: { itemId },
         include: {
-          entrega: {
+          atendimento: {
             include: {
               beneficiario: {
                 select: {
@@ -263,7 +263,7 @@ export class ItemRepository extends BaseRepository<
           },
         },
         orderBy: {
-          entrega: {
+          atendimento: {
             criadoEm: "desc",
           },
         },
@@ -272,9 +272,9 @@ export class ItemRepository extends BaseRepository<
     ]);
 
     return {
-      totalEntregas,
+      totalAtendimentos,
       totalQuantidade,
-      ultimasEntregas: entregaItems,
+      ultimosAtendimentos: atendimentoItems,
     };
   }
 }

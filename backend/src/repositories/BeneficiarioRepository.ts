@@ -42,7 +42,7 @@ export class BeneficiarioRepository extends BaseRepository<
           },
           _count: {
             select: {
-              entregas: true,
+              atendimentos: true,
             },
           },
         },
@@ -82,7 +82,7 @@ export class BeneficiarioRepository extends BaseRepository<
             nome: true,
           },
         },
-        entregas: {
+        atendimentos: {
           select: {
             id: true,
             status: true,
@@ -101,7 +101,7 @@ export class BeneficiarioRepository extends BaseRepository<
         },
         _count: {
           select: {
-            entregas: true,
+            atendimentos: true,
           },
         },
       },
@@ -177,16 +177,16 @@ export class BeneficiarioRepository extends BaseRepository<
   }
 
   /**
-   * Conta entregas por beneficiário
+   * Conta atendimentos por beneficiário
    */
-  async countEntregasByBeneficiario(beneficiarioId: string) {
-    return this.prisma.entrega.count({
+  async countAtendimentosByBeneficiario(beneficiarioId: string) {
+    return this.prisma.atendimento.count({
       where: { beneficiarioId },
     });
   }
 
   /**
-   * Busca beneficiários com mais entregas
+   * Busca beneficiários com mais atendimentos
    */
   async findTopBeneficiarios(limit: number = 10) {
     return this.prisma.beneficiario.findMany({
@@ -194,12 +194,12 @@ export class BeneficiarioRepository extends BaseRepository<
       include: {
         _count: {
           select: {
-            entregas: true,
+            atendimentos: true,
           },
         },
       },
       orderBy: {
-        entregas: {
+        atendimentos: {
           _count: "desc",
         },
       },

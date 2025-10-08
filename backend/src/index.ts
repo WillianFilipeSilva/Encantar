@@ -11,8 +11,8 @@ import inviteRoutes from "./routes/invite";
 import beneficiarioRoutes from "./routes/beneficiario";
 import itemRoutes from "./routes/item";
 import rotaRoutes from "./routes/rota";
-import modeloEntregaRoutes from "./routes/modeloEntrega";
-import entregaRoutes from "./routes/entrega";
+import modeloAtendimentoRoutes from "./routes/modeloAtendimento";
+import atendimentoRoutes from "./routes/atendimento";
 import dashboardRoutes from "./routes/dashboard";
 import templatePDFRoutes from "./routes/templatePDF";
 
@@ -131,8 +131,8 @@ app.use("/api/invite", inviteRoutes);
 app.use("/api/beneficiarios", beneficiarioRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/rotas", rotaRoutes);
-app.use("/api/modelos-entrega", modeloEntregaRoutes);
-app.use("/api/entregas", entregaRoutes);
+app.use("/api/modelos-atendimento", modeloAtendimentoRoutes);
+app.use("/api/atendimentos", atendimentoRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/templates", templatePDFRoutes);
 

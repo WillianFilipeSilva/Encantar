@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { ModeloEntregaRepository } from "../repositories/ModeloEntregaRepository";
-import { ModeloEntregaService } from "../services/ModeloEntregaService";
-import { ModeloEntregaController } from "../controllers/ModeloEntregaController";
+import { ModeloAtendimentoRepository } from "../repositories/ModeloAtendimentoRepository";
+import { ModeloAtendimentoService } from "../services/ModeloAtendimentoService";
+import { ModeloAtendimentoController } from "../controllers/ModeloAtendimentoController";
 import { authenticateToken } from "../middleware/auth";
 import { prisma } from "../utils/database";
 
 const router = Router();
 
-const repository = new ModeloEntregaRepository(prisma);
-const service = new ModeloEntregaService(repository);
-const controller = new ModeloEntregaController(service);
+const repository = new ModeloAtendimentoRepository(prisma);
+const service = new ModeloAtendimentoService(repository);
+const controller = new ModeloAtendimentoController(service);
 
 router.use(authenticateToken);
 

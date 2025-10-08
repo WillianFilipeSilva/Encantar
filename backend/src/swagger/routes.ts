@@ -201,11 +201,11 @@ export const itensRoutes = {
   }
 };
 
-export const entregasRoutes = {
-  "/entregas": {
+export const atendimentosRoutes = {
+  "/atendimentos": {
     get: {
-      tags: ["Entregas"],
-      summary: "Lista todas as entregas",
+      tags: ["Atendimentos"],
+      summary: "Lista todas as atendimentos",
       parameters: [
         {
           name: "page",
@@ -234,7 +234,7 @@ export const entregasRoutes = {
       ],
       responses: {
         200: {
-          description: "Lista de entregas",
+          description: "Lista de atendimentos",
           content: {
             "application/json": {
               schema: {
@@ -246,8 +246,8 @@ export const entregasRoutes = {
       }
     },
     post: {
-      tags: ["Entregas"],
-      summary: "Cria uma nova entrega",
+      tags: ["Atendimentos"],
+      summary: "Cria uma nova atendimento",
       requestBody: {
         required: true,
         content: {
@@ -292,7 +292,7 @@ export const entregasRoutes = {
       },
       responses: {
         201: {
-          description: "Entrega criada com sucesso"
+          description: "Atendimento criada com sucesso"
         },
         400: {
           description: "Dados inválidos",
@@ -367,7 +367,7 @@ export const rotasRoutes = {
                   type: "string",
                   maxLength: 500
                 },
-                dataEntrega: {
+                dataAtendimento: {
                   type: "string",
                   format: "date-time"
                 },
@@ -375,7 +375,7 @@ export const rotasRoutes = {
                   type: "string",
                   maxLength: 500
                 },
-                entregaIds: {
+                atendimentoIds: {
                   type: "array",
                   items: {
                     type: "string",

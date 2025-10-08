@@ -314,14 +314,14 @@ export class ItemService extends BaseService<
       throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    const entregaItems = await this.itemRepository.count({
-      entregaItems: {
+    const atendimentoItems = await this.itemRepository.count({
+      atendimentoItems: {
         some: { itemId: id }
       }
     });
 
-    if (entregaItems > 0) {
-      throw CommonErrors.CONFLICT("Não é possível excluir este item pois ele está sendo usado em entregas");
+    if (atendimentoItems > 0) {
+      throw CommonErrors.CONFLICT("Não é possível excluir este item pois ele está sendo usado em atendimentos");
     }
 
     return this.itemRepository.hardDelete(id);

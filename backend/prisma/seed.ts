@@ -17,8 +17,8 @@ const TEMPLATE_CLEAN = `<!DOCTYPE html>
         .detalhe-item { display: flex; flex-direction: column; }
         .detalhe-label { font-weight: 600; color: #34495e; margin-bottom: 2px; }
         .detalhe-valor { font-size: 13px; color: #2c3e50; }
-        .entrega-card { border: 1px solid #e1e8ed; margin-bottom: 20px; background: #fff; page-break-inside: avoid; }
-        .entrega-numero { background: #34495e; color: #fff; padding: 10px 15px; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .atendimento-card { border: 1px solid #e1e8ed; margin-bottom: 20px; background: #fff; page-break-inside: avoid; }
+        .atendimento-numero { background: #34495e; color: #fff; padding: 10px 15px; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
         .checkbox { width: 16px; height: 16px; border: 2px solid #fff; border-radius: 2px; }
         .beneficiario-dados { padding: 20px; }
         .nome-beneficiario { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #ecf0f1; }
@@ -38,21 +38,21 @@ const TEMPLATE_CLEAN = `<!DOCTYPE html>
         .item-detalhes { font-size: 10px; color: #7f8c8d; margin-top: 1px; }
         .item-quantidade { font-size: 14px; font-weight: 700; color: #2980b9; min-width: 40px; text-align: right; }
         .rodape { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e1e8ed; text-align: center; font-size: 10px; color: #95a5a6; }
-        @media print { body { margin: 15px; } .entrega-card { page-break-inside: avoid; margin-bottom: 15px; } }
+        @media print { body { margin: 15px; } .atendimento-card { page-break-inside: avoid; margin-bottom: 15px; } }
     </style>
 </head>
 <body>
     <div class="info-rota">
         <div class="nome-rota">{{nomeRota}}</div>
         <div class="detalhes-rota">
-            <div class="detalhe-item"><div class="detalhe-label">Data da Entrega</div><div class="detalhe-valor">{{dataEntrega}}</div></div>
+            <div class="detalhe-item"><div class="detalhe-label">Data da Atendimento</div><div class="detalhe-valor">{{dataAtendimento}}</div></div>
             <div class="detalhe-item"><div class="detalhe-label">Total de Beneficiários</div><div class="detalhe-valor">{{totalBeneficiarios}}</div></div>
             <div class="detalhe-item"><div class="detalhe-label">Total de Itens</div><div class="detalhe-valor">{{totalItens}}</div></div>
         </div>
     </div>
     {{#each beneficiarios}}
-    <div class="entrega-card">
-        <div class="entrega-numero"><span>ENTREGA {{@index_1}}</span><div class="checkbox"></div></div>
+    <div class="atendimento-card">
+        <div class="atendimento-numero"><span>ATENDIMENTO {{@index_1}}</span><div class="checkbox"></div></div>
         <div class="beneficiario-dados">
             <div class="nome-beneficiario">{{nome}}</div>
             <div class="dados-pessoais">
@@ -65,7 +65,7 @@ const TEMPLATE_CLEAN = `<!DOCTYPE html>
             {{#if observacoes}}<div class="observacoes"><div class="observacoes-label">Observações</div><div class="observacoes-texto">{{observacoes}}</div></div>{{/if}}
             {{#if itens}}
             <div class="secao-itens">
-                <div class="titulo-itens">Itens para Entrega</div>
+                <div class="titulo-itens">Itens para Atendimento</div>
                 <div class="lista-itens">
                     {{#each itens}}<div class="item"><div class="item-info"><div class="item-nome">{{nome}}</div><div class="item-detalhes">{{unidade}}</div></div><div class="item-quantidade">{{quantidade}}</div></div>{{/each}}
                 </div>
@@ -348,29 +348,29 @@ async function main() {
     update: {},
     create: {
       id: 'rota-teste',
-      nome: 'Rota de Teste - 7 Entregas',
-      descricao: 'Rota completa para testar o template PDF com 7 entregas',
-      dataEntrega: new Date('2025-10-05'),
+      nome: 'Rota de Teste - 7 Atendimentos',
+      descricao: 'Rota completa para testar o template PDF com 7 atendimentos',
+      dataAtendimento: new Date('2025-10-05'),
       criadoPorId: admin.id,
     },
   })
 
   console.log('🗺️ Rota criada:', rota.nome)
 
-  // Criar 7 entregas (uma para cada beneficiário, exceto o 8º)
-  const entregas = await Promise.all([
-    prisma.entrega.upsert({
+  // Criar 7 atendimentos (uma para cada beneficiário, exceto o 8º)
+  const atendimentos = await Promise.all([
+    prisma.atendimento.upsert({
       where: { id: 'ent-1' },
       update: {},
       create: {
         id: 'ent-1',
         beneficiarioId: beneficiarios[0].id, // Maria
         rotaId: rota.id,
-        observacoes: 'Primeira entrega - família com crianças',
+        observacoes: 'Primeira atendimento - família com crianças',
         criadoPorId: admin.id,
       },
     }),
-    prisma.entrega.upsert({
+    prisma.atendimento.upsert({
       where: { id: 'ent-2' },
       update: {},
       create: {
@@ -381,18 +381,18 @@ async function main() {
         criadoPorId: admin.id,
       },
     }),
-    prisma.entrega.upsert({
+    prisma.atendimento.upsert({
       where: { id: 'ent-3' },
       update: {},
       create: {
         id: 'ent-3',
         beneficiarioId: beneficiarios[2].id, // Ana
         rotaId: rota.id,
-        observacoes: 'Entregar após 14h',
+        observacoes: 'Atendimentor após 14h',
         criadoPorId: admin.id,
       },
     }),
-    prisma.entrega.upsert({
+    prisma.atendimento.upsert({
       where: { id: 'ent-4' },
       update: {},
       create: {
@@ -403,7 +403,7 @@ async function main() {
         criadoPorId: admin.id,
       },
     }),
-    prisma.entrega.upsert({
+    prisma.atendimento.upsert({
       where: { id: 'ent-5' },
       update: {},
       create: {
@@ -414,7 +414,7 @@ async function main() {
         criadoPorId: admin.id,
       },
     }),
-    prisma.entrega.upsert({
+    prisma.atendimento.upsert({
       where: { id: 'ent-6' },
       update: {},
       create: {
@@ -425,7 +425,7 @@ async function main() {
         criadoPorId: admin.id,
       },
     }),
-    prisma.entrega.upsert({
+    prisma.atendimento.upsert({
       where: { id: 'ent-7' },
       update: {},
       create: {
@@ -438,306 +438,306 @@ async function main() {
     }),
   ])
 
-  console.log('🚚 Entregas criadas:', entregas.length)
+  console.log('🚚 Atendimentos criadas:', atendimentos.length)
 
-  // Criar itens para cada entrega (4 itens diferentes por entrega)
-  const entregaItems = await Promise.all([
-    // Entrega 1 - Maria (Arroz, Feijão, Óleo, Açúcar)
-    prisma.entregaItem.upsert({
+  // Criar itens para cada atendimento (4 itens diferentes por atendimento)
+  const atendimentoItems = await Promise.all([
+    // Atendimento 1 - Maria (Arroz, Feijão, Óleo, Açúcar)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-1-1' },
       update: {},
       create: {
         id: 'ei-1-1',
-        entregaId: entregas[0].id,
+        atendimentoId: atendimentos[0].id,
         itemId: itens[0].id, // Arroz
         quantidade: 2,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-1-2' },
       update: {},
       create: {
         id: 'ei-1-2',
-        entregaId: entregas[0].id,
+        atendimentoId: atendimentos[0].id,
         itemId: itens[1].id, // Feijão
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-1-3' },
       update: {},
       create: {
         id: 'ei-1-3',
-        entregaId: entregas[0].id,
+        atendimentoId: atendimentos[0].id,
         itemId: itens[2].id, // Óleo
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-1-4' },
       update: {},
       create: {
         id: 'ei-1-4',
-        entregaId: entregas[0].id,
+        atendimentoId: atendimentos[0].id,
         itemId: itens[3].id, // Açúcar
         quantidade: 1,
       },
     }),
 
-    // Entrega 2 - João (Macarrão, Sal, Farinha, Molho)
-    prisma.entregaItem.upsert({
+    // Atendimento 2 - João (Macarrão, Sal, Farinha, Molho)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-2-1' },
       update: {},
       create: {
         id: 'ei-2-1',
-        entregaId: entregas[1].id,
+        atendimentoId: atendimentos[1].id,
         itemId: itens[4].id, // Macarrão
         quantidade: 2,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-2-2' },
       update: {},
       create: {
         id: 'ei-2-2',
-        entregaId: entregas[1].id,
+        atendimentoId: atendimentos[1].id,
         itemId: itens[5].id, // Sal
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-2-3' },
       update: {},
       create: {
         id: 'ei-2-3',
-        entregaId: entregas[1].id,
+        atendimentoId: atendimentos[1].id,
         itemId: itens[6].id, // Farinha
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-2-4' },
       update: {},
       create: {
         id: 'ei-2-4',
-        entregaId: entregas[1].id,
+        atendimentoId: atendimentos[1].id,
         itemId: itens[7].id, // Molho
         quantidade: 2,
       },
     }),
 
-    // Entrega 3 - Ana (Leite, Café, Biscoito, Sardinha)
-    prisma.entregaItem.upsert({
+    // Atendimento 3 - Ana (Leite, Café, Biscoito, Sardinha)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-3-1' },
       update: {},
       create: {
         id: 'ei-3-1',
-        entregaId: entregas[2].id,
+        atendimentoId: atendimentos[2].id,
         itemId: itens[8].id, // Leite
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-3-2' },
       update: {},
       create: {
         id: 'ei-3-2',
-        entregaId: entregas[2].id,
+        atendimentoId: atendimentos[2].id,
         itemId: itens[9].id, // Café
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-3-3' },
       update: {},
       create: {
         id: 'ei-3-3',
-        entregaId: entregas[2].id,
+        atendimentoId: atendimentos[2].id,
         itemId: itens[10].id, // Biscoito
         quantidade: 3,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-3-4' },
       update: {},
       create: {
         id: 'ei-3-4',
-        entregaId: entregas[2].id,
+        atendimentoId: atendimentos[2].id,
         itemId: itens[11].id, // Sardinha
         quantidade: 2,
       },
     }),
 
-    // Entrega 4 - Carlos (Arroz, Macarrão, Leite, Café)
-    prisma.entregaItem.upsert({
+    // Atendimento 4 - Carlos (Arroz, Macarrão, Leite, Café)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-4-1' },
       update: {},
       create: {
         id: 'ei-4-1',
-        entregaId: entregas[3].id,
+        atendimentoId: atendimentos[3].id,
         itemId: itens[0].id, // Arroz
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-4-2' },
       update: {},
       create: {
         id: 'ei-4-2',
-        entregaId: entregas[3].id,
+        atendimentoId: atendimentos[3].id,
         itemId: itens[4].id, // Macarrão
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-4-3' },
       update: {},
       create: {
         id: 'ei-4-3',
-        entregaId: entregas[3].id,
+        atendimentoId: atendimentos[3].id,
         itemId: itens[8].id, // Leite
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-4-4' },
       update: {},
       create: {
         id: 'ei-4-4',
-        entregaId: entregas[3].id,
+        atendimentoId: atendimentos[3].id,
         itemId: itens[9].id, // Café
         quantidade: 1,
       },
     }),
 
-    // Entrega 5 - Lucia (Feijão, Óleo, Sal, Biscoito)
-    prisma.entregaItem.upsert({
+    // Atendimento 5 - Lucia (Feijão, Óleo, Sal, Biscoito)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-5-1' },
       update: {},
       create: {
         id: 'ei-5-1',
-        entregaId: entregas[4].id,
+        atendimentoId: atendimentos[4].id,
         itemId: itens[1].id, // Feijão
         quantidade: 2,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-5-2' },
       update: {},
       create: {
         id: 'ei-5-2',
-        entregaId: entregas[4].id,
+        atendimentoId: atendimentos[4].id,
         itemId: itens[2].id, // Óleo
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-5-3' },
       update: {},
       create: {
         id: 'ei-5-3',
-        entregaId: entregas[4].id,
+        atendimentoId: atendimentos[4].id,
         itemId: itens[5].id, // Sal
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-5-4' },
       update: {},
       create: {
         id: 'ei-5-4',
-        entregaId: entregas[4].id,
+        atendimentoId: atendimentos[4].id,
         itemId: itens[10].id, // Biscoito
         quantidade: 4,
       },
     }),
 
-    // Entrega 6 - Roberto (Açúcar, Farinha, Molho, Sardinha)
-    prisma.entregaItem.upsert({
+    // Atendimento 6 - Roberto (Açúcar, Farinha, Molho, Sardinha)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-6-1' },
       update: {},
       create: {
         id: 'ei-6-1',
-        entregaId: entregas[5].id,
+        atendimentoId: atendimentos[5].id,
         itemId: itens[3].id, // Açúcar
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-6-2' },
       update: {},
       create: {
         id: 'ei-6-2',
-        entregaId: entregas[5].id,
+        atendimentoId: atendimentos[5].id,
         itemId: itens[6].id, // Farinha
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-6-3' },
       update: {},
       create: {
         id: 'ei-6-3',
-        entregaId: entregas[5].id,
+        atendimentoId: atendimentos[5].id,
         itemId: itens[7].id, // Molho
         quantidade: 3,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-6-4' },
       update: {},
       create: {
         id: 'ei-6-4',
-        entregaId: entregas[5].id,
+        atendimentoId: atendimentos[5].id,
         itemId: itens[11].id, // Sardinha
         quantidade: 2,
       },
     }),
 
-    // Entrega 7 - Fernanda (Arroz, Feijão, Leite, Biscoito)
-    prisma.entregaItem.upsert({
+    // Atendimento 7 - Fernanda (Arroz, Feijão, Leite, Biscoito)
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-7-1' },
       update: {},
       create: {
         id: 'ei-7-1',
-        entregaId: entregas[6].id,
+        atendimentoId: atendimentos[6].id,
         itemId: itens[0].id, // Arroz
         quantidade: 2,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-7-2' },
       update: {},
       create: {
         id: 'ei-7-2',
-        entregaId: entregas[6].id,
+        atendimentoId: atendimentos[6].id,
         itemId: itens[1].id, // Feijão
         quantidade: 1,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-7-3' },
       update: {},
       create: {
         id: 'ei-7-3',
-        entregaId: entregas[6].id,
+        atendimentoId: atendimentos[6].id,
         itemId: itens[8].id, // Leite
         quantidade: 2,
       },
     }),
-    prisma.entregaItem.upsert({
+    prisma.atendimentoItem.upsert({
       where: { id: 'ei-7-4' },
       update: {},
       create: {
         id: 'ei-7-4',
-        entregaId: entregas[6].id,
+        atendimentoId: atendimentos[6].id,
         itemId: itens[10].id, // Biscoito
         quantidade: 3,
       },
     }),
   ])
 
-  console.log('📦 Itens de entrega criados:', entregaItems.length)
+  console.log('📦 Itens de atendimento criados:', atendimentoItems.length)
 
   const templateClean = await prisma.templatePDF.upsert({
     where: { id: 'template-clean' },

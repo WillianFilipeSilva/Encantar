@@ -9,13 +9,13 @@ export class DashboardController {
    */
   getStats = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-      const [totalBeneficiarios, totalEntregas, totalRotas] = await Promise.all([
+      const [totalBeneficiarios, totalAtendimentos, totalRotas] = await Promise.all([
         prisma.beneficiario.count(),
-        prisma.entrega.count(),
+        prisma.atendimento.count(),
         prisma.rota.count(),
       ]);
 
-      const entregasRecentes = await prisma.entrega.findMany({
+      const atendimentosRecentes = await prisma.atendimento.findMany({
         take: 5,
         orderBy: {
           criadoEm: 'desc',
@@ -31,23 +31,23 @@ export class DashboardController {
 
       const dashboardData = {
         totalBeneficiarios,
-        totalEntregas,
+        totalAtendimentos,
         totalRotas,
-        entregasPorStatus: [
-          { status: 'PENDENTE', total: totalEntregas },
-          { status: 'CONCLUIDA', total: 0 },
-          { status: 'CANCELADA', total: 0 },
+        atendimentosPorStatus: [
+          { status: 'PENDENTE', total: totalAtendimentos },
+          { status: 'CONCLUIDO', total: 0 },
+          { status: 'CANCELADO', total: 0 },
         ],
-        entregasRecentes: entregasRecentes.map((entrega) => ({
-          id: entrega.id,
+        atendimentosRecentes: atendimentosRecentes.map((atendimento) => ({
+          id: atendimento.id,
           beneficiario: {
-            nome: entrega.beneficiario.nome,
+            nome: atendimento.beneficiario.nome,
           },
-          modeloEntrega: {
-            nome: 'Entrega Padrão',
+          modeloAtendimento: {
+            nome: 'Atendimento Padrão',
           },
           status: 'PENDENTE',
-          dataEntrega: entrega.criadoEm,
+          dataAtendimento: atendimento.criadoEm,
         })),
       };
 

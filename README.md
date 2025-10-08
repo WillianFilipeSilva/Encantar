@@ -1,6 +1,6 @@
-# � Encantar - Sistema de Gestão de Entregas para ONGs
+# � Encantar - Sistema de Gestão de Atendimentos para ONGs
 
-Sistema completo para gerenciar entregas de ONGs, com controle de beneficiários, itens, rotas e dashboard administrativo.
+Sistema completo para gerenciar atendimentos de ONGs, com controle de beneficiários, itens, rotas e dashboard administrativo.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -35,7 +35,7 @@ Sistema completo para gerenciar entregas de ONGs, com controle de beneficiários
 - [x] CRUD completo de Beneficiários com paginação
 - [x] CRUD completo de Itens com paginação
 - [x] CRUD completo de Rotas com paginação
-- [x] Sistema de entregas vinculadas a rotas
+- [x] Sistema de atendimentos vinculadas a rotas
 - [x] Seed de dados para desenvolvimento
 - [x] Middleware de segurança e tratamento de erros
 - [x] Schema completo do banco de dados
@@ -117,19 +117,19 @@ Após executar `docker-compose up -d`:
 
 - **Administradores** - Usuários do sistema
 - **Convites** - Sistema de cadastro via convite
-- **Beneficiários** - Quem recebe as entregas
+- **Beneficiários** - Quem recebe as atendimentos
 - **Itens** - Produtos cadastrados
-- **Entregas** - Lista de itens + quantidades para um beneficiário
-- **EntregaItens** - Tabela de ligação (entrega + item + quantidade)
-- **Rotas** - Agrupamento de entregas por localidade
-- **ModelosEntrega** - Templates de entregas padrão
+- **Atendimentos** - Lista de itens + quantidades para um beneficiário
+- **AtendimentoItens** - Tabela de ligação (atendimento + item + quantidade)
+- **Rotas** - Agrupamento de atendimentos por localidade
+- **ModelosAtendimento** - Templates de atendimentos padrão
 
 ### Relacionamentos
 
-- Um Beneficiário pode ter várias Entregas
-- Uma Entrega pertence a um Beneficiário e uma Rota
-- Uma Entrega pode ter vários Itens (via EntregaItem)
-- Uma Rota pode ter várias Entregas
+- Um Beneficiário pode ter várias Atendimentos
+- Uma Atendimento pertence a um Beneficiário e uma Rota
+- Uma Atendimento pode ter vários Itens (via AtendimentoItem)
+- Uma Rota pode ter várias Atendimentos
 - Sistema completo de auditoria (criado/modificado por)
 
 ## � API Endpoints
@@ -386,4 +386,4 @@ Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes
 
 ---
 
-**🎁 Desenvolvido com ❤️ para ajudar ONGs a gerenciarem suas entregas de forma eficiente e organizada.**
+**🎁 Desenvolvido com ❤️ para ajudar ONGs a gerenciarem suas atendimentos de forma eficiente e organizada.**

@@ -43,14 +43,14 @@
             color: #666;
         }
         
-        .entregas-grid {
+        .atendimentos-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 6px;
             margin-top: 8px;
         }
         
-        .entrega {
+        .atendimento {
             border: 1px solid #eee;
             border-radius: 3px;
             background: #fff;
@@ -59,7 +59,7 @@
             overflow: hidden;
         }
         
-        .entrega-header {
+        .atendimento-header {
             background: #fff;
             border-bottom: 1px solid #e0e0e0;
             padding: 4px 6px;
@@ -80,7 +80,7 @@
             background: #fff;
         }
         
-        .entrega-body {
+        .atendimento-body {
             padding: 6px;
             background: #fff;
         }
@@ -186,25 +186,25 @@
                 color: #333;
             }
             
-            .entregas-grid {
+            .atendimentos-grid {
                 gap: 4px;
                 margin-top: 6px;
             }
             
-            .entrega {
+            .atendimento {
                 border: 1px solid #ddd;
                 background: #fff;
                 break-inside: avoid;
                 page-break-inside: avoid;
             }
             
-            .entrega-header {
+            .atendimento-header {
                 background: #fff;
                 border-bottom: 1px solid #ddd;
                 color: #333;
             }
             
-            .entrega-body {
+            .atendimento-body {
                 padding: 4px;
                 background: #fff;
             }
@@ -227,19 +227,19 @@
         
         /* Layout responsivo */
         @media (max-width: 21cm) {
-            .entregas-grid {
+            .atendimentos-grid {
                 grid-template-columns: 1fr;
             }
         }
         
-        /* Garante que todas as 8 entregas caibam em uma página */
-        .entregas-grid {
+        /* Garante que todas as 8 atendimentos caibam em uma página */
+        .atendimentos-grid {
             max-height: 92vh;
             overflow: visible;
         }
         
         /* Espaçamento inteligente entre grupos de 4 */
-        .entrega:nth-child(4) {
+        .atendimento:nth-child(4) {
             margin-bottom: 2px;
         }
     </style>
@@ -248,21 +248,21 @@
     <div class="cabecalho">
         <div class="titulo-rota">{{nomeRota}}</div>
         <div class="info-basica">
-            <span>{{dataEntrega}}</span>
-            <span>{{totalBeneficiarios}} Entregas</span>
+            <span>{{dataAtendimento}}</span>
+            <span>{{totalBeneficiarios}} Atendimentos</span>
             <span>{{totalItens}} Itens</span>
         </div>
     </div>
     
-    <div class="entregas-grid">
+    <div class="atendimentos-grid">
         {{#each beneficiarios}}
-        <div class="entrega">
-            <div class="entrega-header">
+        <div class="atendimento">
+            <div class="atendimento-header">
                 <span>{{nome}}</span>
                 <div class="checkbox"></div>
             </div>
             
-            <div class="entrega-body">
+            <div class="atendimento-body">
                 <div class="endereco">{{endereco}}</div>
                 
                 {{#if telefone}}
