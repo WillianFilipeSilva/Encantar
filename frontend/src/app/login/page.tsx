@@ -1,79 +1,97 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { api } from "@/lib/axios"
-import { useAuth } from "@/hooks/useAuth"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { api } from "@/lib/axios";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
-  const { user, isLoading: authLoading, login: authLogin } = useAuth()
-  const [login, setLogin] = useState('')
-  const [senha, setSenha] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const { user, isLoading: authLoading, login: authLogin } = useAuth();
+  const [login, setLogin] = useState("");
+  const [senha, setSenha] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace('/dashboard')
+      router.replace("/dashboard");
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    if (!login.trim()) {
+      setError("Login é obrigatório");
+      setIsLoading(false);
+      return;
+    }
+
+    if (senha.length < 6) {
+      setError("Senha deve ter pelo menos 6 caracteres");
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      const response = await api.post('/auth/login', {
+      const response = await api.post("/auth/login", {
         login,
-        senha
-      })
+        senha,
+      });
 
-      const authData = response.data.data
-      const { user } = authData
+      const authData = response.data.data;
+      const { user } = authData;
 
-      const success = authLogin(user)
-      
+      const success = authLogin(user);
+
       if (success) {
-        router.push('/dashboard')
+        router.push("/dashboard");
       } else {
-        throw new Error('Erro ao processar login')
+        throw new Error("Erro ao processar login");
       }
     } catch (error: any) {
-      console.error('Erro de login:', error)
-      
-      if (error.code === 'ERR_NETWORK' || error.message.includes('CORS')) {
-        setError('Erro de conexão com o servidor. Verifique se o backend está funcionando.')
+      console.error("Erro de login:", error);
+
+      if (error.code === "ERR_NETWORK" || error.message.includes("CORS")) {
+        setError(
+          "Erro de conexão com o servidor. Verifique se o backend está funcionando."
+        );
       } else if (error.response?.status === 429) {
-        setError('Muitas tentativas de login. Tente novamente mais tarde.')
+        setError("Muitas tentativas de login. Tente novamente mais tarde.");
       } else {
-        setError(error.response?.data?.error || 'Erro ao fazer login')
+        setError(error.response?.data?.error || "Erro ao fazer login");
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="p-6 pb-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <img 
-              src="/logo.jpg" 
-              alt="Encantar Logo" 
+            <img
+              src="/logo.jpg"
+              alt="Encantar Logo"
               className="w-12 h-12 object-contain"
             />
             <div>
-              <h3 className="text-2xl font-semibold leading-none tracking-tight">Encantar</h3>
-              <p className="text-sm text-gray-600 mt-1">Sistema de Atendimentos</p>
+              <h3 className="text-2xl font-semibold leading-none tracking-tight">
+                Encantar
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Sistema de Atendimentos
+              </p>
             </div>
           </div>
         </div>
-        
+
         <div className="p-6 pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -81,7 +99,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            
+
             <div className="space-y-2">
               <label htmlFor="login" className="text-sm font-medium">
                 Login
@@ -96,7 +114,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="senha" className="text-sm font-medium">
                 Senha
@@ -112,16 +130,12 @@ export default function LoginPage() {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Entrando...' : 'Entrar'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }
