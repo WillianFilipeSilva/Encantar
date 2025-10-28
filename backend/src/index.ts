@@ -19,10 +19,16 @@ import templatePDFRoutes from "./routes/templatePDF";
 import { errorHandler } from "./middleware/errorHandler";
 import { formatBrazilDateTime } from "./utils/dateUtils";
 import { notFound } from "./middleware/notFound";
+import { EnvValidator } from "./utils/envValidator";
 
 import DatabaseClient from "./utils/database";
 
 dotenv.config();
+
+// Validar ambiente na inicialização
+EnvValidator.validateRequired();
+EnvValidator.validateTypes();
+EnvValidator.logConfiguration();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -76,15 +82,28 @@ app.use(globalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
+// Configuração de segurança baseada no ambiente
+const isProduction = process.env.NODE_ENV === "production";
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        // Em produção: sem unsafe-inline/unsafe-eval
+        // Em desenvolvimento: permitir para hot-reload
+        styleSrc: isProduction 
+          ? ["'self'"] 
+          : ["'self'", "'unsafe-inline'"],
+        scriptSrc: isProduction 
+          ? ["'self'"] 
+          : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001"],
+        connectSrc: ["'self'", 
+          isProduction 
+            ? process.env.FRONTEND_URL || "https://seu-dominio.com"
+            : "http://localhost:3000"
+        ],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
@@ -97,10 +116,13 @@ app.use(
     dnsPrefetchControl: true,
     frameguard: { action: "deny" },
     hidePoweredBy: true,
-    hsts: false,
+    // Em produção: ativar HSTS (apenas com TLS/HTTPS válido)
+    hsts: isProduction 
+      ? { maxAge: 31536000, includeSubDomains: true, preload: true }
+      : false,
     ieNoOpen: true,
     noSniff: true,
-    referrerPolicy: { policy: "same-origin" },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     xssFilter: true,
   })
 );

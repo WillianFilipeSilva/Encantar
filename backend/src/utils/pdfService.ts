@@ -2,6 +2,7 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import Handlebars from 'handlebars';
 import { TemplatePDF, Rota, Beneficiario, Atendimento } from '@prisma/client';
 import { formatBrazilDateTime } from './dateUtils';
+import { SanitizeService } from './sanitizeService';
 
 export interface PDFGenerationData {
   rota: any; // Tipo com todas as relações necessárias
@@ -33,7 +34,10 @@ export class PDFService {
     const page = await browser.newPage();
 
     try {
-      const template = Handlebars.compile(data.template.conteudo);
+      // Sanitizar o conteúdo do template antes de usar
+      const sanitizedContent = SanitizeService.sanitizeTemplate(data.template.conteudo);
+      
+      const template = Handlebars.compile(sanitizedContent);
       const templateData = this.prepareTemplateData(data.rota);
       const html = template(templateData);
       

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { TemplatePDF } from '@/lib/types'
+import { SanitizeUtil } from '@/lib/sanitizeUtil'
 
 interface TemplatePreviewDialogProps {
   isOpen: boolean
@@ -41,7 +42,7 @@ export function TemplatePreviewDialog({ isOpen, onClose, template }: TemplatePre
     htmlContent = htmlContent.replace(/\{\{dataAtendimento\}\}/g, mockData.dataAtendimento)
     htmlContent = htmlContent.replace(/\{\{dataAtendimento\}\}/g, mockData.dataAtendimento)
     
-    return htmlContent
+    return SanitizeUtil.sanitizeTemplate(htmlContent)
   }
 
   return (

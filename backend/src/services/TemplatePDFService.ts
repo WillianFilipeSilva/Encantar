@@ -3,6 +3,8 @@ import { BaseService } from "./BaseService";
 import { TemplatePDFRepository } from "../repositories/TemplatePDFRepository";
 import { CreateTemplatePDFDTO, UpdateTemplatePDFDTO } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
+import { SanitizeService } from "../utils/sanitizeService";
+import logger from "../utils/logger";
 
 export class TemplatePDFService extends BaseService<
   TemplatePDF,
@@ -73,6 +75,11 @@ export class TemplatePDFService extends BaseService<
       if (data.conteudo.trim().length < 10) {
         throw CommonErrors.BAD_REQUEST("Conteúdo deve ter pelo menos 10 caracteres");
       }
+
+      // Validar segurança do HTML
+      if (!SanitizeService.isHTMLSafe(data.conteudo)) {
+        throw CommonErrors.BAD_REQUEST("Conteúdo contém código potencialmente malicioso");
+      }
     }
   }
 
@@ -88,13 +95,17 @@ export class TemplatePDFService extends BaseService<
         throw CommonErrors.CONFLICT("Já existe um template com este nome");
       }
 
+      // Sanitizar conteúdo
+      const sanitizedContent = SanitizeService.sanitizeTemplate(data.conteudo.trim());
+
       const templateData: CreateTemplatePDFDTO = {
         ...data,
         nome: data.nome.trim(),
         descricao: data.descricao?.trim(),
-        conteudo: data.conteudo.trim()
+        conteudo: sanitizedContent
       };
 
+      logger.info(`Template PDF criado: ${data.nome}`);
       return await this.templateRepository.create(templateData);
     } catch (error: any) {
       if (error.code) throw error;
@@ -130,7 +141,7 @@ export class TemplatePDFService extends BaseService<
         ...data,
         nome: data.nome?.trim(),
         descricao: data.descricao?.trim(),
-        conteudo: data.conteudo?.trim()
+        conteudo: data.conteudo ? SanitizeService.sanitizeTemplate(data.conteudo.trim()) : undefined
       };
 
       Object.keys(updateData).forEach(key => {
@@ -139,6 +150,7 @@ export class TemplatePDFService extends BaseService<
         }
       });
 
+      logger.info(`Template PDF atualizado: ${id}`);
       return await this.templateRepository.update(id, updateData);
     } catch (error: any) {
       if (error.code) throw error;

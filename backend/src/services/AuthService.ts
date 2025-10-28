@@ -19,10 +19,22 @@ export class AuthService {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
+    
+    // Validar que os segredos estão configurados
+    const jwtSecret = process.env.JWT_SECRET;
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+
+    if (!jwtSecret || jwtSecret.includes('fallback') || jwtSecret.includes('ENCANTAR-SECRET')) {
+      throw new Error('JWT_SECRET não está configurado corretamente. Configure uma chave forte em produção.');
+    }
+
+    if (!jwtRefreshSecret || jwtRefreshSecret.includes('fallback') || jwtRefreshSecret.includes('ENCANTAR-SECRET')) {
+      throw new Error('JWT_REFRESH_SECRET não está configurado corretamente. Configure uma chave forte em produção.');
+    }
+
     this.jwtConfig = {
-      secret: process.env.JWT_SECRET || "fallback-secret",
-      refreshSecret:
-        process.env.JWT_REFRESH_SECRET || "fallback-refresh-secret",
+      secret: jwtSecret,
+      refreshSecret: jwtRefreshSecret,
       expiresIn: process.env.JWT_EXPIRES_IN || "15m",
       refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
     };
