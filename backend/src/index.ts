@@ -33,6 +33,9 @@ EnvValidator.logConfiguration();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy para Railway/Heroku/etc (lê X-Forwarded-* headers)
+app.set('trust proxy', 1);
+
 app.use(
   cors({
     origin: [
