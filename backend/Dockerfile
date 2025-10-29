@@ -3,14 +3,14 @@ FROM node:18-bullseye-slim AS builder
 
 WORKDIR /app
 
-# Copiar package files
-COPY package*.json ./
+# Copiar arquivos essenciais do backend (contexto raiz)
+COPY backend/package*.json ./
 
 # Instalar todas as dependências (incluindo devDependencies para build)
 RUN npm ci
 
-# Copiar código fonte
-COPY . .
+# Copiar código fonte do backend
+COPY backend/. ./
 
 # Gerar cliente Prisma
 RUN npx prisma generate
@@ -75,10 +75,10 @@ COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 
 # Copiar package.json apenas (para versão)
-COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs backend/package*.json ./
 
 # Copiar script de entrypoint para garantir migrations
-COPY --chown=nodejs:nodejs docker-entrypoint.sh ./
+COPY --chown=nodejs:nodejs backend/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
 # Variáveis de ambiente padrão
