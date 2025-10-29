@@ -5,7 +5,7 @@ import { CommonErrors } from "./errorHandler";
 import { prisma } from "../utils/database";
 
 /**
- * Middleware de autenticação JWT
+ * Middleware de autenticação JWT (suporta Authorization header e cookies)
  */
 export const authenticateToken = async (
   req: AuthenticatedRequest,
@@ -14,7 +14,9 @@ export const authenticateToken = async (
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
+    const headerToken = authHeader && authHeader.split(" ")[1];
+    
+    const token = headerToken || req.cookies?.accessToken;
 
     if (!token) {
       res.status(401).json({
@@ -28,7 +30,6 @@ export const authenticateToken = async (
     const authService = new AuthService(prisma);
     const payload = await authService.verifyToken(token);
 
-    // Busca dados atualizados do usuário
     const user = await prisma.administrador.findUnique({
       where: { id: payload.id },
       select: {
@@ -48,7 +49,6 @@ export const authenticateToken = async (
       return;
     }
 
-    // Adiciona o usuário à requisição
     req.user = {
       id: user.id,
       nome: user.nome,
@@ -75,7 +75,9 @@ export const optionalAuth = async (
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1];
+    const headerToken = authHeader && authHeader.split(" ")[1];
+    
+    const token = headerToken || req.cookies?.accessToken;
 
     if (token) {
       const authService = new AuthService(prisma);
@@ -102,7 +104,6 @@ export const optionalAuth = async (
 
     next();
   } catch (error) {
-    // Continua sem autenticação se houver erro
     next();
   }
 };
@@ -127,10 +128,6 @@ export const checkOwnership = (resourceIdParam: string = "id") => {
       }
 
       const resourceId = req.params[resourceIdParam];
-
-      // Aqui você pode implementar lógica específica para verificar ownership
-      // Por exemplo, verificar se o usuário criou o recurso
-      // Por enquanto, vamos permitir acesso (todos os admins têm as mesmas permissões)
 
       next();
     } catch (error) {
@@ -157,9 +154,6 @@ export const requirePermission = (permission: string) => {
         });
         return;
       }
-
-      // Por enquanto, todos os administradores têm todas as permissões
-      // Futuramente, pode-se implementar um sistema de roles/permissões
 
       next();
     } catch (error) {

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BaseService } from "../services/BaseService";
+import { createDateFromString, toStartOfDayBrazil, toEndOfDayBrazil } from "../utils/dateUtils";
 
 /**
  * Classe base para todos os controllers
@@ -70,7 +71,7 @@ export abstract class BaseController<T, CreateData, UpdateData> {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const data = req.body;
-      const userId = (req as any).user?.id; // Assumindo que o middleware de auth adiciona o user
+      const userId = (req as any).user?.id;
 
       const result = await this.service.create(data, userId);
 
@@ -195,31 +196,29 @@ export abstract class BaseController<T, CreateData, UpdateData> {
   protected buildFilters(query: any): any {
     const filters: any = {};
 
-    // Filtro por ativo (se existir)
-    if (query.ativo !== undefined) {
+    if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
       filters.ativo = query.ativo === "true";
     }
 
-    // Filtro por busca (se existir)
     if (query.search) {
       filters.OR = [
         { nome: { contains: query.search, mode: "insensitive" } },
-        // Adicionar outros campos de busca conforme necessário
       ];
     }
 
-    // Filtro por data (se existir)
     if (query.dataInicio) {
+      const startDate = createDateFromString(query.dataInicio);
       filters.criadoEm = {
         ...filters.criadoEm,
-        gte: new Date(query.dataInicio),
+        gte: toStartOfDayBrazil(startDate),
       };
     }
 
     if (query.dataFim) {
+      const endDate = createDateFromString(query.dataFim);
       filters.criadoEm = {
         ...filters.criadoEm,
-        lte: new Date(query.dataFim),
+        lte: toEndOfDayBrazil(endDate),
       };
     }
 
@@ -233,7 +232,6 @@ export abstract class BaseController<T, CreateData, UpdateData> {
     req: Request,
     operation: string
   ): Promise<boolean> {
-    // Implementar lógica de permissões se necessário
     return true;
   }
 

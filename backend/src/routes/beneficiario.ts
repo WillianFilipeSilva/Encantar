@@ -7,14 +7,9 @@ import { prisma } from "../utils/database";
 
 const router = Router();
 
-// Inicializa as dependências
 const beneficiarioRepository = new BeneficiarioRepository(prisma);
 const beneficiarioService = new BeneficiarioService(beneficiarioRepository);
 const beneficiarioController = new BeneficiarioController(beneficiarioService);
-
-// ===========================================
-// ROTAS PROTEGIDAS (requer autenticação)
-// ===========================================
 
 /**
  * GET /api/beneficiarios
@@ -36,7 +31,7 @@ router.get("/active", authenticateToken, beneficiarioController.findActive);
 
 /**
  * GET /api/beneficiarios/top
- * Lista beneficiários com mais entregas
+ * Lista beneficiários com mais atendimentos
  */
 router.get("/top", authenticateToken, beneficiarioController.findTop);
 

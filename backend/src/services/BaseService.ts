@@ -15,9 +15,8 @@ export abstract class BaseService<T, CreateData, UpdateData> {
    * Busca todos os registros com paginação
    */
   async findAll(page: number = 1, limit: number = 10, filters?: any) {
-    // Validação de paginação
     if (page < 1) page = 1;
-    if (limit < 1 || limit > 100) limit = 10;
+    if (limit < 1 || limit > 500) limit = 10;
 
     return this.repository.findAll(page, limit, filters);
   }
@@ -42,11 +41,9 @@ export abstract class BaseService<T, CreateData, UpdateData> {
    * Cria um novo registro
    */
   async create(data: CreateData, userId?: string): Promise<T> {
-    // Validação básica
     await this.validateCreateData(data);
 
-    // Adiciona dados de auditoria se necessário
-    const createData = this.addAuditData(data, userId, "create");
+    const createData = await this.addAuditData(data, userId, "create");
 
     return this.repository.create(createData);
   }
@@ -59,14 +56,11 @@ export abstract class BaseService<T, CreateData, UpdateData> {
       throw new Error("ID é obrigatório");
     }
 
-    // Verifica se o registro existe
     await this.findById(id);
 
-    // Validação básica
     await this.validateUpdateData(data);
 
-    // Adiciona dados de auditoria se necessário
-    const updateData = this.addAuditData(data, userId, "update");
+    const updateData = await this.addAuditData(data, userId, "update");
 
     return this.repository.update(id, updateData);
   }
@@ -79,7 +73,6 @@ export abstract class BaseService<T, CreateData, UpdateData> {
       throw new Error("ID é obrigatório");
     }
 
-    // Verifica se o registro existe
     await this.findById(id);
 
     return this.repository.delete(id);
@@ -93,7 +86,6 @@ export abstract class BaseService<T, CreateData, UpdateData> {
       throw new Error("ID é obrigatório");
     }
 
-    // Verifica se o registro existe
     await this.findById(id);
 
     return this.repository.hardDelete(id);
@@ -124,32 +116,51 @@ export abstract class BaseService<T, CreateData, UpdateData> {
    * Método para validação de dados de criação (deve ser implementado nas classes filhas)
    */
   protected async validateCreateData(data: CreateData): Promise<void> {
-    // Implementar validações específicas nas classes filhas
   }
 
   /**
    * Método para validação de dados de atualização (deve ser implementado nas classes filhas)
    */
   protected async validateUpdateData(data: UpdateData): Promise<void> {
-    // Implementar validações específicas nas classes filhas
   }
 
   /**
    * Adiciona dados de auditoria (criadoPor, modificadoPor, etc.)
    */
-  protected addAuditData(
+  protected async addAuditData(
     data: any,
     userId?: string,
     operation: "create" | "update" = "create"
-  ): any {
-    if (!userId) return data;
+  ): Promise<any> {
+    let effectiveUserId = userId;
+    
+    if (!effectiveUserId) {
+      
+      try {
+        const adminRepo = this.repository as any;
+        if (adminRepo.prisma) {
+          const admin = await adminRepo.prisma.administrador.findFirst({
+            where: { ativo: true },
+            select: { id: true }
+          });
+          
+          if (admin) {
+            effectiveUserId = admin.id;
+          } else {
+            throw new Error('Nenhum administrador ativo encontrado para auditoria');
+          }
+        }
+      } catch (error) {
+        throw new Error('Erro ao buscar administrador para auditoria');
+      }
+    }
 
     const auditData = { ...data };
 
     if (operation === "create") {
-      auditData.criadoPorId = userId;
+      auditData.criadoPorId = effectiveUserId;
     } else if (operation === "update") {
-      auditData.modificadoPorId = userId;
+      auditData.modificadoPorId = effectiveUserId;
     }
 
     return auditData;

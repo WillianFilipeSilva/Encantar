@@ -9,6 +9,7 @@ import {
   JWTPayload,
   JWTConfig,
 } from "../models/Auth";
+import { createBrazilTimestamp } from "../utils/dateUtils";
 import { CommonErrors } from "../middleware/errorHandler";
 import { randomBytes } from "crypto";
 
@@ -18,10 +19,22 @@ export class AuthService {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
+    
+    // Validar que os segredos estão configurados
+    const jwtSecret = process.env.JWT_SECRET;
+    const jwtRefreshSecret = process.env.JWT_REFRESH_SECRET;
+
+    if (!jwtSecret || jwtSecret.includes('fallback') || jwtSecret.includes('ENCANTAR-SECRET')) {
+      throw new Error('JWT_SECRET não está configurado corretamente. Configure uma chave forte em produção.');
+    }
+
+    if (!jwtRefreshSecret || jwtRefreshSecret.includes('fallback') || jwtRefreshSecret.includes('ENCANTAR-SECRET')) {
+      throw new Error('JWT_REFRESH_SECRET não está configurado corretamente. Configure uma chave forte em produção.');
+    }
+
     this.jwtConfig = {
-      secret: process.env.JWT_SECRET || "fallback-secret",
-      refreshSecret:
-        process.env.JWT_REFRESH_SECRET || "fallback-refresh-secret",
+      secret: jwtSecret,
+      refreshSecret: jwtRefreshSecret,
       expiresIn: process.env.JWT_EXPIRES_IN || "15m",
       refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
     };
@@ -33,7 +46,6 @@ export class AuthService {
   async login(loginData: LoginData): Promise<AuthResponse> {
     const { login, senha } = loginData;
 
-    // Busca o administrador
     const administrador = await this.prisma.administrador.findUnique({
       where: { login },
     });
@@ -46,13 +58,11 @@ export class AuthService {
       throw CommonErrors.UNAUTHORIZED("Conta desativada");
     }
 
-    // Verifica a senha
     const senhaValida = await bcrypt.compare(senha, administrador.senha);
     if (!senhaValida) {
       throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
     }
 
-    // Gera os tokens
     const tokens = this.generateTokens({
       id: administrador.id,
       login: administrador.login,
@@ -73,12 +83,10 @@ export class AuthService {
    * Registra um novo administrador via convite
    */
   async register(registerData: RegisterData): Promise<AuthResponse> {
-    const { nome, login, senha, token } = registerData;
+    const { nome, login, senha, token, emailValidacao, telefoneValidacao } = registerData;
 
-    // Valida o convite
-    const convite = await this.validateInvite(token);
+    const convite = await this.validateInviteForRegistration(token, emailValidacao, telefoneValidacao);
 
-    // Verifica se o login já existe
     const loginExiste = await this.prisma.administrador.findUnique({
       where: { login },
     });
@@ -87,29 +95,21 @@ export class AuthService {
       throw CommonErrors.CONFLICT("Login já está em uso");
     }
 
-    // Criptografa a senha
     const senhaHash = await bcrypt.hash(senha, 12);
 
-    // Cria o administrador
     const administrador = await this.prisma.administrador.create({
       data: {
         nome,
         login,
         senha: senhaHash,
-        criadoPorId: convite.enviadoPorId,
       },
     });
 
-    // Marca o convite como usado
     await this.prisma.convite.update({
       where: { id: convite.id },
-      data: {
-        usado: true,
-        usadoEm: new Date(),
-      },
+      data: { usado: true, usadoEm: createBrazilTimestamp() },
     });
 
-    // Gera os tokens
     const tokens = this.generateTokens({
       id: administrador.id,
       login: administrador.login,
@@ -128,6 +128,7 @@ export class AuthService {
 
   /**
    * Cria um convite para novo administrador
+   * Apenas um convite ativo por administrador é permitido
    */
   async createInvite(
     inviteData: InviteData,
@@ -136,17 +137,28 @@ export class AuthService {
     const { email, telefone } = inviteData;
 
     if (!email && !telefone) {
-      throw CommonErrors.BAD_REQUEST("Email ou telefone é obrigatório");
+      throw CommonErrors.BAD_REQUEST("Email ou telefone é obrigatório para validação do convite");
     }
 
-    // Gera token único
+    const conviteAtivo = await this.prisma.convite.findFirst({
+      where: {
+        enviadoPorId,
+        usado: false,
+        expiraEm: {
+          gt: createBrazilTimestamp()
+        }
+      }
+    });
+
+    if (conviteAtivo) {
+      throw CommonErrors.CONFLICT("Já existe um convite ativo. Aguarde sua expiração antes de criar um novo.");
+    }
+
     const token = randomBytes(32).toString("hex");
 
-    // Define expiração (15 minutos)
-    const expiraEm = new Date();
+    const expiraEm = createBrazilTimestamp();
     expiraEm.setMinutes(expiraEm.getMinutes() + 15);
 
-    // Cria o convite
     const convite = await this.prisma.convite.create({
       data: {
         email,
@@ -164,19 +176,44 @@ export class AuthService {
   }
 
   /**
+   * Busca o convite ativo do administrador
+   */
+  async getActiveInvite(enviadoPorId: string): Promise<{ token: string; expiraEm: Date } | null> {
+    const conviteAtivo = await this.prisma.convite.findFirst({
+      where: {
+        enviadoPorId,
+        usado: false,
+        expiraEm: {
+          gt: createBrazilTimestamp()
+        }
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+
+    if (!conviteAtivo) {
+      return null;
+    }
+
+    return {
+      token: conviteAtivo.token,
+      expiraEm: conviteAtivo.expiraEm,
+    };
+  }
+
+  /**
    * Renova o access token usando o refresh token
    */
   async refreshToken(
     refreshToken: string
   ): Promise<{ accessToken: string; expiresIn: number }> {
     try {
-      // Verifica o refresh token
       const payload = jwt.verify(
         refreshToken,
         this.jwtConfig.refreshSecret
       ) as JWTPayload;
 
-      // Busca o administrador
       const administrador = await this.prisma.administrador.findUnique({
         where: { id: payload.id },
       });
@@ -185,7 +222,6 @@ export class AuthService {
         throw CommonErrors.UNAUTHORIZED("Token inválido");
       }
 
-      // Gera novo access token
       const accessToken = jwt.sign(
         {
           id: administrador.id,
@@ -222,8 +258,48 @@ export class AuthService {
       throw CommonErrors.BAD_REQUEST("Convite já foi utilizado");
     }
 
-    if (convite.expiraEm < new Date()) {
+    if (convite.expiraEm < createBrazilTimestamp()) {
       throw CommonErrors.BAD_REQUEST("Convite expirado");
+    }
+
+    return convite;
+  }
+
+  /**
+   * Valida um token de convite com email/telefone para registro
+   */
+  private async validateInviteForRegistration(
+    token: string, 
+    emailValidacao?: string, 
+    telefoneValidacao?: string
+  ) {
+    const convite = await this.prisma.convite.findUnique({
+      where: { token },
+      include: { enviadoPor: true },
+    });
+
+    if (!convite) {
+      throw CommonErrors.BAD_REQUEST("Convite inválido");
+    }
+
+    if (convite.usado) {
+      throw CommonErrors.BAD_REQUEST("Convite já foi utilizado");
+    }
+
+    if (convite.expiraEm < createBrazilTimestamp()) {
+      throw CommonErrors.BAD_REQUEST("Convite expirado");
+    }
+
+    if (convite.email && convite.email !== emailValidacao) {
+      throw CommonErrors.BAD_REQUEST("Email informado não confere com o convite");
+    }
+
+    if (convite.telefone && convite.telefone !== telefoneValidacao) {
+      throw CommonErrors.BAD_REQUEST("Telefone informado não confere com o convite");
+    }
+
+    if ((convite.email || convite.telefone) && !emailValidacao && !telefoneValidacao) {
+      throw CommonErrors.BAD_REQUEST("É necessário informar o email ou telefone para validar o convite");
     }
 
     return convite;
@@ -265,7 +341,7 @@ export class AuthService {
       case "d":
         return value * 60 * 60 * 24;
       default:
-        return 15 * 60; // 15 minutos padrão
+        return 15 * 60;
     }
   }
 

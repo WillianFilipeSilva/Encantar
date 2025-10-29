@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { BaseController } from "./BaseController";
 import { ItemService } from "../services/ItemService";
 import { CreateItemDTO, UpdateItemDTO } from "../models/DTOs";
 import { AuthenticatedRequest } from "../models/Auth";
-import { asyncHandler } from "../middleware/errorHandler";
 import { body, param, query, validationResult } from "express-validator";
+import { createDateFromString, toStartOfDayBrazil, toEndOfDayBrazil } from "../utils/dateUtils";
 import { Item } from "@prisma/client";
 
 export class ItemController extends BaseController<
@@ -32,25 +32,20 @@ export class ItemController extends BaseController<
     body("unidade")
       .notEmpty()
       .withMessage("Unidade é obrigatória")
-      .isLength({ max: 20 })
-      .withMessage("Unidade deve ter no máximo 20 caracteres")
-      .trim(),
+      .isIn(['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'])
+      .withMessage("Unidade deve ser uma das opções válidas: KG, G, L, ML, UN, CX, PCT, LATA"),
     body("descricao")
       .optional()
       .isLength({ max: 500 })
       .withMessage("Descrição deve ter no máximo 500 caracteres")
       .trim(),
-    body("ativo")
-      .optional()
-      .isBoolean()
-      .withMessage("Ativo deve ser um valor booleano"),
   ];
 
   /**
    * Validação para atualização de item
    */
   private validateUpdate = [
-    param("id").isUUID().withMessage("ID deve ser um UUID válido"),
+    param("id").matches(/^[a-z0-9-]+$/).withMessage("ID inválido"),
     body("nome")
       .optional()
       .notEmpty()
@@ -62,9 +57,8 @@ export class ItemController extends BaseController<
       .optional()
       .notEmpty()
       .withMessage("Unidade não pode estar vazia")
-      .isLength({ max: 20 })
-      .withMessage("Unidade deve ter no máximo 20 caracteres")
-      .trim(),
+      .isIn(['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'])
+      .withMessage("Unidade deve ser uma das opções válidas: KG, G, L, ML, UN, CX, PCT, LATA"),
     body("descricao")
       .optional()
       .isLength({ max: 500 })
@@ -86,29 +80,45 @@ export class ItemController extends BaseController<
       .withMessage("Página deve ser um número inteiro maior que 0"),
     query("limit")
       .optional()
-      .isInt({ min: 1, max: 100 })
-      .withMessage("Limite deve ser um número entre 1 e 100"),
+            .isInt({ min: 1, max: 500 })
+      .withMessage("Limit deve ser entre 1 e 500"),
     query("nome")
       .optional()
-      .isLength({ max: 100 })
-      .withMessage("Nome de busca deve ter no máximo 100 caracteres")
+      .custom((value) => {
+        if (value === "") return true;
+        if (value && value.length < 2) {
+          throw new Error("Nome de busca deve ter pelo menos 2 caracteres se fornecido");
+        }
+        if (value && value.length > 100) {
+          throw new Error("Nome de busca deve ter no máximo 100 caracteres");
+        }
+        return true;
+      })
       .trim(),
     query("unidade")
       .optional()
-      .isLength({ max: 20 })
-      .withMessage("Unidade de busca deve ter no máximo 20 caracteres")
-      .trim(),
+      .custom((value) => {
+        if (value === "" || value === "all") return true;
+        if (value && !['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'].includes(value)) {
+          throw new Error("Unidade deve ser uma das opções válidas");
+        }
+        return true;
+      }),
     query("ativo")
       .optional()
-      .isBoolean()
-      .withMessage("Ativo deve ser um valor booleano"),
+      .custom((value) => {
+        if (value && !['true', 'false', 'all'].includes(value.toLowerCase())) {
+          throw new Error("Ativo deve ser 'true', 'false' ou 'all'");
+        }
+        return true;
+      }),
   ];
 
   /**
    * Validação para ID
    */
   private validateId = [
-    param("id").isUUID().withMessage("ID deve ser um UUID válido"),
+    param("id").matches(/^[a-z0-9-]+$/).withMessage("ID inválido"),
   ];
 
   /**
@@ -116,10 +126,18 @@ export class ItemController extends BaseController<
    */
   private validateSearchByName = [
     query("nome")
-      .notEmpty()
-      .withMessage("Nome é obrigatório para busca")
-      .isLength({ max: 100 })
-      .withMessage("Nome deve ter no máximo 100 caracteres")
+      .custom((value) => {
+        if (!value || value.trim() === "") {
+          throw new Error("Nome é obrigatório para busca");
+        }
+        if (value.length < 2) {
+          throw new Error("Nome deve ter pelo menos 2 caracteres");
+        }
+        if (value.length > 100) {
+          throw new Error("Nome deve ter no máximo 100 caracteres");
+        }
+        return true;
+      })
       .trim(),
     query("limit")
       .optional()
@@ -132,10 +150,15 @@ export class ItemController extends BaseController<
    */
   private validateSearchByUnidade = [
     query("unidade")
-      .notEmpty()
-      .withMessage("Unidade é obrigatória para busca")
-      .isLength({ max: 20 })
-      .withMessage("Unidade deve ter no máximo 20 caracteres")
+      .custom((value) => {
+        if (!value || value.trim() === "") {
+          throw new Error("Unidade é obrigatória para busca");
+        }
+        if (value.length > 20) {
+          throw new Error("Unidade deve ter no máximo 20 caracteres");
+        }
+        return true;
+      })
       .trim(),
   ];
 
@@ -152,67 +175,96 @@ export class ItemController extends BaseController<
   /**
    * Busca todos os items
    */
-  public findAll = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findAll(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const filters = this.buildFilters(req.query);
 
-      const result = await this.itemService.findAll(page, limit, filters);
+      const result = await this.service.findAll(page, limit, filters);
 
       res.json({
         success: true,
         data: result.data,
         pagination: result.pagination,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca item por ID
    */
-  public findById = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { id } = req.params;
-      const item = await this.itemService.findById(id);
+
+      if (!id) {
+        res.status(400).json({
+          success: false,
+          error: "ID é obrigatório",
+          code: "MISSING_ID",
+        });
+        return;
+      }
+
+      const item = await this.service.findById(id);
 
       res.json({
         success: true,
         data: item,
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca todos os items com relacionamentos
    */
-  public findAllWithRelations = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findAllWithRelations(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -225,50 +277,61 @@ export class ItemController extends BaseController<
         filters
       );
 
-      res.json({
+      res.status(200).json({
         success: true,
         data: result.data,
-        pagination: result.pagination,
+        pagination: result.pagination
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca item por ID com relacionamentos
    */
-  public findByIdWithRelations = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findByIdWithRelations(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { id } = req.params;
       const item = await this.itemService.findByIdWithRelations(id);
 
-      res.json({
-        success: true,
-        data: item,
-      });
+      this.successResponse(res, item);
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca items por nome
    */
-  public findByNome = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findByNome(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { nome } = req.query;
@@ -276,229 +339,336 @@ export class ItemController extends BaseController<
 
       const items = await this.itemService.findByNome(nome as string, limit);
 
-      res.json({
-        success: true,
-        data: items,
-      });
+      this.successResponse(res, items);
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca items ativos para seleção
    */
-  public findActiveForSelection = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findActiveForSelection(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const items = await this.itemService.findActiveForSelection();
-
-      res.json({
-        success: true,
-        data: items,
-      });
+      this.successResponse(res, items);
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca items por unidade
    */
-  public findByUnidade = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findByUnidade(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { unidade } = req.query;
       const items = await this.itemService.findByUnidade(unidade as string);
 
-      res.json({
-        success: true,
-        data: items,
-      });
+      this.successResponse(res, items);
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca items mais utilizados
    */
-  public findMostUsed = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findMostUsed(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const limit = parseInt(req.query.limit as string) || 10;
       const items = await this.itemService.findMostUsed(limit);
 
-      res.json({
-        success: true,
-        data: items,
-      });
+      this.successResponse(res, items);
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca unidades disponíveis
    */
-  public findDistinctUnidades = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async findDistinctUnidades(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const unidades = await this.itemService.findDistinctUnidades();
-
-      res.json({
-        success: true,
-        data: unidades,
-      });
+      this.successResponse(res, unidades);
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Busca estatísticas de uso do item
    */
-  public getItemStats = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async getItemStats(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { id } = req.params;
       const stats = await this.itemService.getItemStats(id);
 
-      res.json({
-        success: true,
-        data: stats,
-      });
+      this.successResponse(res, stats);
+    } catch (error) {
+      next(error);
     }
-  );
-
-  /**
-   * Reativa um item
-   */
-  public reactivate = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({
-          success: false,
-          message: "Dados inválidos",
-          errors: errors.array(),
-        });
-      }
-
-      const { id } = req.params;
-      const item = await this.itemService.reactivate(id, req.user!.id);
-
-      res.json({
-        success: true,
-        message: "Item reativado com sucesso",
-        data: item,
-      });
-    }
-  );
+  }
 
   /**
    * Cria um novo item
    */
-  public create = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async create(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
-      const itemData: CreateItemDTO = req.body;
-      const item = await this.itemService.create(itemData, req.user!.id);
+      const userId = (req as AuthenticatedRequest).user?.id;
+      const data = { ...req.body, criadoPor: userId };
+      const item = await this.service.create(data);
 
       res.status(201).json({
         success: true,
-        message: "Item criado com sucesso",
         data: item,
+        message: "Item criado com sucesso",
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Atualiza um item
    */
-  public update = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async update(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { id } = req.params;
-      const itemData: UpdateItemDTO = req.body;
-      const item = await this.itemService.update(id, itemData, req.user!.id);
+      const userId = (req as AuthenticatedRequest).user?.id;
+      const data = { ...req.body, atualizadoPor: userId };
+      const item = await this.service.update(id, data);
 
       res.json({
         success: true,
-        message: "Item atualizado com sucesso",
         data: item,
+        message: "Item atualizado com sucesso",
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  }
+
+  /**
+   * Inativa um item
+   */
+  public async inactivate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: "Dados inválidos",
+          errors: errors.array(),
+        });
+        return;
+      }
+
+      const { id } = req.params;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      
+      const item = await this.itemService.inactivate(id, userId || '');
+
+      res.json({
+        success: true,
+        data: item,
+        message: "Item inativado com sucesso",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Ativa um item
+   */
+  public async activate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: "Dados inválidos",
+          errors: errors.array(),
+        });
+        return;
+      }
+
+      const { id } = req.params;
+      const userId = (req as AuthenticatedRequest).user?.id;
+      
+      const item = await this.itemService.activate(id, userId || '');
+
+      res.json({
+        success: true,
+        data: item,
+        message: "Item ativado com sucesso",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   /**
    * Exclui um item (soft delete)
    */
-  public delete = asyncHandler(
-    async (req: AuthenticatedRequest, res: Response) => {
+  public async delete(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Dados inválidos",
           errors: errors.array(),
         });
+        return;
       }
 
       const { id } = req.params;
-      await this.itemService.delete(id, req.user!.id);
+      await this.service.delete(id);
 
       res.json({
         success: true,
         message: "Item excluído com sucesso",
       });
+    } catch (error) {
+      next(error);
     }
-  );
+  }
 
   /**
    * Constrói filtros a partir dos query parameters
    */
-  private buildFilters(query: any): any {
+  protected buildFilters(query: any): any {
     const filters: any = {};
 
-    if (query.nome) {
-      filters.nome = query.nome;
+    if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
+      filters.ativo = query.ativo === "true";
     }
 
-    if (query.unidade) {
+    if (query.search) {
+      filters.OR = [
+        { nome: { contains: query.search, mode: "insensitive" } },
+        { descricao: { contains: query.search, mode: "insensitive" } },
+      ];
+    }
+
+    if (query.nome) {
+      filters.nome = {
+        contains: query.nome,
+        mode: "insensitive"
+      };
+    }
+
+    if (query.unidade && query.unidade !== 'all' && query.unidade !== '') {
       filters.unidade = query.unidade;
     }
 
-    if (query.ativo !== undefined) {
-      filters.ativo = query.ativo === "true";
+    if (query.dataInicio) {
+      const startDate = createDateFromString(query.dataInicio);
+      filters.criadoEm = {
+        ...filters.criadoEm,
+        gte: toStartOfDayBrazil(startDate),
+      };
+    }
+
+    if (query.dataFim) {
+      const endDate = createDateFromString(query.dataFim);
+      filters.criadoEm = {
+        ...filters.criadoEm,
+        lte: toEndOfDayBrazil(endDate),
+      };
     }
 
     return filters;

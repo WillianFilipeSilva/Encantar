@@ -18,7 +18,6 @@ export class AuthController {
    */
   login = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      // Validação dos dados
       await body("login")
         .notEmpty()
         .withMessage("Login é obrigatório")
@@ -37,15 +36,32 @@ export class AuthController {
           details: errors.array(),
         });
         return;
-        return;
       }
 
       const loginData: LoginData = req.body;
       const result = await this.authService.login(loginData);
 
+      // Configurar cookies HttpOnly para tokens
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutos
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+      });
+
       res.json({
         success: true,
-        data: result,
+        data: {
+          user: result.user
+          // Não enviar tokens no body - estão nos cookies
+        },
         message: "Login realizado com sucesso",
       });
     }
@@ -56,19 +72,30 @@ export class AuthController {
    */
   register = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      // Validação dos dados
       await body("nome").notEmpty().withMessage("Nome é obrigatório").run(req);
       await body("login")
         .isLength({ min: 3 })
         .withMessage("Login deve ter pelo menos 3 caracteres")
         .run(req);
       await body("senha")
-        .isLength({ min: 6 })
-        .withMessage("Senha deve ter pelo menos 6 caracteres")
+        .isLength({ min: 8 })
+        .withMessage("Senha deve ter pelo menos 8 caracteres")
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+        .withMessage("Senha deve conter: 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial")
         .run(req);
       await body("token")
         .notEmpty()
         .withMessage("Token do convite é obrigatório")
+        .run(req);
+      await body("emailValidacao")
+        .optional()
+        .isEmail()
+        .withMessage("Email de validação inválido")
+        .run(req);
+      await body("telefoneValidacao")
+        .optional()
+        .isMobilePhone("pt-BR")
+        .withMessage("Telefone de validação inválido")
         .run(req);
 
       const errors = validationResult(req);
@@ -85,9 +112,27 @@ export class AuthController {
       const registerData: RegisterData = req.body;
       const result = await this.authService.register(registerData);
 
+      // Configurar cookies HttpOnly para tokens após registro
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutos
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
+      });
+
       res.status(201).json({
         success: true,
-        data: result,
+        data: {
+          user: result.user
+          // Não enviar tokens no body - estão nos cookies
+        },
         message: "Usuário registrado com sucesso",
       });
     }
@@ -98,7 +143,8 @@ export class AuthController {
    */
   refresh = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const { refreshToken } = req.body;
+      // Primeiro tenta pegar do cookie, depois do body
+      const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
 
       if (!refreshToken) {
         res.status(400).json({
@@ -111,9 +157,20 @@ export class AuthController {
 
       const result = await this.authService.refreshToken(refreshToken);
 
+      // Atualizar cookie com novo access token
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000 // 15 minutos
+      });
+
       res.json({
         success: true,
-        data: result,
+        data: {
+          expiresIn: result.expiresIn
+          // Não enviar tokens no body - estão nos cookies
+        },
         message: "Token renovado com sucesso",
       });
     }
@@ -124,7 +181,6 @@ export class AuthController {
    */
   createInvite = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-      // Validação dos dados
       await body("email")
         .optional()
         .isEmail()
@@ -135,6 +191,14 @@ export class AuthController {
         .isMobilePhone("pt-BR")
         .withMessage("Telefone inválido")
         .run(req);
+
+      await body().custom((value, { req }) => {
+        const { email, telefone } = req.body;
+        if (!email && !telefone) {
+          throw new Error('Email ou telefone é obrigatório');
+        }
+        return true;
+      }).run(req);
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -157,6 +221,20 @@ export class AuthController {
         success: true,
         data: result,
         message: "Convite criado com sucesso",
+      });
+    }
+  );
+
+  /**
+   * GET /active-invite - Retorna o convite ativo do usuário
+   */
+  getActiveInvite = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      const result = await this.authService.getActiveInvite(req.user!.id);
+
+      res.json({
+        success: true,
+        data: result,
       });
     }
   );
@@ -195,12 +273,22 @@ export class AuthController {
   );
 
   /**
-   * POST /logout - Logout (invalida tokens no frontend)
+   * POST /logout - Logout e limpa cookies
    */
   logout = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-      // Em um sistema mais robusto, você poderia manter uma blacklist de tokens
-      // Por enquanto, o logout é feito apenas no frontend
+      // Limpar cookies HttpOnly
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+      
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
 
       res.json({
         success: true,

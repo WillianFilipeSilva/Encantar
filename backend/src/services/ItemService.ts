@@ -2,7 +2,7 @@ import { Item } from "@prisma/client";
 import { BaseService } from "./BaseService";
 import { ItemRepository } from "../repositories/ItemRepository";
 import { CreateItemDTO, UpdateItemDTO } from "../models/DTOs";
-import { CustomError, CommonErrors } from "../middleware/errorHandler";
+import { CommonErrors } from "../middleware/errorHandler";
 
 export class ItemService extends BaseService<
   Item,
@@ -19,76 +19,51 @@ export class ItemService extends BaseService<
   /**
    * Valida dados para criação
    */
-  protected validateCreateData(data: CreateItemDTO): void {
+  protected async validateCreateData(data: CreateItemDTO): Promise<void> {
     if (!data.nome || data.nome.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Nome é obrigatório"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Nome é obrigatório");
     }
 
     if (data.nome.length > 100) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Nome deve ter no máximo 100 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Nome deve ter no máximo 100 caracteres");
     }
 
     if (!data.unidade || data.unidade.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Unidade é obrigatória"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
     }
 
-    if (data.unidade.length > 20) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Unidade deve ter no máximo 20 caracteres"
-      );
+    const validUnidades = ['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'];
+    if (!validUnidades.includes(data.unidade)) {
+      throw CommonErrors.VALIDATION_ERROR("Unidade deve ser uma das opções válidas: " + validUnidades.join(', '));
     }
 
     if (data.descricao && data.descricao.length > 500) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Descrição deve ter no máximo 500 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
     }
   }
 
   /**
    * Valida dados para atualização
    */
-  protected validateUpdateData(data: UpdateItemDTO): void {
+  protected async validateUpdateData(data: UpdateItemDTO): Promise<void> {
     if (data.nome !== undefined) {
       if (!data.nome || data.nome.trim().length === 0) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Nome é obrigatório"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Nome é obrigatório");
       }
 
       if (data.nome.length > 100) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Nome deve ter no máximo 100 caracteres"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Nome deve ter no máximo 100 caracteres");
       }
     }
 
     if (data.unidade !== undefined) {
       if (!data.unidade || data.unidade.trim().length === 0) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Unidade é obrigatória"
-        );
+        throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória");
       }
 
-      if (data.unidade.length > 20) {
-        throw new CustomError(
-          CommonErrors.VALIDATION_ERROR,
-          "Unidade deve ter no máximo 20 caracteres"
-        );
+      const validUnidades = ['KG', 'G', 'L', 'ML', 'UN', 'CX', 'PCT', 'LATA'];
+      if (!validUnidades.includes(data.unidade)) {
+        throw CommonErrors.VALIDATION_ERROR("Unidade deve ser uma das opções válidas: " + validUnidades.join(', '));
       }
     }
 
@@ -97,39 +72,31 @@ export class ItemService extends BaseService<
       data.descricao &&
       data.descricao.length > 500
     ) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Descrição deve ter no máximo 500 caracteres"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
     }
-  }
-
-  /**
-   * Transforma dados para criação
+  }  /**
+   * Transforma dados antes da criação
    */
-  protected transformData(data: CreateItemDTO, auditData: any): any {
+  protected transformData(data: Item): any {
     return {
-      ...data,
       nome: data.nome.trim(),
-      unidade: data.unidade.trim(),
-      descricao: data.descricao?.trim() || null,
-      ativo: data.ativo !== undefined ? data.ativo : true,
-      ...auditData,
+      unidade: data.unidade,
+      descricao: data.descricao?.trim() || null
     };
   }
 
   /**
    * Transforma dados para atualização
    */
-  protected transformUpdateData(data: UpdateItemDTO, auditData: any): any {
-    const transformed: any = { ...auditData };
+  protected async transformUpdateData(data: UpdateItemDTO, userId?: string): Promise<any> {
+    const transformed: any = await this.addAuditData({}, userId, "update");
 
     if (data.nome !== undefined) {
       transformed.nome = data.nome.trim();
     }
 
     if (data.unidade !== undefined) {
-      transformed.unidade = data.unidade.trim();
+      transformed.unidade = data.unidade;
     }
 
     if (data.descricao !== undefined) {
@@ -147,19 +114,18 @@ export class ItemService extends BaseService<
    * Cria um novo item
    */
   async create(data: CreateItemDTO, userId: string): Promise<Item> {
-    this.validateCreateData(data);
+    await this.validateCreateData(data);
 
-    // Verifica se já existe um item com o mesmo nome
     const exists = await this.itemRepository.existsByNome(data.nome);
     if (exists) {
-      throw new CustomError(
-        CommonErrors.CONFLICT,
-        "Já existe um item com este nome"
-      );
+      throw CommonErrors.CONFLICT("Já existe um item com este nome");
     }
 
-    const auditData = this.addAuditData(userId);
-    const transformedData = this.transformData(data, auditData);
+    const auditData = await this.addAuditData({}, userId, "create");
+    const transformedData = {
+      ...this.transformData(data as any),
+      ...auditData
+    };
 
     return this.itemRepository.create(transformedData);
   }
@@ -168,27 +134,21 @@ export class ItemService extends BaseService<
    * Atualiza um item
    */
   async update(id: string, data: UpdateItemDTO, userId: string): Promise<Item> {
-    this.validateUpdateData(data);
+    await this.validateUpdateData(data);
 
-    // Verifica se o item existe
     const existingItem = await this.itemRepository.findById(id);
     if (!existingItem) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    // Verifica se já existe outro item com o mesmo nome
     if (data.nome && data.nome !== existingItem.nome) {
       const exists = await this.itemRepository.existsByNome(data.nome, id);
       if (exists) {
-        throw new CustomError(
-          CommonErrors.CONFLICT,
-          "Já existe um item com este nome"
-        );
+        throw CommonErrors.CONFLICT("Já existe um item com este nome");
       }
     }
 
-    const auditData = this.addAuditData(userId);
-    const transformedData = this.transformUpdateData(data, auditData);
+    const transformedData = await this.transformUpdateData(data, userId);
 
     return this.itemRepository.update(id, transformedData);
   }
@@ -203,7 +163,6 @@ export class ItemService extends BaseService<
   ) {
     const where: any = {};
 
-    // Filtros
     if (filters.nome) {
       where.nome = {
         contains: filters.nome,
@@ -231,7 +190,7 @@ export class ItemService extends BaseService<
   async findByIdWithRelations(id: string) {
     const item = await this.itemRepository.findByIdWithRelations(id);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
     return item;
   }
@@ -241,13 +200,21 @@ export class ItemService extends BaseService<
    */
   async findByNome(nome: string, limit: number = 10) {
     if (!nome || nome.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Nome é obrigatório para busca"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Nome é obrigatório para busca");
     }
 
     return this.itemRepository.findByNome(nome.trim(), limit);
+  }
+
+  /**
+   * Busca itens para autocomplete
+   */
+  async search(searchTerm: string, activeOnly: boolean = true): Promise<Pick<Item, 'id' | 'nome' | 'unidade' | 'descricao'>[]> {
+    if (!searchTerm || searchTerm.trim().length < 1) {
+      return [];
+    }
+
+    return this.itemRepository.findByNome(searchTerm.trim(), 50);
   }
 
   /**
@@ -262,10 +229,7 @@ export class ItemService extends BaseService<
    */
   async findByUnidade(unidade: string) {
     if (!unidade || unidade.trim().length === 0) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Unidade é obrigatória para busca"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Unidade é obrigatória para busca");
     }
 
     return this.itemRepository.findByUnidade(unidade.trim());
@@ -276,10 +240,7 @@ export class ItemService extends BaseService<
    */
   async findMostUsed(limit: number = 10) {
     if (limit <= 0 || limit > 50) {
-      throw new CustomError(
-        CommonErrors.VALIDATION_ERROR,
-        "Limite deve estar entre 1 e 50"
-      );
+      throw CommonErrors.VALIDATION_ERROR("Limite deve estar entre 1 e 50");
     }
 
     return this.itemRepository.findMostUsed(limit);
@@ -298,47 +259,71 @@ export class ItemService extends BaseService<
   async getItemStats(itemId: string) {
     const item = await this.itemRepository.findById(itemId);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
     return this.itemRepository.getItemStats(itemId);
   }
 
   /**
-   * Soft delete de um item
+   * Inativa um item
    */
-  async delete(id: string, userId: string): Promise<void> {
+  async inactivate(id: string, userId: string): Promise<Item> {
     const item = await this.itemRepository.findById(id);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    // Verifica se o item está sendo usado em entregas
-    const entregaItems = await this.itemRepository.prisma.entregaItem.count({
-      where: { itemId: id },
+    if (!item.ativo) {
+      throw CommonErrors.VALIDATION_ERROR("Item já está inativo");
+    }
+
+    const auditData = await this.addAuditData({}, userId, "update");
+    return this.itemRepository.update(id, {
+      ativo: false,
+      ...auditData
     });
-
-    if (entregaItems > 0) {
-      throw new CustomError(
-        CommonErrors.CONFLICT,
-        "Não é possível excluir este item pois ele está sendo usado em entregas"
-      );
-    }
-
-    const auditData = this.addAuditData(userId);
-    await this.itemRepository.update(id, { ativo: false, ...auditData });
   }
 
   /**
-   * Reativa um item
+   * Ativa um item
    */
-  async reactivate(id: string, userId: string): Promise<Item> {
+  async activate(id: string, userId: string): Promise<Item> {
     const item = await this.itemRepository.findById(id);
     if (!item) {
-      throw new CustomError(CommonErrors.NOT_FOUND, "Item não encontrado");
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
     }
 
-    const auditData = this.addAuditData(userId);
-    return this.itemRepository.update(id, { ativo: true, ...auditData });
+    if (item.ativo) {
+      throw CommonErrors.VALIDATION_ERROR("Item já está ativo");
+    }
+
+    const auditData = await this.addAuditData({}, userId, "update");
+    return this.itemRepository.update(id, {
+      ativo: true,
+      ...auditData
+    });
+  }
+
+  /**
+   * Deleta um item
+   */
+  async delete(id: string): Promise<Item> {
+    const item = await this.itemRepository.findById(id);
+    if (!item) {
+      throw CommonErrors.NOT_FOUND("Item não encontrado");
+    }
+
+    const atendimentoItems = await this.itemRepository.count({
+      atendimentoItems: {
+        some: { itemId: id }
+      }
+    });
+
+    if (atendimentoItems > 0) {
+      throw CommonErrors.CONFLICT("Não é possível excluir este item pois ele está sendo usado em atendimentos");
+    }
+
+    return this.itemRepository.hardDelete(id);
   }
 }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { formatBrazilDateTime } from "../utils/dateUtils";
 
 /**
  * Interface para erros customizados
@@ -40,7 +41,6 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  // Log do erro para desenvolvimento
   if (process.env.NODE_ENV === "development") {
     console.error("🚨 Erro capturado:", {
       message: error.message,
@@ -50,11 +50,10 @@ export const errorHandler = (
       body: req.body,
       query: req.query,
       params: req.params,
-      timestamp: new Date().toISOString(),
+      timestamp: formatBrazilDateTime(new Date()),
     });
   }
 
-  // Se não é um erro operacional, transforma em erro genérico
   if (!error.isOperational) {
     error = new CustomError(
       "Erro interno do servidor",
@@ -63,7 +62,6 @@ export const errorHandler = (
     );
   }
 
-  // Resposta padronizada
   const response = {
     success: false,
     error: error.message,
@@ -73,7 +71,7 @@ export const errorHandler = (
       details: {
         url: req.url,
         method: req.method,
-        timestamp: new Date().toISOString(),
+        timestamp: formatBrazilDateTime(new Date()),
       },
     }),
   };

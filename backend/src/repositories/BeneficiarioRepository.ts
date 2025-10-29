@@ -42,7 +42,7 @@ export class BeneficiarioRepository extends BaseRepository<
           },
           _count: {
             select: {
-              entregas: true,
+              atendimentos: true,
             },
           },
         },
@@ -64,7 +64,7 @@ export class BeneficiarioRepository extends BaseRepository<
   }
 
   /**
-   * Busca beneficiário por ID com relacionamentos
+   * Busca beneficiário por ID com relacionamentos limitados
    */
   async findByIdWithRelations(id: string) {
     return this.prisma.beneficiario.findUnique({
@@ -82,13 +82,11 @@ export class BeneficiarioRepository extends BaseRepository<
             nome: true,
           },
         },
-        entregas: {
-          include: {
-            entregaItems: {
-              include: {
-                item: true,
-              },
-            },
+        atendimentos: {
+          select: {
+            id: true,
+            status: true,
+            criadoEm: true,
             rota: {
               select: {
                 id: true,
@@ -99,10 +97,11 @@ export class BeneficiarioRepository extends BaseRepository<
           orderBy: {
             criadoEm: "desc",
           },
+          take: 10,
         },
         _count: {
           select: {
-            entregas: true,
+            atendimentos: true,
           },
         },
       },
@@ -178,16 +177,16 @@ export class BeneficiarioRepository extends BaseRepository<
   }
 
   /**
-   * Conta entregas por beneficiário
+   * Conta atendimentos por beneficiário
    */
-  async countEntregasByBeneficiario(beneficiarioId: string) {
-    return this.prisma.entrega.count({
+  async countAtendimentosByBeneficiario(beneficiarioId: string) {
+    return this.prisma.atendimento.count({
       where: { beneficiarioId },
     });
   }
 
   /**
-   * Busca beneficiários com mais entregas
+   * Busca beneficiários com mais atendimentos
    */
   async findTopBeneficiarios(limit: number = 10) {
     return this.prisma.beneficiario.findMany({
@@ -195,12 +194,12 @@ export class BeneficiarioRepository extends BaseRepository<
       include: {
         _count: {
           select: {
-            entregas: true,
+            atendimentos: true,
           },
         },
       },
       orderBy: {
-        entregas: {
+        atendimentos: {
           _count: "desc",
         },
       },

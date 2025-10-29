@@ -3,10 +3,6 @@
  * Garantem validação e tipagem forte nas APIs
  */
 
-// ===========================================
-// DTOs BASE
-// ===========================================
-
 export interface BaseResponse<T> {
   success: boolean;
   data: T;
@@ -26,15 +22,12 @@ export interface PaginatedResponse<T> {
   };
 }
 
-// ===========================================
-// DTOs DE BENEFICIÁRIO
-// ===========================================
-
 export interface CreateBeneficiarioDTO {
   nome: string;
   endereco: string;
   telefone?: string;
   email?: string;
+  dataNascimento?: string;
   observacoes?: string;
 }
 
@@ -43,6 +36,7 @@ export interface UpdateBeneficiarioDTO {
   endereco?: string;
   telefone?: string;
   email?: string;
+  dataNascimento?: string;
   observacoes?: string;
   ativo?: boolean;
 }
@@ -51,9 +45,9 @@ export interface BeneficiarioResponseDTO {
   id: string;
   nome: string;
   endereco: string;
-  telefone?: string;
-  email?: string;
-  observacoes?: string;
+  telefone?: string | null;
+  email?: string | null;
+  observacoes?: string | null;
   ativo: boolean;
   criadoEm: Date;
   atualizadoEm: Date;
@@ -67,28 +61,24 @@ export interface BeneficiarioResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE ITEM
-// ===========================================
-
 export interface CreateItemDTO {
   nome: string;
   descricao?: string;
-  unidade: string;
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA';
 }
 
 export interface UpdateItemDTO {
   nome?: string;
   descricao?: string;
-  unidade?: string;
+  unidade?: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA';
   ativo?: boolean;
 }
 
 export interface ItemResponseDTO {
   id: string;
   nome: string;
-  descricao?: string;
-  unidade: string;
+  descricao?: string | null;
+  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA';
   ativo: boolean;
   criadoEm: Date;
   atualizadoEm: Date;
@@ -102,43 +92,40 @@ export interface ItemResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE ENTREGA
-// ===========================================
-
-export interface CreateEntregaItemDTO {
+export interface CreateAtendimentoItemDTO {
   itemId: string;
   quantidade: number;
 }
 
-export interface CreateEntregaDTO {
+export interface CreateAtendimentoDTO {
   beneficiarioId: string;
-  rotaId?: string;
+  rotaId: string;
   observacoes?: string;
-  items: CreateEntregaItemDTO[];
+  items: CreateAtendimentoItemDTO[];
 }
 
-export interface UpdateEntregaItemDTO {
+export interface UpdateAtendimentoItemDTO {
   itemId: string;
   quantidade: number;
 }
 
-export interface UpdateEntregaDTO {
+export interface UpdateAtendimentoDTO {
   beneficiarioId?: string;
   rotaId?: string;
   observacoes?: string;
-  items?: UpdateEntregaItemDTO[];
+  status?: string;
+  items?: UpdateAtendimentoItemDTO[];
 }
 
-export interface EntregaItemResponseDTO {
+export interface AtendimentoItemResponseDTO {
   id: string;
   quantidade: number;
   item: ItemResponseDTO;
 }
 
-export interface EntregaResponseDTO {
+export interface AtendimentoResponseDTO {
   id: string;
-  observacoes?: string;
+  observacoes?: string | null;
   criadoEm: Date;
   atualizadoEm: Date;
   beneficiario: BeneficiarioResponseDTO;
@@ -146,7 +133,7 @@ export interface EntregaResponseDTO {
     id: string;
     nome: string;
   };
-  entregaItems: EntregaItemResponseDTO[];
+  atendimentoItems: AtendimentoItemResponseDTO[];
   criadoPor: {
     id: string;
     nome: string;
@@ -157,35 +144,31 @@ export interface EntregaResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE ROTA
-// ===========================================
-
 export interface CreateRotaDTO {
   nome: string;
   descricao?: string;
-  dataEntrega?: Date;
+  dataAtendimento?: Date;
   observacoes?: string;
-  entregaIds?: string[];
+  atendimentoIds?: string[];
 }
 
 export interface UpdateRotaDTO {
   nome?: string;
   descricao?: string;
-  dataEntrega?: Date;
+  dataAtendimento?: Date;
   observacoes?: string;
-  entregaIds?: string[];
+  atendimentoIds?: string[];
 }
 
 export interface RotaResponseDTO {
   id: string;
   nome: string;
-  descricao?: string;
-  dataEntrega?: Date;
-  observacoes?: string;
+  descricao?: string | null;
+  dataAtendimento?: Date | null;
+  observacoes?: string | null;
   criadoEm: Date;
   atualizadoEm: Date;
-  entregas: EntregaResponseDTO[];
+  atendimentos: AtendimentoResponseDTO[];
   criadoPor: {
     id: string;
     nome: string;
@@ -196,9 +179,24 @@ export interface RotaResponseDTO {
   };
 }
 
-// ===========================================
-// DTOs DE TEMPLATE PDF
-// ===========================================
+export interface CreateModeloAtendimentoDTO {
+  nome: string;
+  descricao?: string;
+  modeloItems: Array<{
+    itemId: string;
+    quantidade: number;
+  }>;
+}
+
+export interface UpdateModeloAtendimentoDTO {
+  nome?: string;
+  descricao?: string;
+  ativo?: boolean;
+  modeloItems?: Array<{
+    itemId: string;
+    quantidade: number;
+  }>;
+}
 
 export interface CreateTemplatePDFDTO {
   nome: string;
@@ -216,16 +214,12 @@ export interface UpdateTemplatePDFDTO {
 export interface TemplatePDFResponseDTO {
   id: string;
   nome: string;
-  descricao?: string;
+  descricao?: string | null;
   conteudo: string;
   ativo: boolean;
   criadoEm: Date;
   atualizadoEm: Date;
 }
-
-// ===========================================
-// DTOs DE FILTROS E QUERIES
-// ===========================================
 
 export interface BeneficiarioFiltersDTO {
   search?: string;
@@ -242,7 +236,7 @@ export interface ItemFiltersDTO {
   dataFim?: string;
 }
 
-export interface EntregaFiltersDTO {
+export interface AtendimentoFiltersDTO {
   search?: string;
   beneficiarioId?: string;
   rotaId?: string;
@@ -254,24 +248,20 @@ export interface RotaFiltersDTO {
   search?: string;
   dataInicio?: string;
   dataFim?: string;
-  dataEntregaInicio?: string;
-  dataEntregaFim?: string;
+  dataAtendimentoInicio?: string;
+  dataAtendimentoFim?: string;
 }
 
-// ===========================================
-// DTOs DE ESTATÍSTICAS (para dashboard futuro)
-// ===========================================
-
 export interface DashboardStatsDTO {
-  totalEntregas: number;
+  totalAtendimentos: number;
   totalRotas: number;
   totalItems: number;
   totalBeneficiarios: number;
-  entregasPorMes: Array<{
+  atendimentosPorMes: Array<{
     mes: string;
     quantidade: number;
   }>;
-  itemsMaisEntregues: Array<{
+  itemsMaisAtendidos: Array<{
     item: string;
     quantidade: number;
   }>;
@@ -280,10 +270,6 @@ export interface DashboardStatsDTO {
     quantidade: number;
   }>;
 }
-
-// ===========================================
-// DTOs DE VALIDAÇÃO
-// ===========================================
 
 export interface ValidationErrorDTO {
   field: string;
@@ -296,4 +282,27 @@ export interface ErrorResponseDTO {
   error: string;
   code: string;
   details?: ValidationErrorDTO[];
+}
+
+export interface CreateTemplatePDFDTO {
+  nome: string;
+  descricao?: string;
+  conteudo: string;
+}
+
+export interface UpdateTemplatePDFDTO {
+  nome?: string;
+  descricao?: string;
+  conteudo?: string;
+  ativo?: boolean;
+}
+
+export interface TemplatePDFResponseDTO {
+  id: string;
+  nome: string;
+  descricao?: string | null;
+  conteudo: string;
+  ativo: boolean;
+  criadoEm: Date;
+  atualizadoEm: Date;
 }

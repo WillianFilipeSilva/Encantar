@@ -42,7 +42,7 @@ export class ItemRepository extends BaseRepository<
           },
           _count: {
             select: {
-              entregaItems: true,
+              atendimentoItems: true,
             },
           },
         },
@@ -82,9 +82,9 @@ export class ItemRepository extends BaseRepository<
             nome: true,
           },
         },
-        entregaItems: {
+        atendimentoItems: {
           include: {
-            entrega: {
+            atendimento: {
               include: {
                 beneficiario: {
                   select: {
@@ -96,14 +96,14 @@ export class ItemRepository extends BaseRepository<
             },
           },
           orderBy: {
-            entrega: {
+            atendimento: {
               criadoEm: "desc",
             },
           },
         },
         _count: {
           select: {
-            entregaItems: true,
+            atendimentoItems: true,
           },
         },
       },
@@ -120,7 +120,6 @@ export class ItemRepository extends BaseRepository<
           contains: nome,
           mode: "insensitive",
         },
-        ativo: true,
       },
       take: limit,
       orderBy: { nome: "asc" },
@@ -159,7 +158,9 @@ export class ItemRepository extends BaseRepository<
    */
   async findActiveForSelection() {
     return this.prisma.item.findMany({
-      where: { ativo: true },
+      where: {
+        ativo: true
+      },
       select: {
         id: true,
         nome: true,
@@ -176,10 +177,7 @@ export class ItemRepository extends BaseRepository<
   async findByUnidade(unidade: string) {
     return this.prisma.item.findMany({
       where: {
-        unidade: {
-          equals: unidade,
-          mode: "insensitive",
-        },
+        unidade: unidade as any,
         ativo: true,
       },
       select: {
@@ -197,16 +195,15 @@ export class ItemRepository extends BaseRepository<
    */
   async findMostUsed(limit: number = 10) {
     return this.prisma.item.findMany({
-      where: { ativo: true },
       include: {
         _count: {
           select: {
-            entregaItems: true,
+            atendimentoItems: true,
           },
         },
       },
       orderBy: {
-        entregaItems: {
+        atendimentoItems: {
           _count: "desc",
         },
       },
@@ -219,7 +216,6 @@ export class ItemRepository extends BaseRepository<
    */
   async findDistinctUnidades() {
     const result = await this.prisma.item.findMany({
-      where: { ativo: true },
       select: {
         unidade: true,
       },
@@ -231,10 +227,10 @@ export class ItemRepository extends BaseRepository<
   }
 
   /**
-   * Conta total de items entregues por item
+   * Conta total de items atendidos por item
    */
-  async countTotalEntregasByItem(itemId: string) {
-    const result = await this.prisma.entregaItem.aggregate({
+  async countTotalAtendimentosByItem(itemId: string) {
+    const result = await this.prisma.atendimentoItem.aggregate({
       where: { itemId },
       _sum: {
         quantidade: true,
@@ -248,15 +244,15 @@ export class ItemRepository extends BaseRepository<
    * Busca estatísticas de uso do item
    */
   async getItemStats(itemId: string) {
-    const [totalEntregas, totalQuantidade, entregaItems] = await Promise.all([
-      this.prisma.entregaItem.count({
+    const [totalAtendimentos, totalQuantidade, atendimentoItems] = await Promise.all([
+      this.prisma.atendimentoItem.count({
         where: { itemId },
       }),
-      this.countTotalEntregasByItem(itemId),
-      this.prisma.entregaItem.findMany({
+      this.countTotalAtendimentosByItem(itemId),
+      this.prisma.atendimentoItem.findMany({
         where: { itemId },
         include: {
-          entrega: {
+          atendimento: {
             include: {
               beneficiario: {
                 select: {
@@ -267,7 +263,7 @@ export class ItemRepository extends BaseRepository<
           },
         },
         orderBy: {
-          entrega: {
+          atendimento: {
             criadoEm: "desc",
           },
         },
@@ -276,9 +272,9 @@ export class ItemRepository extends BaseRepository<
     ]);
 
     return {
-      totalEntregas,
+      totalAtendimentos,
       totalQuantidade,
-      ultimasEntregas: entregaItems,
+      ultimosAtendimentos: atendimentoItems,
     };
   }
 }

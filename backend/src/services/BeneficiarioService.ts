@@ -7,6 +7,7 @@ import {
   BeneficiarioResponseDTO,
 } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
+import { createDateFromString } from "../utils/dateUtils";
 
 export class BeneficiarioService extends BaseService<
   Beneficiario,
@@ -27,9 +28,23 @@ export class BeneficiarioService extends BaseService<
     page: number = 1,
     limit: number = 10,
     filters?: any
-  ) {
+  ): Promise<{ 
+    data: (Beneficiario & {
+      criadoPor: { id: string; nome: string };
+      modificadoPor: { id: string; nome: string } | null;
+      _count: { atendimentos: number };
+    })[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  }> {
     if (page < 1) page = 1;
-    if (limit < 1 || limit > 100) limit = 10;
+    if (limit < 1 || limit > 500) limit = 10;
 
     return this.beneficiarioRepository.findAllWithRelations(
       page,
@@ -41,7 +56,22 @@ export class BeneficiarioService extends BaseService<
   /**
    * Busca beneficiário por ID com relacionamentos
    */
-  async findByIdWithRelations(id: string): Promise<BeneficiarioResponseDTO> {
+  async findByIdWithRelations(id: string): Promise<Beneficiario & {
+    criadoPor: { id: string; nome: string };
+    modificadoPor: { id: string; nome: string } | null;
+    atendimentos: {
+      id: string;
+      status: string;
+      criadoEm: Date;
+      rota: {
+        id: string;
+        nome: string;
+      };
+    }[];
+    _count: {
+      atendimentos: number;
+    };
+  }> {
     if (!id) {
       throw CommonErrors.BAD_REQUEST("ID é obrigatório");
     }
@@ -52,19 +82,15 @@ export class BeneficiarioService extends BaseService<
       throw CommonErrors.NOT_FOUND("Beneficiário não encontrado");
     }
 
-    return this.transformBeneficiarioData(beneficiario);
+    return beneficiario;
   }
 
   /**
    * Cria um novo beneficiário
    */
-  async create(
-    data: CreateBeneficiarioDTO,
-    userId?: string
-  ): Promise<BeneficiarioResponseDTO> {
+  async create(data: CreateBeneficiarioDTO, userId?: string): Promise<Beneficiario> {
     await this.validateCreateData(data);
 
-    // Verifica se já existe beneficiário com mesmo nome e endereço
     const exists = await this.beneficiarioRepository.existsByNomeAndEndereco(
       data.nome,
       data.endereco
@@ -76,20 +102,36 @@ export class BeneficiarioService extends BaseService<
       );
     }
 
-    const createData = this.addAuditData(data, userId, "create");
-    const beneficiario = await this.beneficiarioRepository.create(createData);
-
-    return this.transformBeneficiarioData(beneficiario);
+    const processedData = this.processDataForPrisma(data);
+    const createData = await this.addAuditData(processedData, userId, "create");
+    return this.beneficiarioRepository.create(createData);
+  }
+  
+  /**
+   * Processa os dados para garantir compatibilidade com o Prisma
+   * Especialmente para campos de data
+   */
+  private processDataForPrisma(data: CreateBeneficiarioDTO | UpdateBeneficiarioDTO): any {
+    const processed: any = { ...data };
+    
+    if (data.dataNascimento) {
+      try {
+        if (typeof data.dataNascimento === 'string') {
+          processed.dataNascimento = createDateFromString(data.dataNascimento);
+        }
+      } catch (error) {
+        console.error("Erro ao converter data de nascimento:", error);
+        delete processed.dataNascimento;
+      }
+    }
+    
+    return processed;
   }
 
   /**
    * Atualiza um beneficiário
    */
-  async update(
-    id: string,
-    data: UpdateBeneficiarioDTO,
-    userId?: string
-  ): Promise<BeneficiarioResponseDTO> {
+  async update(id: string, data: UpdateBeneficiarioDTO, userId?: string): Promise<Beneficiario> {
     if (!id) {
       throw CommonErrors.BAD_REQUEST("ID é obrigatório");
     }
@@ -97,7 +139,6 @@ export class BeneficiarioService extends BaseService<
     await this.findById(id);
     await this.validateUpdateData(data);
 
-    // Se está alterando nome ou endereço, verifica duplicatas
     if (data.nome || data.endereco) {
       const current = await this.findById(id);
       const nome = data.nome || current.nome;
@@ -116,19 +157,15 @@ export class BeneficiarioService extends BaseService<
       }
     }
 
-    const updateData = this.addAuditData(data, userId, "update");
-    const beneficiario = await this.beneficiarioRepository.update(
-      id,
-      updateData
-    );
-
-    return this.transformBeneficiarioData(beneficiario);
+    const processedData = this.processDataForPrisma(data);
+    const updateData = await this.addAuditData(processedData, userId, "update");
+    return this.beneficiarioRepository.update(id, updateData);
   }
 
   /**
    * Busca beneficiários por nome
    */
-  async findByNome(nome: string, limit: number = 10) {
+  async findByNome(nome: string, limit: number = 10): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
     if (!nome || nome.trim().length < 2) {
       throw CommonErrors.BAD_REQUEST("Nome deve ter pelo menos 2 caracteres");
     }
@@ -137,16 +174,27 @@ export class BeneficiarioService extends BaseService<
   }
 
   /**
+   * Busca beneficiários para autocomplete
+   */
+  async search(searchTerm: string, activeOnly: boolean = true): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
+    if (!searchTerm || searchTerm.trim().length < 1) {
+      return [];
+    }
+
+    return this.beneficiarioRepository.findByNome(searchTerm.trim(), 50);
+  }
+
+  /**
    * Busca beneficiários ativos para seleção
    */
-  async findActiveForSelection() {
+  async findActiveForSelection(): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
     return this.beneficiarioRepository.findActiveForSelection();
   }
 
   /**
-   * Busca top beneficiários com mais entregas
+   * Busca top beneficiários com mais atendimentos
    */
-  async findTopBeneficiarios(limit: number = 10) {
+  async findTopBeneficiarios(limit: number = 10): Promise<(Beneficiario & { _count: { atendimentos: number } })[]> {
     if (limit < 1 || limit > 50) limit = 10;
 
     return this.beneficiarioRepository.findTopBeneficiarios(limit);
@@ -168,12 +216,20 @@ export class BeneficiarioService extends BaseService<
       );
     }
 
-    if (data.email && !this.isValidEmail(data.email)) {
+    if (data.email && data.email.trim() !== "" && !this.isValidEmail(data.email)) {
       throw CommonErrors.BAD_REQUEST("Email inválido");
     }
 
-    if (data.telefone && !this.isValidPhone(data.telefone)) {
+    if (data.telefone && data.telefone.trim() !== "" && !this.isValidPhone(data.telefone)) {
       throw CommonErrors.BAD_REQUEST("Telefone inválido");
+    }
+
+    if (data.dataNascimento && data.dataNascimento.trim() !== "") {
+      try {
+        createDateFromString(data.dataNascimento);
+      } catch (error) {
+        throw CommonErrors.BAD_REQUEST("Data de nascimento inválida");
+      }
     }
   }
 
@@ -201,7 +257,8 @@ export class BeneficiarioService extends BaseService<
 
     if (
       data.email !== undefined &&
-      data.email &&
+      data.email !== null &&
+      data.email.trim() !== "" &&
       !this.isValidEmail(data.email)
     ) {
       throw CommonErrors.BAD_REQUEST("Email inválido");
@@ -209,10 +266,19 @@ export class BeneficiarioService extends BaseService<
 
     if (
       data.telefone !== undefined &&
-      data.telefone &&
+      data.telefone !== null &&
+      data.telefone.trim() !== "" &&
       !this.isValidPhone(data.telefone)
     ) {
       throw CommonErrors.BAD_REQUEST("Telefone inválido");
+    }
+
+    if (data.dataNascimento !== undefined && data.dataNascimento !== null && data.dataNascimento.trim() !== "") {
+      try {
+        createDateFromString(data.dataNascimento);
+      } catch (error) {
+        throw CommonErrors.BAD_REQUEST("Data de nascimento inválida");
+      }
     }
   }
 
@@ -220,7 +286,10 @@ export class BeneficiarioService extends BaseService<
    * Transforma dados do beneficiário para resposta
    */
   private transformBeneficiarioData(
-    beneficiario: any
+    beneficiario: Beneficiario & {
+      criadoPor?: { id: string; nome: string };
+      modificadoPor?: { id: string; nome: string } | null;
+    }
   ): BeneficiarioResponseDTO {
     return {
       id: beneficiario.id,
@@ -233,13 +302,13 @@ export class BeneficiarioService extends BaseService<
       criadoEm: beneficiario.criadoEm,
       atualizadoEm: beneficiario.atualizadoEm,
       criadoPor: {
-        id: beneficiario.criadoPor.id,
-        nome: beneficiario.criadoPor.nome,
+        id: beneficiario.criadoPorId,
+        nome: beneficiario.criadoPor?.nome || 'Desconhecido'
       },
-      modificadoPor: beneficiario.modificadoPor
+      modificadoPor: beneficiario.modificadoPorId && beneficiario.modificadoPor
         ? {
-            id: beneficiario.modificadoPor.id,
-            nome: beneficiario.modificadoPor.nome,
+            id: beneficiario.modificadoPorId,
+            nome: beneficiario.modificadoPor.nome
           }
         : undefined,
     };
@@ -257,9 +326,12 @@ export class BeneficiarioService extends BaseService<
    * Valida formato de telefone brasileiro
    */
   private isValidPhone(phone: string): boolean {
-    // Remove caracteres não numéricos
+    if (!phone || phone.trim() === "") {
+      return true;
+    }
+    
     const cleanPhone = phone.replace(/\D/g, "");
-    // Aceita telefones com 10 ou 11 dígitos (com DDD)
+    
     return cleanPhone.length >= 10 && cleanPhone.length <= 11;
   }
 }
