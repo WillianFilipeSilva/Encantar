@@ -1,196 +1,388 @@
-# 🚀 Sistema Encantar - Gestão de ONGs# 🌟 Encantar - Sistema de Gestão de Atendimentos para ONGs# 🌟 Encantar - Sistema de Gestão de Atendimentos para ONGs# � Encantar - Sistema de Gestão de Atendimentos para ONGs
+# Encantar – Plataforma de Gestão para ONGs# 🚀 Sistema Encantar - Gestão de ONGs# 🌟 Encantar - Sistema de Gestão de Atendimentos para ONGs# 🌟 Encantar - Sistema de Gestão de Atendimentos para ONGs# � Encantar - Sistema de Gestão de Atendimentos para ONGs
 
 
 
-Sistema completo de gestão para ONGs com cadastro de beneficiários, controle de atendimentos, geração de PDFs e dashboard administrativo.
+Aplicação full-stack (Next.js + Node.js/Express) para administração de beneficiários, atendimentos, rotas e geração de relatórios em ONGs. Inclui autenticação segura com refresh token, dashboards, auditoria completa e geração de PDFs.
 
 
 
----Sistema completo para gerenciar atendimentos de ONGs com controle de beneficiários, itens, rotas e dashboard.
+---Sistema completo de gestão para ONGs com cadastro de beneficiários, controle de atendimentos, geração de PDFs e dashboard administrativo.
 
 
 
-## ⚡ Setup Rápido (5 minutos)
+## 📦 Stack Principal
 
+- **Frontend:** Next.js 14 (App Router), React 18, Tailwind CSS, Radix UI, React Query, React Hook Form + Zod
 
+- **Backend:** Node.js 18, Express, Prisma ORM, PostgreSQL, JWT/Refresh tokens, Helmet, express-rate-limit, Winston---Sistema completo para gerenciar atendimentos de ONGs com controle de beneficiários, itens, rotas e dashboard.
 
-### Windows---Sistema completo para gerenciar atendimentos de ONGs com controle de beneficiários, itens, rotas e dashboard.Sistema completo para gerenciar atendimentos de ONGs, com controle de beneficiários, itens, rotas e dashboard administrativo.
+- **Infra & DevOps:** Docker multi-stage, scripts `start.ps1`/`start.sh`, Railway (produção), Prisma Migrate, Puppeteer para PDFs
 
-```powershell
 
-# Setup COMPLETO automatizado
-
-.\setup-windows.ps1
-
-## 🚀 Quick Start
-
-# Iniciar
-
-.\scripts\start.ps1 up
-
-```
-
-### Pré-requisitos---## 🚀 Tecnologias Utilizadas
-
-### Ubuntu/Linux
-
-```bash- Docker + Docker Compose
-
-# Dar permissão
-
-chmod +x setup-ubuntu.sh
-
-
-
-# Setup COMPLETO automatizado### Iniciar
-
-./setup-ubuntu.sh
-
-```bash## 🚀 Quick Start (5 minutos)### Backend
-
-# Iniciar
-
-./scripts/start.sh up# Windows (PowerShell)
-
-```
-
-.\scripts\start.ps1 up- **Node.js + TypeScript** - Runtime e tipagem forte
-
-**Pronto!** Acesse: http://localhost:3000  
-
-**Login:** `admin` | **Senha:** `admin123`
-
-
-
----# Linux/Mac### Pré-requisitos- **Express.js** - Framework web
-
-
-
-## 📖 Documentaçãodocker-compose up -d
-
-
-
-| Arquivo | Para quê? |```- Docker + Docker Compose- **PostgreSQL** - Banco de dados
-
-|---------|-----------|
-
-| `RAILWAY_DEPLOY.md` | Deploy na nuvem (Railway) |
-
-| `setup-windows.ps1` | Setup automático Windows |
-
-| `setup-ubuntu.sh` | Setup automático Ubuntu |Acesse:- **Prisma ORM** - Type-safe database access
-
-
-
----- **Frontend**: http://localhost:3000
-
-
-
-## 🏗️ Arquitetura- **Backend**: http://localhost:3001### Iniciar- **JWT + Refresh Token** - Autenticação segura
-
-
-
-```- **Usuário**: admin | **Senha**: admin123
-
-┌─────────────┐      ┌──────────────┐      ┌─────────────┐
-
-│   Next.js   │ ───> │  Express.js  │ ───> │ PostgreSQL  │```bash- **Helmet** - Middleware de segurança
-
-│  Frontend   │      │   Backend    │      │  (na VPS)   │
-
-│  (Docker)   │      │  (Docker)    │      │             │---
-
-└─────────────┘      └──────────────┘      └─────────────┘
-
-```docker-compose up- **Rate Limiting** - Proteção contra abuse
-
-
-
-**Importante:** PostgreSQL roda **na máquina host**, não em Docker!## 🏗️ Stack Tecnológico
-
-
-
----```
-
-
-
-## 🔧 Tecnologias- **Backend**: Node.js + TypeScript + Express + PostgreSQL + Prisma
-
-
-
-### Backend- **Frontend**: Next.js 14 + React + Tailwind CSS + React Query### Frontend
-
-- Node.js 18 + TypeScript
-
-- Express.js + Prisma ORM- **DevOps**: Docker + Docker Compose
-
-- PostgreSQL 15
-
-- JWT + Refresh TokensAcesse:- **Next.js 14** - Framework React com App Router
-
-- Puppeteer (geração de PDFs)
-
-- Helmet + CORS + Rate Limiting---
-
-
-
-### Frontend- **Frontend**: http://localhost:3000- **TypeScript** - Tipagem forte
-
-- Next.js 14 (App Router)
-
-- React 18 + TypeScript## 📋 Funcionalidades
-
-- TailwindCSS + Radix UI
-
-- React Query + Axios- **Backend**: http://localhost:3001- **Tailwind CSS** - Framework CSS utilitário
-
-- React Hook Form + Zod
-
-- [x] Autenticação JWT + Refresh Token
-
-### DevOps
-
-- Docker + Docker Compose- [x] CRUD Beneficiários, Itens, Rotas (com paginação)- **Usuário**: admin | **Senha**: admin123- **React Query** - Gerenciamento de estado e cache
-
-- Railway (deploy)
-
-- [x] Dashboard administrativo responsivo
 
 ---
 
-- [x] Atendimentos vinculadas a rotas- **Axios** - Cliente HTTP
+## ⚡ Setup Rápido (5 minutos)
 
-## 📁 Estrutura
+## ✅ Principais Funcionalidades
 
-- [x] Sistema de auditoria (criado/modificado por)
+- Autenticação com refresh tokens, rate limiting e cookies HttpOnly
+
+- CRUD completo de beneficiários, itens, rotas, atendimentos e modelos
+
+- Dashboard administrativo com métricas em tempo real### Windows---Sistema completo para gerenciar atendimentos de ONGs com controle de beneficiários, itens, rotas e dashboard.Sistema completo para gerenciar atendimentos de ONGs, com controle de beneficiários, itens, rotas e dashboard administrativo.
+
+- Auditoria de criação/alteração e sanitização de templates
+
+- Geração de PDFs via Puppeteer```powershell
+
+- Seeds automáticos para ambiente de desenvolvimento
+
+- Deploy automatizado via Railway (frontend + backend + PostgreSQL)# Setup COMPLETO automatizado
+
+
+
+---.\setup-windows.ps1
+
+
+
+## 🛠 Pré-requisitos## 🚀 Quick Start
+
+- Node.js 18+
+
+- Docker Desktop + Docker Compose# Iniciar
+
+- PostgreSQL local (para desenvolvimento fora do Docker)
+
+- Git.\scripts\start.ps1 up
+
+
+
+> Em produção (Railway) o banco é gerenciado pela própria plataforma. Não há container de PostgreSQL nos `docker-compose`.```
+
+
+
+---### Pré-requisitos---## 🚀 Tecnologias Utilizadas
+
+
+
+## ⚡️ Setup Rápido (scripts automatizados)### Ubuntu/Linux
+
+
+
+### Windows (PowerShell)```bash- Docker + Docker Compose
+
+```powershell
+
+# Verificar requisitos# Dar permissão
+
+./scripts/start.ps1 check
+
+chmod +x setup-ubuntu.sh
+
+# Subir ambiente de desenvolvimento (frontend + backend)
+
+./scripts/start.ps1 up
+
+
+
+# Ver logs, parar, rebuild etc.# Setup COMPLETO automatizado### Iniciar
+
+./scripts/start.ps1 logs
+
+./scripts/start.ps1 down./setup-ubuntu.sh
+
+./scripts/start.ps1 build
+
+``````bash## 🚀 Quick Start (5 minutos)### Backend
+
+
+
+### Linux / WSL / macOS (bash)# Iniciar
+
+```bash
+
+# Verificar requisitos./scripts/start.sh up# Windows (PowerShell)
+
+./scripts/start.sh check
 
 ```
 
-Encantar/- [x] Seed dados para desenvolvimento---
+# Subir ambiente de desenvolvimento
 
-├── backend/           # API Node.js
+./scripts/start.sh up.\scripts\start.ps1 up- **Node.js + TypeScript** - Runtime e tipagem forte
 
-│   ├── src/- [x] Segurança: JWT, Helmet, Rate Limiting, CORS
 
-│   │   ├── controllers/
 
-│   │   ├── services/### DevOps
+# Comandos adicionais**Pronto!** Acesse: http://localhost:3000  
 
-│   │   ├── repositories/
+./scripts/start.sh logs
 
-│   │   └── routes/---
+./scripts/start.sh down**Login:** `admin` | **Senha:** `admin123`
 
-│   ├── prisma/
+./scripts/start.sh build
 
-│   └── Dockerfile## 🏗️ Stack Tecnológico- **Docker + Docker Compose** - Containerização
+```
 
-│
 
-├── frontend/          # App Next.js## 📁 Estrutura
+
+Os scripts cuidam de criar `.env` padrão, verificar Docker/PostgreSQL e orquestrar os `docker-compose`.---# Linux/Mac### Pré-requisitos- **Express.js** - Framework web
+
+
+
+---
+
+
+
+## 🧑‍💻 Fluxo de Desenvolvimento Manual## 📖 Documentaçãodocker-compose up -d
+
+
+
+### Backend
+
+```bash
+
+cd backend| Arquivo | Para quê? |```- Docker + Docker Compose- **PostgreSQL** - Banco de dados
+
+npm install
+
+npx prisma migrate dev|---------|-----------|
+
+npm run dev
+
+```| `RAILWAY_DEPLOY.md` | Deploy na nuvem (Railway) |
+
+A API sobe em `http://localhost:3001`.
+
+| `setup-windows.ps1` | Setup automático Windows |
+
+### Frontend
+
+```bash| `setup-ubuntu.sh` | Setup automático Ubuntu |Acesse:- **Prisma ORM** - Type-safe database access
+
+cd frontend
+
+npm install
+
+npm run dev
+
+```---- **Frontend**: http://localhost:3000
+
+A aplicação web fica em `http://localhost:3000`.
+
+
+
+---
+
+## 🏗️ Arquitetura- **Backend**: http://localhost:3001### Iniciar- **JWT + Refresh Token** - Autenticação segura
+
+## 🌐 Deploy (Railway)
+
+1. Faça push para o GitHub (branch `develop` ou escolhida).
+
+2. Railway detecta o push e executa:
+
+   - **Build Command backend:** `npm install && npm run build````- **Usuário**: admin | **Senha**: admin123
+
+   - **Start Command backend:** campo vazio (usa `docker-entrypoint.sh`).
+
+   - **Build Command frontend:** `npm install && npm run build`┌─────────────┐      ┌──────────────┐      ┌─────────────┐
+
+   - **Start Command frontend:** campo vazio (usa `npm start`, que roda `next start`).
+
+3. Configure as variáveis de ambiente em cada serviço.│   Next.js   │ ───> │  Express.js  │ ───> │ PostgreSQL  │```bash- **Helmet** - Middleware de segurança
+
+4. Gere domínio público e teste o fluxo completo.
+
+│  Frontend   │      │   Backend    │      │  (na VPS)   │
+
+### Variáveis obrigatórias – Backend
+
+| Nome | Exemplo | Descrição |│  (Docker)   │      │  (Docker)    │      │             │---
+
+| --- | --- | --- |
+
+| `DATABASE_URL` | `postgresql://postgres:senha@postgres.railway.internal:5432/railway` | Utilize a URL **privada** do serviço PostgreSQL no Railway |└─────────────┘      └──────────────┘      └─────────────┘
+
+| `JWT_SECRET` | `64-char-hex` | Assinatura do token de acesso |
+
+| `JWT_REFRESH_SECRET` | `64-char-hex` | Assinatura do refresh token |```docker-compose up- **Rate Limiting** - Proteção contra abuse
+
+| `JWT_EXPIRES_IN` | `15m` | Tempo de vida do token de acesso |
+
+| `JWT_REFRESH_EXPIRES_IN` | `7d` | Tempo de vida do refresh token |
+
+| `NODE_ENV` | `production` | Ambiente |
+
+| `PORT` | `8080` | Railway injeta, mas manter como fallback |**Importante:** PostgreSQL roda **na máquina host**, não em Docker!## 🏗️ Stack Tecnológico
+
+| `FRONTEND_URL` | `https://encantarfront-production.up.railway.app` | Base para CORS e cookies |
+
+| `LOG_LEVEL` | `info` | Nível de log |
+
+| `ENABLE_SEED` | `false` | Seeds desativadas em produção |
+
+---```
+
+### Variáveis obrigatórias – Frontend
+
+| Nome | Exemplo | Descrição |
+
+| --- | --- | --- |
+
+| `NODE_ENV` | `production` | Ambiente |## 🔧 Tecnologias- **Backend**: Node.js + TypeScript + Express + PostgreSQL + Prisma
+
+| `NEXT_PUBLIC_API_URL` | `https://encantarback-production.up.railway.app/api` | URL da API (sempre com `/api`) |
+
+| `PORT` | `8080` | Railway injeta automaticamente |
+
+
+
+---### Backend- **Frontend**: Next.js 14 + React + Tailwind CSS + React Query### Frontend
+
+
+
+## 🔐 Credenciais padrão (somente dev)- Node.js 18 + TypeScript
+
+- Usuário: `admin`
+
+- Senha: `admin123`- Express.js + Prisma ORM- **DevOps**: Docker + Docker Compose
+
+- Seeds incluem beneficiários, itens, rotas e atendimentos de exemplo. Desative com `ENABLE_SEED=false`.
+
+- PostgreSQL 15
+
+---
+
+- JWT + Refresh TokensAcesse:- **Next.js 14** - Framework React com App Router
+
+## 📁 Estrutura do Projeto
+
+```- Puppeteer (geração de PDFs)
+
+Encantar/
+
+├── backend/- Helmet + CORS + Rate Limiting---
 
 │   ├── src/
 
-│   │   ├── app/- **PostgreSQL 15 Alpine** - Banco em container
+│   │   ├── controllers/
+
+│   │   ├── services/
+
+│   │   ├── repositories/### Frontend- **Frontend**: http://localhost:3000- **TypeScript** - Tipagem forte
+
+│   │   ├── middleware/
+
+│   │   ├── routes/- Next.js 14 (App Router)
+
+│   │   ├── templates/ (PDF)
+
+│   │   └── utils/- React 18 + TypeScript## 📋 Funcionalidades
+
+│   ├── prisma/
+
+│   │   ├── schema.prisma- TailwindCSS + Radix UI
+
+│   │   ├── migrations/
+
+│   │   └── seed.ts- React Query + Axios- **Backend**: http://localhost:3001- **Tailwind CSS** - Framework CSS utilitário
+
+│   ├── Dockerfile
+
+│   └── Dockerfile.dev- React Hook Form + Zod
+
+├── frontend/
+
+│   ├── src/- [x] Autenticação JWT + Refresh Token
+
+│   │   ├── app/
+
+│   │   ├── components/### DevOps
+
+│   │   └── lib/
+
+│   ├── public/- Docker + Docker Compose- [x] CRUD Beneficiários, Itens, Rotas (com paginação)- **Usuário**: admin | **Senha**: admin123- **React Query** - Gerenciamento de estado e cache
+
+│   └── Dockerfile
+
+├── scripts/- Railway (deploy)
+
+│   ├── start.ps1
+
+│   └── start.sh- [x] Dashboard administrativo responsivo
+
+├── docker-compose.yml
+
+├── docker-compose.prod.yml---
+
+└── README.md
+
+```- [x] Atendimentos vinculadas a rotas- **Axios** - Cliente HTTP
+
+
+
+---## 📁 Estrutura
+
+
+
+## 🧷 Segurança implementada- [x] Sistema de auditoria (criado/modificado por)
+
+- Autenticação JWT + refresh tokens (cookies HttpOnly)
+
+- Helmet, CORS configurável por `FRONTEND_URL`, rate limiting global e por rota sensível```
+
+- Sanitização de HTML (Templates + PDF), validação com `express-validator` e `zod`
+
+- Auditoria automática (`criadoPorId`, `atualizadoPorId`)Encantar/- [x] Seed dados para desenvolvimento---
+
+- Log estruturado com Winston + morgan
+
+├── backend/           # API Node.js
+
+---
+
+│   ├── src/- [x] Segurança: JWT, Helmet, Rate Limiting, CORS
+
+## 🩺 Troubleshooting rápido
+
+| Sintoma | Ação recomendada |│   │   ├── controllers/
+
+| --- | --- |
+
+| **Frontend/Backend reiniciando no Railway** | Verifique se o health check responde 200 em `/` (backend tem rota específica) e se o `PORT` está livre. |│   │   ├── services/### DevOps
+
+| **Erro `P1001` Prisma** | Confirme `DATABASE_URL` (use a URL **privada** do serviço PostgreSQL no Railway) e liberação de rede. |
+
+| **CORS bloqueado** | Garanta `FRONTEND_URL` correto no backend (sem `/api`) e `NEXT_PUBLIC_API_URL` com `/api` no frontend. |│   │   ├── repositories/
+
+| **Problemas com PDF** | Puppeteer exige os pacotes instalados no Docker (já incluídos). Fora do Docker, instale dependências do Chromium. |
+
+| **Seeds disparando em produção** | Defina `ENABLE_SEED=false` no backend. |│   │   └── routes/---
+
+
+
+Logs adicionais estão em `backend/logs/` (rotacionados por dia).│   ├── prisma/
+
+
+
+---│   └── Dockerfile## 🏗️ Stack Tecnológico- **Docker + Docker Compose** - Containerização
+
+
+
+## 📞 Contato│
+
+Projeto desenvolvido por **Willian Filipe Silva**.
+
+Repositório: [github.com/WillianFilipeSilva/Encantar](https://github.com/WillianFilipeSilva/Encantar)├── frontend/          # App Next.js## 📁 Estrutura
+
+
+
+---│   ├── src/
+
+
+
+**Feito com ❤️ para facilitar o trabalho das ONGs.**│   │   ├── app/- **PostgreSQL 15 Alpine** - Banco em container
 
 │   │   ├── components/
 
