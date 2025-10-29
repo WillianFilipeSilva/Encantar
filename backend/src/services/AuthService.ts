@@ -46,37 +46,70 @@ export class AuthService {
   async login(loginData: LoginData): Promise<AuthResponse> {
     const { login, senha } = loginData;
 
-    const administrador = await this.prisma.administrador.findUnique({
-      where: { login },
+    console.log("🔍 AuthService.login - Iniciando:", {
+      login,
+      hasPassword: !!senha,
+      timestamp: new Date().toISOString(),
     });
 
-    if (!administrador) {
-      throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
-    }
+    try {
+      console.log("📊 Buscando administrador no banco...");
+      const administrador = await this.prisma.administrador.findUnique({
+        where: { login },
+      });
 
-    if (!administrador.ativo) {
-      throw CommonErrors.UNAUTHORIZED("Conta desativada");
-    }
+      console.log("📊 Resultado da busca:", {
+        found: !!administrador,
+        active: administrador?.ativo,
+        hasPassword: !!administrador?.senha,
+      });
 
-    const senhaValida = await bcrypt.compare(senha, administrador.senha);
-    if (!senhaValida) {
-      throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
-    }
+      if (!administrador) {
+        console.log("❌ Administrador não encontrado");
+        throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
+      }
 
-    const tokens = this.generateTokens({
-      id: administrador.id,
-      login: administrador.login,
-      nome: administrador.nome,
-    });
+      if (!administrador.ativo) {
+        console.log("❌ Administrador desativado");
+        throw CommonErrors.UNAUTHORIZED("Conta desativada");
+      }
 
-    return {
-      user: {
+      console.log("🔐 Verificando senha...");
+      const senhaValida = await bcrypt.compare(senha, administrador.senha);
+      
+      if (!senhaValida) {
+        console.log("❌ Senha inválida");
+        throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
+      }
+
+      console.log("✅ Senha válida, gerando tokens...");
+      const tokens = this.generateTokens({
         id: administrador.id,
-        nome: administrador.nome,
         login: administrador.login,
-      },
-      ...tokens,
-    };
+        nome: administrador.nome,
+      });
+
+      console.log("✅ Tokens gerados com sucesso");
+      return {
+        user: {
+          id: administrador.id,
+          nome: administrador.nome,
+          login: administrador.login,
+        },
+        ...tokens,
+      };
+    } catch (error) {
+      console.error("💥 Erro no AuthService.login:", {
+        error: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        } : error,
+        login,
+        timestamp: new Date().toISOString(),
+      });
+      throw error; // Re-throw o erro para manter o comportamento original
+    }
   }
 
   /**

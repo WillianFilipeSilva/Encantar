@@ -41,22 +41,36 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ) => {
-  if (process.env.NODE_ENV === "development") {
-    console.error("🚨 Erro capturado:", {
-      message: error.message,
-      stack: error.stack,
-      url: req.url,
-      method: req.method,
+  // Log detalhado do erro sempre (produção e desenvolvimento)
+  console.error("🚨 Erro capturado no errorHandler:", {
+    message: error.message,
+    name: error.name,
+    statusCode: error.statusCode,
+    code: error.code,
+    isOperational: error.isOperational,
+    url: req.url,
+    method: req.method,
+    timestamp: formatBrazilDateTime(new Date()),
+    ...(process.env.NODE_ENV === "development" && {
       body: req.body,
       query: req.query,
       params: req.params,
-      timestamp: formatBrazilDateTime(new Date()),
-    });
-  }
+      stack: error.stack,
+    }),
+  });
 
+  // Se não é um erro operacional conhecido, tratar como erro interno
   if (!error.isOperational) {
+    console.error("⚠️ ERRO NÃO OPERACIONAL DETECTADO:", {
+      originalMessage: error.message,
+      originalName: error.name,
+      stack: error.stack,
+    });
+    
     error = new CustomError(
-      "Erro interno do servidor",
+      process.env.NODE_ENV === "development" 
+        ? `Erro interno: ${error.message}` 
+        : "Erro interno do servidor",
       500,
       "INTERNAL_SERVER_ERROR"
     );
@@ -67,6 +81,7 @@ export const errorHandler = (
     error: error.message,
     code: error.code || "UNKNOWN_ERROR",
     ...(process.env.NODE_ENV === "development" && {
+      originalError: error.name,
       stack: error.stack,
       details: {
         url: req.url,
