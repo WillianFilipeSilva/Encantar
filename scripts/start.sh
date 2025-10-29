@@ -226,9 +226,9 @@ case "$CMD" in# ==========================================
 
         echo -e "\n${GREEN}Containers rodando!${NC}"        
 
-        echo "Backend:  http://localhost:3001"        # Permitir conexões locais
+        echo "Backend:  https://projeto-encantarback.up.railway.app/"        # Permitir conexões locais
 
-        echo "Frontend: http://localhost:3000"        PG_VERSION=$(psql --version | grep -oP '\d+' | head -1)
+        echo "Frontend: https://projeto-encantar.up.railway.app"        PG_VERSION=$(psql --version | grep -oP '\d+' | head -1)
 
         echo ""        PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
 
@@ -338,9 +338,9 @@ case "$CMD" in# ==========================================
 
     prod-logs)        ENABLE_SEED="true"
 
-        echo -e "\n${CYAN}Logs producao (Ctrl+C para sair)...${NC}\n"        FRONTEND_URL="http://localhost:3000"
+        echo -e "\n${CYAN}Logs producao (Ctrl+C para sair)...${NC}\n"        FRONTEND_URL="https://projeto-encantar.up.railway.app"
 
-        cd ..        API_URL="http://localhost:3001/api"
+        cd ..        API_URL="https://projeto-encantarback.up.railway.app//api"
 
         docker-compose -f docker-compose.prod.yml logs -f    fi
 
@@ -583,8 +583,8 @@ case "$CMD" in# ==========================================
                 LOG_LEVEL="debug"echo -e "${YELLOW}💡 Dica: Use ./scripts/start.sh para gerenciar os containers${NC}"
 
                 ENABLE_SEED="true"
-                FRONTEND_URL="http://localhost:3000"
-                API_URL="http://localhost:3001/api"
+                FRONTEND_URL="https://projeto-encantar.up.railway.app"
+                API_URL="https://projeto-encantarback.up.railway.app//api"
             fi
             
             cat > .env << EOF
