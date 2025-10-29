@@ -21,6 +21,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import { formatBrazilDateTime } from "./utils/dateUtils";
 import { notFound } from "./middleware/notFound";
 import { EnvValidator } from "./utils/envValidator";
+import { setupSwagger } from "./swagger/swagger";
 
 import DatabaseClient from "./utils/database";
 
@@ -209,6 +210,9 @@ app.use("/api/modelos-atendimento", modeloAtendimentoRoutes);
 app.use("/api/atendimentos", atendimentoRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/templates", templatePDFRoutes);
+
+// Configurar Swagger para documentação da API
+setupSwagger(app);
 
 app.use(notFound);
 
