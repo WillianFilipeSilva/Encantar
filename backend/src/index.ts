@@ -50,7 +50,7 @@ app.use(
   cors({
     origin: [
       "https://projeto-encantar.up.railway.app",
-      "http://127.0.0.1:3000",
+      "http://localhost:3000",
       process.env.FRONTEND_URL || "https://projeto-encantar.up.railway.app"
     ],
     credentials: true,
@@ -115,7 +115,7 @@ app.use(
         connectSrc: ["'self'", 
           isProduction 
             ? process.env.FRONTEND_URL || "https://projeto-encantar.up.railway.app"
-            : "https://projeto-encantar.up.railway.app"
+            : "http://localhost:3000"
         ],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],

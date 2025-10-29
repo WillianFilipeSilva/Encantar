@@ -4,7 +4,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: encantar-backend-prod
+    container_name: encantar_back
     env_file:
       - .env
     environment:
@@ -41,7 +41,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: encantar-frontend-prod
+    container_name: encantar_front
     env_file:
       - .env
     environment:
