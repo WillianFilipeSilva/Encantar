@@ -211,7 +211,7 @@ export default function ItensPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Itens</h1>
           <p className="text-muted-foreground">
-            Gerencie os itens disponíveis para entrega
+            Gerencie os itens disponíveis para atendimento
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => {

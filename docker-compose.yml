@@ -1,84 +1,55 @@
-version: '3.8'
-
 services:
-  # Banco de dados PostgreSQL
-  postgres:
-    image: postgres:15-alpine
-    container_name: encantar-db
-    environment:
-      POSTGRES_DB: encantar
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - encantar-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  # Backend API
+  # Backend API - Desenvolvimento
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: encantar-backend
+    container_name: encantar-backend-dev
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/encantar"
-      JWT_SECRET: "-ENCANTAR-SECRET-MUDAR-EM-PROD"
-      JWT_REFRESH_SECRET: "-ENCANTAR-REFRESH-SECRET-MUDAR-EM-PROD"
-      JWT_EXPIRES_IN: "15m"
-      JWT_REFRESH_EXPIRES_IN: "7d"
+      # Banco PostgreSQL na máquina host
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       PORT: 3001
-      FRONTEND_URL: "http://localhost:3000"
+      FRONTEND_URL: ${FRONTEND_URL}
       NODE_ENV: "development"
+      ENABLE_SEED: ${ENABLE_SEED:-true}
     ports:
       - "3001:3001"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    extra_hosts:
+      # Permite acesso ao PostgreSQL na máquina host
+      - "host.docker.internal:host-gateway"
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - ./backend/logs:/app/logs
     networks:
       - encantar-network
-    command: >
-      sh -c "
-        echo '🔄 Aguardando banco de dados...' &&
-        npx prisma migrate deploy &&
-        echo '🌱 Populando banco...' &&
-        npm run prisma:seed &&
-        echo '🚀 Iniciando servidor...' &&
-        npm run dev
-      "
+    restart: unless-stopped
 
-  # Frontend Next.js
+  # Frontend Next.js - Desenvolvimento
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: encantar-frontend
+    container_name: encantar-frontend-dev
+    env_file:
+      - .env
     environment:
-      NEXT_PUBLIC_API_URL: "http://localhost:3001/api"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NODE_ENV: "development"
     ports:
       - "3000:3000"
-    depends_on:
-      - backend
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
     networks:
       - encantar-network
-    command: npm run dev
-
-volumes:
-  postgres_data:
+    restart: unless-stopped
+    depends_on:
+      - backend
 
 networks:
   encantar-network:

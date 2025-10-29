@@ -1,15 +1,15 @@
-import { ModeloEntrega } from "@prisma/client";
+import { ModeloAtendimento } from "@prisma/client";
 import { BaseService } from "./BaseService";
-import { ModeloEntregaRepository } from "../repositories/ModeloEntregaRepository";
-import { CreateModeloEntregaDTO, UpdateModeloEntregaDTO } from "../models/DTOs";
+import { ModeloAtendimentoRepository } from "../repositories/ModeloAtendimentoRepository";
+import { CreateModeloAtendimentoDTO, UpdateModeloAtendimentoDTO } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
 
-export class ModeloEntregaService extends BaseService<
-  ModeloEntrega,
-  CreateModeloEntregaDTO,
-  UpdateModeloEntregaDTO
+export class ModeloAtendimentoService extends BaseService<
+  ModeloAtendimento,
+  CreateModeloAtendimentoDTO,
+  UpdateModeloAtendimentoDTO
 > {
-  constructor(repository: ModeloEntregaRepository) {
+  constructor(repository: ModeloAtendimentoRepository) {
     super(repository);
   }
 
@@ -25,7 +25,7 @@ export class ModeloEntregaService extends BaseService<
   }
 
   protected async validateCreateData(
-    data: CreateModeloEntregaDTO
+    data: CreateModeloAtendimentoDTO
   ): Promise<void> {
     if (!data.nome || data.nome.trim().length < 3) {
       throw CommonErrors.BAD_REQUEST(
@@ -35,7 +35,7 @@ export class ModeloEntregaService extends BaseService<
   }
 
   protected async validateUpdateData(
-    data: UpdateModeloEntregaDTO
+    data: UpdateModeloAtendimentoDTO
   ): Promise<void> {
     if (
       data.nome !== undefined &&

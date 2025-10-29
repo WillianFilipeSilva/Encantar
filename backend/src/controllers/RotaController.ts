@@ -66,7 +66,7 @@ export class RotaController extends BaseController<
 
       const serializedData = result.data.map(rota => ({
         ...rota,
-        dataEntrega: serializeDateForAPI(rota.dataEntrega),
+        dataAtendimento: serializeDateForAPI(rota.dataAtendimento),
         criadoEm: serializeDateTimeForAPI(rota.criadoEm),
         atualizadoEm: serializeDateTimeForAPI(rota.atualizadoEm)
       }));
@@ -97,7 +97,7 @@ export class RotaController extends BaseController<
       // Serializar data para evitar problemas de timezone no frontend
       const serializedResult = {
         ...result,
-        dataEntrega: serializeDateForAPI(result?.dataEntrega),
+        dataAtendimento: serializeDateForAPI(result?.dataAtendimento),
         criadoEm: serializeDateTimeForAPI(result?.criadoEm),
         atualizadoEm: serializeDateTimeForAPI(result?.atualizadoEm)
       };
@@ -128,18 +128,18 @@ export class RotaController extends BaseController<
       const dataInicio = createDateFromString(query.dataInicio);
       const dataFim = createDateFromString(query.dataFim);
       
-      filters.dataEntrega = {
+      filters.dataAtendimento = {
         gte: dataInicio,
         lte: dataFim
       };
     } else if (query.dataInicio) {
       const dataInicio = createDateFromString(query.dataInicio);
-      filters.dataEntrega = {
+      filters.dataAtendimento = {
         gte: dataInicio
       };
     } else if (query.dataFim) {
       const dataFim = createDateFromString(query.dataFim);
-      filters.dataEntrega = {
+      filters.dataAtendimento = {
         lte: dataFim
       };
     }

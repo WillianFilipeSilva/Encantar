@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
-import { beneficiariosRoutes, itensRoutes, entregasRoutes, rotasRoutes } from "./routes";
+import { beneficiariosRoutes, itensRoutes, atendimentosRoutes, rotasRoutes } from "./routes";
 
 const swaggerDocument = {
   openapi: "3.0.0",
@@ -29,16 +29,16 @@ const swaggerDocument = {
       description: "Operações relacionadas a itens"
     },
     {
-      name: "Entregas",
-      description: "Operações relacionadas a entregas"
+      name: "Atendimentos",
+      description: "Operações relacionadas a atendimentos"
     },
     {
       name: "Rotas",
-      description: "Operações relacionadas a rotas de entrega"
+      description: "Operações relacionadas a rotas de atendimento"
     },
     {
-      name: "Modelo de Entregas",
-      description: "Operações relacionadas a modelos de entrega"
+      name: "Modelo de Atendimentos",
+      description: "Operações relacionadas a modelos de atendimento"
     },
     {
       name: "Autenticação",
@@ -158,7 +158,7 @@ const swaggerDocument = {
   paths: {
     ...beneficiariosRoutes,
     ...itensRoutes,
-    ...entregasRoutes,
+    ...atendimentosRoutes,
     ...rotasRoutes
   }
 };

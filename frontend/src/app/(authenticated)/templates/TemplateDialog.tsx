@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -10,83 +10,123 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { templateService } from '@/lib/services/templateService'
-import { TemplatePDF } from '@/lib/types'
-import { toast } from 'sonner'
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { templateService } from "@/lib/services/templateService";
+import { TemplatePDF } from "@/lib/types";
+import { toast } from "sonner";
 
 interface TemplateDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess: () => void
-  template: TemplatePDF | null
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  template: TemplatePDF | null;
 }
 
-export function TemplateDialog({ isOpen, onClose, onSuccess, template }: TemplateDialogProps) {
+export function TemplateDialog({
+  isOpen,
+  onClose,
+  onSuccess,
+  template,
+}: TemplateDialogProps) {
   const [formData, setFormData] = useState({
-    nome: '',
-    descricao: '',
-    conteudo: ''
-  })
-  const [isLoading, setIsLoading] = useState(false)
+    nome: "",
+    descricao: "",
+    conteudo: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (template) {
       setFormData({
         nome: template.nome,
-        descricao: template.descricao || '',
-        conteudo: template.conteudo
-      })
+        descricao: template.descricao || "",
+        conteudo: template.conteudo,
+      });
     } else {
       setFormData({
-        nome: '',
-        descricao: '',
-        conteudo: ''
-      })
+        nome: "",
+        descricao: "",
+        conteudo: "",
+      });
     }
-  }, [template, isOpen])
+  }, [template, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
+
+    if (!formData.nome.trim()) {
+      toast.error("Nome do template é obrigatório");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.nome.trim().length < 2) {
+      toast.error("Nome deve ter pelo menos 2 caracteres");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.nome.trim().length > 100) {
+      toast.error("Nome deve ter no máximo 100 caracteres");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.descricao && formData.descricao.trim().length > 500) {
+      toast.error("Descrição deve ter no máximo 500 caracteres");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.conteudo.trim()) {
+      toast.error("Conteúdo HTML é obrigatório");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.conteudo.trim().length < 10) {
+      toast.error("Conteúdo deve ter pelo menos 10 caracteres");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       if (template) {
-        await templateService.update(template.id, formData)
-        toast.success('Template atualizado com sucesso')
+        await templateService.update(template.id, formData);
+        toast.success("Template atualizado com sucesso");
       } else {
-        await templateService.create(formData)
-        toast.success('Template criado com sucesso')
+        await templateService.create(formData);
+        toast.success("Template criado com sucesso");
       }
-      onSuccess()
+      onSuccess();
     } catch (error) {
-      toast.error('Erro ao salvar template')
+      toast.error("Erro ao salvar template");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {template ? 'Editar Template' : 'Novo Template'}
+            {template ? "Editar Template" : "Novo Template"}
           </DialogTitle>
           <DialogDescription>
-            {template 
-              ? 'Edite as informações do template HTML' 
-              : 'Crie um novo template HTML para impressão de rotas'
-            }
+            {template
+              ? "Edite as informações do template HTML"
+              : "Crie um novo template HTML para impressão de rotas"}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,7 +137,7 @@ export function TemplateDialog({ isOpen, onClose, onSuccess, template }: Templat
               <Input
                 id="nome"
                 value={formData.nome}
-                onChange={(e) => handleInputChange('nome', e.target.value)}
+                onChange={(e) => handleInputChange("nome", e.target.value)}
                 placeholder="Ex: Template Padrão"
                 required
               />
@@ -107,7 +147,7 @@ export function TemplateDialog({ isOpen, onClose, onSuccess, template }: Templat
               <Input
                 id="descricao"
                 value={formData.descricao}
-                onChange={(e) => handleInputChange('descricao', e.target.value)}
+                onChange={(e) => handleInputChange("descricao", e.target.value)}
                 placeholder="Descrição do template"
               />
             </div>
@@ -118,13 +158,23 @@ export function TemplateDialog({ isOpen, onClose, onSuccess, template }: Templat
             <Textarea
               id="conteudo"
               value={formData.conteudo}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange('conteudo', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                handleInputChange("conteudo", e.target.value)
+              }
               placeholder="Cole ou digite o código HTML do template aqui..."
               className="min-h-[400px] font-mono text-sm"
               required
             />
             <p className="text-xs text-muted-foreground">
-              Use variáveis como: {'{'}{'{'} nomeRota {'}'}{'}'},  {'{'}{'{'} dataAtendimento {'}'}{'}'},  {'{'}{'{'} beneficiarios {'}'}{'}'},  {'{'}{'{'} itens {'}'}{'}'} 
+              Use variáveis como: {"{"}
+              {"{"} nomeRota {"}"}
+              {"}"}, {"{"}
+              {"{"} dataAtendimento {"}"}
+              {"}"}, {"{"}
+              {"{"} beneficiarios {"}"}
+              {"}"}, {"{"}
+              {"{"} itens {"}"}
+              {"}"}
             </p>
           </div>
 
@@ -133,16 +183,11 @@ export function TemplateDialog({ isOpen, onClose, onSuccess, template }: Templat
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading 
-                ? 'Salvando...' 
-                : template 
-                  ? 'Atualizar' 
-                  : 'Criar'
-              }
+              {isLoading ? "Salvando..." : template ? "Atualizar" : "Criar"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

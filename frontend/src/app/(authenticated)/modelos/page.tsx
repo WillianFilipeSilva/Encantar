@@ -1,69 +1,86 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PaginationControls } from "@/components/PaginationControls"
-import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
-import { usePagination } from "@/hooks/usePagination"
-import { api } from "@/lib/axios"
-import { logError } from "@/lib/errorUtils"
-import { showErrorToast } from "@/components/ErrorToast"
-import { PenLine, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
-import { useEffect } from "react"
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
-import toast from 'react-hot-toast'
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { PaginationControls } from "@/components/PaginationControls";
+import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog";
+import { usePagination } from "@/hooks/usePagination";
+import { api } from "@/lib/axios";
+import { logError } from "@/lib/errorUtils";
+import { showErrorToast } from "@/components/ErrorToast";
+import { PenLine, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
-interface ModeloEntrega {
-  id: string
-  nome: string
-  descricao?: string
+interface ModeloAtendimento {
+  id: string;
+  nome: string;
+  descricao?: string;
   modeloItems: Array<{
-    id: string
-    quantidade: number
+    id: string;
+    quantidade: number;
     item: {
-      id: string
-      nome: string
-      unidade: string
-    }
-  }>
+      id: string;
+      nome: string;
+      unidade: string;
+    };
+  }>;
 }
 
 interface Item {
-  id: string
-  nome: string
-  unidade: 'KG' | 'G' | 'L' | 'ML' | 'UN' | 'CX' | 'PCT' | 'LATA'
+  id: string;
+  nome: string;
+  unidade: "KG" | "G" | "L" | "ML" | "UN" | "CX" | "PCT" | "LATA";
 }
 
 interface ModeloItem {
-  itemId: string
-  quantidade: number
+  itemId: string;
+  quantidade: number;
 }
 
 export default function ModelosPage() {
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingModelo, setEditingModelo] = useState<ModeloEntrega | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingModelo, setEditingModelo] = useState<ModeloAtendimento | null>(
+    null
+  );
   const [formData, setFormData] = useState({
-    nome: '',
-    descricao: '',
-  })
-  const [modeloItems, setModeloItems] = useState<ModeloItem[]>([])
+    nome: "",
+    descricao: "",
+  });
+  const [modeloItems, setModeloItems] = useState<ModeloItem[]>([]);
 
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   const {
     openDialog: openDeleteDialog,
     ConfirmDialogComponent: DeleteConfirmDialog,
-    isLoading: isDeleting
+    isLoading: isDeleting,
   } = useConfirmDialog({
     title: "Excluir Modelo",
-    description: "Esta ação não pode ser desfeita. O modelo e todos os seus itens serão removidos permanentemente.",
+    description:
+      "Esta ação não pode ser desfeita. O modelo e todos os seus itens serão removidos permanentemente.",
     confirmText: "Sim, excluir",
     cancelText: "Cancelar",
-    variant: 'danger'
-  })
+    variant: "danger",
+  });
 
   const {
     data,
@@ -75,175 +92,224 @@ export default function ModelosPage() {
     setFilters,
     isLoading,
     error,
-  } = usePagination<ModeloEntrega>('/modelos-entrega')
+  } = usePagination<ModeloAtendimento>("/modelos-atendimento");
 
-  const filterConfig: any[] = [
-  ]
+  const filterConfig: any[] = [];
 
-  const { data: itensDisponiveis = [], isLoading: isLoadingItems, error: itemsError } = useQuery<Item[]>({
-    queryKey: ['items-ativos-for-models'],
+  const {
+    data: itensDisponiveis = [],
+    isLoading: isLoadingItems,
+    error: itemsError,
+  } = useQuery<Item[]>({
+    queryKey: ["items-ativos-for-models"],
     queryFn: async () => {
       try {
-        console.log('Buscando itens ativos...')
-        const response = await api.get('/items/active?page=1&limit=100')
-        console.log('Resposta da API:', response.data)
-        
+        console.log("Buscando itens ativos...");
+        const response = await api.get("/items/active?page=1&limit=100");
+        console.log("Resposta da API:", response.data);
+
         if (response.data && response.data.data) {
-          return Array.isArray(response.data.data) ? response.data.data : []
+          return Array.isArray(response.data.data) ? response.data.data : [];
         } else {
-          return []
+          return [];
         }
       } catch (error: any) {
-        console.error('Erro ao buscar itens ativos:', error)
-        return []
+        console.error("Erro ao buscar itens ativos:", error);
+        return [];
       }
     },
     retry: 1,
     staleTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
-  })
+    refetchOnWindowFocus: true,
+  });
 
   useEffect(() => {
     if (itemsError) {
-      console.error('Erro ao carregar itens:', itemsError)
+      console.error("Erro ao carregar itens:", itemsError);
     }
-  }, [itemsError])
+  }, [itemsError]);
 
   const createModeloMutation = useMutation({
     mutationFn: async (newModelo: any) => {
-      const response = await api.post('/modelos-entrega', newModelo)
-      return response.data
+      const response = await api.post("/modelos-atendimento", newModelo);
+      return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
-      setPage(1)
-      resetForm()
-      setDialogOpen(false)
-      toast.success('Modelo de atendimento cadastrado com sucesso!')
+      await queryClient.invalidateQueries({
+        queryKey: ["/modelos-atendimento"],
+      });
+      setPage(1);
+      resetForm();
+      setDialogOpen(false);
+      toast.success("Modelo de atendimento cadastrado com sucesso!");
     },
     onError: (error: any) => {
-      logError('CriarModelo', error)
-      showErrorToast('Erro ao cadastrar modelo', error)
-    }
-  })
+      logError("CriarModelo", error);
+      showErrorToast("Erro ao cadastrar modelo", error);
+    },
+  });
 
   const updateModeloMutation = useMutation({
     mutationFn: async (updatedModelo: any) => {
-      const { id, ...data } = updatedModelo
-      const response = await api.put(`/modelos-entrega/${id}`, data)
-      return response.data
+      const { id, ...data } = updatedModelo;
+      const response = await api.put(`/modelos-atendimento/${id}`, data);
+      return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
-      resetForm()
-      setEditingModelo(null)
-      setDialogOpen(false)
-      toast.success('Modelo de atendimento atualizado com sucesso!')
+      await queryClient.invalidateQueries({
+        queryKey: ["/modelos-atendimento"],
+      });
+      resetForm();
+      setEditingModelo(null);
+      setDialogOpen(false);
+      toast.success("Modelo de atendimento atualizado com sucesso!");
     },
     onError: (error: any) => {
-      logError('AtualizarModelo', error)
-      showErrorToast('Erro ao atualizar modelo', error)
-    }
-  })
+      logError("AtualizarModelo", error);
+      showErrorToast("Erro ao atualizar modelo", error);
+    },
+  });
 
   const deleteModeloMutation = useMutation({
     mutationFn: async (modeloId: string) => {
-      const response = await api.delete(`/modelos-entrega/${modeloId}`)
-      return response.data
+      const response = await api.delete(`/modelos-atendimento/${modeloId}`);
+      return response.data;
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/modelos-entrega'] })
-      toast.success('Modelo de atendimento excluído com sucesso!')
+      await queryClient.invalidateQueries({
+        queryKey: ["/modelos-atendimento"],
+      });
+      toast.success("Modelo de atendimento excluído com sucesso!");
     },
     onError: (error: any) => {
-      logError('ExcluirModelo', error)
-      showErrorToast('Erro ao excluir modelo', error)
-    }
-  })
+      logError("ExcluirModelo", error);
+      showErrorToast("Erro ao excluir modelo", error);
+    },
+  });
 
   const resetForm = () => {
-    setFormData({ nome: '', descricao: '' })
-    setModeloItems([])
-  }
+    setFormData({ nome: "", descricao: "" });
+    setModeloItems([]);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+
     if (!formData.nome.trim()) {
-      toast.error('Nome do modelo é obrigatório')
-      return
+      toast.error("Nome do modelo é obrigatório");
+      return;
     }
+
+    if (formData.nome.trim().length < 3) {
+      toast.error("Nome deve ter pelo menos 3 caracteres");
+      return;
+    }
+
+    if (formData.nome.trim().length > 100) {
+      toast.error("Nome deve ter no máximo 100 caracteres");
+      return;
+    }
+
+    if (formData.descricao && formData.descricao.trim().length > 500) {
+      toast.error("Descrição deve ter no máximo 500 caracteres");
+      return;
+    }
+
     if (modeloItems.length === 0) {
-      toast.error('Adicione pelo menos um item ao modelo')
-      return
+      toast.error("O modelo deve ter pelo menos um item");
+      return;
     }
+
+    for (let i = 0; i < modeloItems.length; i++) {
+      const item = modeloItems[i];
+      if (!item.itemId) {
+        toast.error(`Item ${i + 1}: Selecione um item`);
+        return;
+      }
+      if (item.quantidade <= 0) {
+        toast.error(`Item ${i + 1}: Quantidade deve ser maior que zero`);
+        return;
+      }
+    }
+
     const submitData = {
       ...formData,
-      modeloItems: modeloItems.filter(item => item.itemId && item.quantidade > 0)
-    }
+      modeloItems: modeloItems.filter(
+        (item) => item.itemId && item.quantidade > 0
+      ),
+    };
+
     if (editingModelo) {
-      updateModeloMutation.mutate({ ...submitData, id: editingModelo.id })
+      updateModeloMutation.mutate({ ...submitData, id: editingModelo.id });
     } else {
-      createModeloMutation.mutate(submitData)
+      createModeloMutation.mutate(submitData);
     }
-  }
+  };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
-  const handleEdit = (modelo: ModeloEntrega) => {
-    setEditingModelo(modelo)
+  const handleEdit = (modelo: ModeloAtendimento) => {
+    setEditingModelo(modelo);
     setFormData({
       nome: modelo.nome,
-      descricao: modelo.descricao || '',
-    })
-    setModeloItems(modelo.modeloItems.map(mi => ({
-      itemId: mi.item.id,
-      quantidade: mi.quantidade
-    })))
-    setDialogOpen(true)
-  }
+      descricao: modelo.descricao || "",
+    });
+    setModeloItems(
+      modelo.modeloItems.map((mi) => ({
+        itemId: mi.item.id,
+        quantidade: mi.quantidade,
+      }))
+    );
+    setDialogOpen(true);
+  };
 
-  const handleDelete = (modelo: ModeloEntrega) => {
+  const handleDelete = (modelo: ModeloAtendimento) => {
     openDeleteDialog(() => {
       deleteModeloMutation.mutate(modelo.id);
     });
-  }
+  };
 
   const handleCloseDialog = () => {
-    setDialogOpen(false)
-    setEditingModelo(null)
-    resetForm()
-  }
+    setDialogOpen(false);
+    setEditingModelo(null);
+    resetForm();
+  };
 
   const addItem = () => {
-    setModeloItems(prev => [...prev, { itemId: '', quantidade: 1 }])
-  }
+    setModeloItems((prev) => [...prev, { itemId: "", quantidade: 1 }]);
+  };
 
   const removeItem = (index: number) => {
-    setModeloItems(prev => prev.filter((_, i) => i !== index))
-  }
+    setModeloItems((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const updateModeloItem = (index: number, field: string, value: any) => {
-    setModeloItems(prev => prev.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
-    ))
-  }
+    setModeloItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Modelos de Atendimento</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Modelos de Atendimento
+          </h1>
           <p className="text-muted-foreground">
             Gerencie os modelos padrão de atendimento
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => {
-          if (!open) handleCloseDialog();
-          setDialogOpen(open);
-        }}>
+        <Dialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            if (!open) handleCloseDialog();
+            setDialogOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -252,36 +318,67 @@ export default function ModelosPage() {
           </DialogTrigger>
           <DialogContent className="max-w-4xl">
             <DialogHeader>
-              <DialogTitle>{editingModelo ? 'Editar modelo' : 'Novo modelo'}</DialogTitle>
+              <DialogTitle>
+                {editingModelo ? "Editar modelo" : "Novo modelo"}
+              </DialogTitle>
               <DialogDescription>
                 {editingModelo
-                  ? 'Altere os dados do modelo conforme necessário'
-                  : 'Preencha os dados para cadastrar um novo modelo de atendimento'
-                }
+                  ? "Altere os dados do modelo conforme necessário"
+                  : "Preencha os dados para cadastrar um novo modelo de atendimento"}
               </DialogDescription>
             </DialogHeader>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="nome">Nome do modelo *</label>
-                  <Input id="nome" placeholder="Ex: Cesta Básica Padrão" value={formData.nome} onChange={(e) => handleInputChange('nome', e.target.value)} required />
+                  <Input
+                    id="nome"
+                    placeholder="Ex: Cesta Básica Padrão"
+                    value={formData.nome}
+                    onChange={(e) => handleInputChange("nome", e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="descricao">Descrição</label>
-                  <Input id="descricao" placeholder="Descrição do modelo" value={formData.descricao} onChange={(e) => handleInputChange('descricao', e.target.value)} />
+                  <Input
+                    id="descricao"
+                    placeholder="Descrição do modelo"
+                    value={formData.descricao}
+                    onChange={(e) =>
+                      handleInputChange("descricao", e.target.value)
+                    }
+                  />
                 </div>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-medium">Itens do Modelo</h3>
-                    {isLoadingItems && <p className="text-sm text-blue-600">Carregando itens disponíveis...</p>}
-                    {itemsError && <p className="text-sm text-red-600">Erro ao carregar itens: {itemsError?.message}</p>}
-                    {!isLoadingItems && !itemsError && Array.isArray(itensDisponiveis) && (
-                      <p className="text-sm text-green-600">{itensDisponiveis.length} itens disponíveis</p>
+                    {isLoadingItems && (
+                      <p className="text-sm text-blue-600">
+                        Carregando itens disponíveis...
+                      </p>
                     )}
+                    {itemsError && (
+                      <p className="text-sm text-red-600">
+                        Erro ao carregar itens: {itemsError?.message}
+                      </p>
+                    )}
+                    {!isLoadingItems &&
+                      !itemsError &&
+                      Array.isArray(itensDisponiveis) && (
+                        <p className="text-sm text-green-600">
+                          {itensDisponiveis.length} itens disponíveis
+                        </p>
+                      )}
                   </div>
-                  <Button type="button" onClick={addItem} size="sm" disabled={isLoadingItems}>
+                  <Button
+                    type="button"
+                    onClick={addItem}
+                    size="sm"
+                    disabled={isLoadingItems}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Adicionar Item
                   </Button>
@@ -289,25 +386,41 @@ export default function ModelosPage() {
                 <div className="space-y-2">
                   {modeloItems.map((modeloItem, index) => {
                     // Filtrar itens disponíveis excluindo os já selecionados (exceto o atual)
-                    const itensDisponiveisParaSelecao = Array.isArray(itensDisponiveis) ? itensDisponiveis.filter(item => 
-                      item.id === modeloItem.itemId || // Manter o item atual selecionado
-                      !modeloItems.some(mi => mi.itemId === item.id) // Excluir itens já selecionados
-                    ) : []
+                    const itensDisponiveisParaSelecao = Array.isArray(
+                      itensDisponiveis
+                    )
+                      ? itensDisponiveis.filter(
+                          (item) =>
+                            item.id === modeloItem.itemId || // Manter o item atual selecionado
+                            !modeloItems.some((mi) => mi.itemId === item.id) // Excluir itens já selecionados
+                        )
+                      : [];
 
                     return (
-                      <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 border rounded"
+                      >
                         <select
                           className="flex-1 p-2 border rounded"
                           value={modeloItem.itemId}
-                          onChange={(e) => updateModeloItem(index, 'itemId', e.target.value)}
+                          onChange={(e) =>
+                            updateModeloItem(index, "itemId", e.target.value)
+                          }
                         >
                           <option value="">Selecione um item</option>
-                          {isLoadingItems && <option disabled>Carregando itens...</option>}
-                          {itemsError && <option disabled>Erro ao carregar itens</option>}
-                          {!isLoadingItems && !itemsError && itensDisponiveisParaSelecao.length === 0 && (
-                            <option disabled>Nenhum item disponível</option>
+                          {isLoadingItems && (
+                            <option disabled>Carregando itens...</option>
                           )}
-                          {itensDisponiveisParaSelecao.map(item => (
+                          {itemsError && (
+                            <option disabled>Erro ao carregar itens</option>
+                          )}
+                          {!isLoadingItems &&
+                            !itemsError &&
+                            itensDisponiveisParaSelecao.length === 0 && (
+                              <option disabled>Nenhum item disponível</option>
+                            )}
+                          {itensDisponiveisParaSelecao.map((item) => (
                             <option key={item.id} value={item.id}>
                               {item.nome} ({item.unidade})
                             </option>
@@ -320,26 +433,48 @@ export default function ModelosPage() {
                           placeholder="Qtd"
                           className="w-24"
                           value={modeloItem.quantidade}
-                          onChange={(e) => updateModeloItem(index, 'quantidade', parseInt(e.target.value) || 1)}
+                          onChange={(e) =>
+                            updateModeloItem(
+                              index,
+                              "quantidade",
+                              parseInt(e.target.value) || 1
+                            )
+                          }
                         />
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(index)}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeItem(index)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    )
+                    );
                   })}
                   {modeloItems.length === 0 && (
                     <p className="text-center text-muted-foreground py-4">
-                      Nenhum item adicionado. Clique em "Adicionar Item" para começar.
+                      Nenhum item adicionado. Clique em "Adicionar Item" para
+                      começar.
                     </p>
                   )}
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={createModeloMutation.isPending || updateModeloMutation.isPending}>
-                {editingModelo
-                  ? (updateModeloMutation.isPending ? 'Atualizando...' : 'Atualizar modelo')
-                  : (createModeloMutation.isPending ? 'Cadastrando...' : 'Cadastrar modelo')
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={
+                  createModeloMutation.isPending ||
+                  updateModeloMutation.isPending
                 }
+              >
+                {editingModelo
+                  ? updateModeloMutation.isPending
+                    ? "Atualizando..."
+                    : "Atualizar modelo"
+                  : createModeloMutation.isPending
+                  ? "Cadastrando..."
+                  : "Cadastrar modelo"}
               </Button>
             </form>
           </DialogContent>
@@ -382,23 +517,31 @@ export default function ModelosPage() {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8">
                   <div className="text-red-600">
-                    Erro ao carregar modelos: {error?.message || 'Erro desconhecido'}
+                    Erro ao carregar modelos:{" "}
+                    {error?.message || "Erro desconhecido"}
                   </div>
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  {params.search ? 'Nenhum modelo encontrado para a busca.' : 'Nenhum modelo cadastrado.'}
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-8 text-muted-foreground"
+                >
+                  {params.search
+                    ? "Nenhum modelo encontrado para a busca."
+                    : "Nenhum modelo cadastrado."}
                 </TableCell>
               </TableRow>
             ) : (
               data.map((modelo) => (
                 <TableRow key={modelo.id}>
                   <TableCell className="font-medium">{modelo.nome}</TableCell>
-                  <TableCell>{modelo.descricao || '-'}</TableCell>
+                  <TableCell>{modelo.descricao || "-"}</TableCell>
                   <TableCell>
-                    <span className="font-semibold">{modelo.modeloItems?.length || 0}</span>
+                    <span className="font-semibold">
+                      {modelo.modeloItems?.length || 0}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
@@ -415,14 +558,19 @@ export default function ModelosPage() {
                     </div>
                   </TableCell>
                   <TableCell className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" title="Editar modelo" onClick={() => handleEdit(modelo)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Editar modelo"
+                      onClick={() => handleEdit(modelo)}
+                    >
                       <PenLine className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title="Excluir modelo" 
-                      onClick={() => handleDelete(modelo)} 
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Excluir modelo"
+                      onClick={() => handleDelete(modelo)}
                       disabled={deleteModeloMutation.isPending || isDeleting}
                       className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
@@ -435,8 +583,8 @@ export default function ModelosPage() {
           </TableBody>
         </Table>
       </div>
-      
+
       <DeleteConfirmDialog />
     </div>
-  )
+  );
 }

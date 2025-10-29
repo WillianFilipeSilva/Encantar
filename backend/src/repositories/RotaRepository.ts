@@ -29,21 +29,21 @@ export class RotaRepository extends BaseRepository<
       createData.criadoPorId = data.criadoPorId;
     }
 
-    if (data.dataEntrega) {
-      if (typeof data.dataEntrega === 'string') {
-        createData.dataEntrega = createDateFromString(data.dataEntrega);
+    if (data.dataAtendimento) {
+      if (typeof data.dataAtendimento === 'string') {
+        createData.dataAtendimento = createDateFromString(data.dataAtendimento);
       } else {
-        createData.dataEntrega = data.dataEntrega;
+        createData.dataAtendimento = data.dataAtendimento;
       }
     }
 
     return this.prisma.rota.create({
       data: createData,
       include: {
-        entregas: {
+        atendimentos: {
           include: {
             beneficiario: true,
-            entregaItems: {
+            atendimentoItems: {
               include: {
                 item: true,
               },
@@ -65,11 +65,11 @@ export class RotaRepository extends BaseRepository<
     if (data.modificadoPorId !== undefined) updateData.modificadoPorId = data.modificadoPorId;
     if (data.ativo !== undefined) updateData.ativo = data.ativo;
 
-    if (data.dataEntrega !== undefined) {
-      if (typeof data.dataEntrega === 'string') {
-        updateData.dataEntrega = createDateFromString(data.dataEntrega);
+    if (data.dataAtendimento !== undefined) {
+      if (typeof data.dataAtendimento === 'string') {
+        updateData.dataAtendimento = createDateFromString(data.dataAtendimento);
       } else {
-        updateData.dataEntrega = data.dataEntrega;
+        updateData.dataAtendimento = data.dataAtendimento;
       }
     }
 
@@ -77,10 +77,10 @@ export class RotaRepository extends BaseRepository<
       where: { id },
       data: updateData,
       include: {
-        entregas: {
+        atendimentos: {
           include: {
             beneficiario: true,
-            entregaItems: {
+            atendimentoItems: {
               include: {
                 item: true,
               },
@@ -102,10 +102,10 @@ export class RotaRepository extends BaseRepository<
     return this.prisma.rota.findMany({
       ...options,
       include: {
-        entregas: {
+        atendimentos: {
           include: {
             beneficiario: true,
-            entregaItems: {
+            atendimentoItems: {
               include: {
                 item: true,
               },
@@ -120,10 +120,10 @@ export class RotaRepository extends BaseRepository<
     return this.prisma.rota.findUnique({
       where: { id },
       include: {
-        entregas: {
+        atendimentos: {
           include: {
             beneficiario: true,
-            entregaItems: {
+            atendimentoItems: {
               include: {
                 item: true,
               },
@@ -143,7 +143,7 @@ export class RotaRepository extends BaseRepository<
         id: true,
         nome: true,
         descricao: true,
-        dataEntrega: true,
+        dataAtendimento: true,
         criadoEm: true,
         atualizadoEm: true,
         criadoPorId: true,
@@ -176,7 +176,7 @@ export class RotaRepository extends BaseRepository<
         skip,
         take: limit,
         include: {
-          entregas: {
+          atendimentos: {
             include: {
               beneficiario: true,
             },
@@ -220,16 +220,16 @@ export class RotaRepository extends BaseRepository<
     }
 
     if (filters?.dataInicio && filters?.dataFim) {
-      where.dataEntrega = {
+      where.dataAtendimento = {
         gte: createDateFromString(filters.dataInicio),
         lte: createDateFromString(filters.dataFim)
       };
     } else if (filters?.dataInicio) {
-      where.dataEntrega = {
+      where.dataAtendimento = {
         gte: createDateFromString(filters.dataInicio)
       };
     } else if (filters?.dataFim) {
-      where.dataEntrega = {
+      where.dataAtendimento = {
         lte: createDateFromString(filters.dataFim)
       };
     }

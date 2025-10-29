@@ -1,26 +1,26 @@
-import { PrismaClient, ModeloEntrega } from "@prisma/client";
+import { PrismaClient, ModeloAtendimento } from "@prisma/client";
 import { BaseRepository } from "./BaseRepository";
-import { CreateModeloEntregaDTO, UpdateModeloEntregaDTO } from "../models/DTOs";
+import { CreateModeloAtendimentoDTO, UpdateModeloAtendimentoDTO } from "../models/DTOs";
 
-export class ModeloEntregaRepository extends BaseRepository<
-  ModeloEntrega,
-  CreateModeloEntregaDTO,
-  UpdateModeloEntregaDTO
+export class ModeloAtendimentoRepository extends BaseRepository<
+  ModeloAtendimento,
+  CreateModeloAtendimentoDTO,
+  UpdateModeloAtendimentoDTO
 > {
   constructor(prisma: PrismaClient) {
-    super(prisma, "modeloEntrega");
+    super(prisma, "modeloAtendimento");
   }
 
-  async delete(id: string): Promise<ModeloEntrega> {
-    return this.prisma.modeloEntrega.delete({
+  async delete(id: string): Promise<ModeloAtendimento> {
+    return this.prisma.modeloAtendimento.delete({
       where: { id }
     });
   }
 
-  async create(data: CreateModeloEntregaDTO): Promise<ModeloEntrega> {
+  async create(data: CreateModeloAtendimentoDTO): Promise<ModeloAtendimento> {
     const { modeloItems, ...modeloData } = data;
 
-    return this.prisma.modeloEntrega.create({
+    return this.prisma.modeloAtendimento.create({
       data: {
         nome: modeloData.nome,
         descricao: modeloData.descricao,
@@ -59,10 +59,10 @@ export class ModeloEntregaRepository extends BaseRepository<
     });
   }
 
-  async update(id: string, data: UpdateModeloEntregaDTO): Promise<ModeloEntrega> {
+  async update(id: string, data: UpdateModeloAtendimentoDTO): Promise<ModeloAtendimento> {
     const { modeloItems, ...modeloData } = data;
 
-    return this.prisma.modeloEntrega.update({
+    return this.prisma.modeloAtendimento.update({
       where: { id },
       data: {
         nome: modeloData.nome,
@@ -104,8 +104,8 @@ export class ModeloEntregaRepository extends BaseRepository<
     });
   }
 
-  async findById(id: string): Promise<ModeloEntrega | null> {
-    return this.prisma.modeloEntrega.findUnique({
+  async findById(id: string): Promise<ModeloAtendimento | null> {
+    return this.prisma.modeloAtendimento.findUnique({
       where: { id },
       include: {
         modeloItems: {
@@ -140,7 +140,7 @@ export class ModeloEntregaRepository extends BaseRepository<
     limit: number = 10,
     filters?: any
   ): Promise<{
-    data: ModeloEntrega[];
+    data: ModeloAtendimento[];
     pagination: {
       page: number;
       limit: number;
@@ -154,7 +154,7 @@ export class ModeloEntregaRepository extends BaseRepository<
     const where = this.buildWhereClause(filters);
 
     const [data, total] = await Promise.all([
-      this.prisma.modeloEntrega.findMany({
+      this.prisma.modeloAtendimento.findMany({
         where,
         skip,
         take: limit,
@@ -185,7 +185,7 @@ export class ModeloEntregaRepository extends BaseRepository<
         },
         orderBy: { criadoEm: 'desc' }
       }),
-      this.prisma.modeloEntrega.count({ where })
+      this.prisma.modeloAtendimento.count({ where })
     ]);
 
     const totalPages = Math.ceil(total / limit);

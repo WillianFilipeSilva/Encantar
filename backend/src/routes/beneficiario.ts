@@ -31,7 +31,7 @@ router.get("/active", authenticateToken, beneficiarioController.findActive);
 
 /**
  * GET /api/beneficiarios/top
- * Lista beneficiários com mais entregas
+ * Lista beneficiários com mais atendimentos
  */
 router.get("/top", authenticateToken, beneficiarioController.findTop);
 

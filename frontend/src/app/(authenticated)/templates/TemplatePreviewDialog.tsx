@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { TemplatePDF } from '@/lib/types'
+import { SanitizeUtil } from '@/lib/sanitizeUtil'
 
 interface TemplatePreviewDialogProps {
   isOpen: boolean
@@ -24,7 +25,7 @@ export function TemplatePreviewDialog({ isOpen, onClose, template }: TemplatePre
   const renderPreview = () => {
     const mockData = {
       nomeRota: "Rota Centro - Exemplo",
-      dataEntrega: "15/10/2025",
+      dataAtendimento: "15/10/2025",
       beneficiarios: [
         { nome: "João Silva", endereco: "Rua A, 123" },
         { nome: "Maria Santos", endereco: "Rua B, 456" }
@@ -38,9 +39,10 @@ export function TemplatePreviewDialog({ isOpen, onClose, template }: TemplatePre
     let htmlContent = template.conteudo
     
     htmlContent = htmlContent.replace(/\{\{nomeRota\}\}/g, mockData.nomeRota)
-    htmlContent = htmlContent.replace(/\{\{dataEntrega\}\}/g, mockData.dataEntrega)
+    htmlContent = htmlContent.replace(/\{\{dataAtendimento\}\}/g, mockData.dataAtendimento)
+    htmlContent = htmlContent.replace(/\{\{dataAtendimento\}\}/g, mockData.dataAtendimento)
     
-    return htmlContent
+    return SanitizeUtil.sanitizeTemplate(htmlContent)
   }
 
   return (

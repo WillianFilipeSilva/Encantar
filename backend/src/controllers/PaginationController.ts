@@ -123,7 +123,7 @@ export class RotaController extends BaseController {
       const { dataInicio, dataFim } = req.query
 
       const dateFilter = dataInicio && dataFim ? {
-        dataEntrega: {
+        dataAtendimento: {
           gte: createDateFromString(dataInicio as string),
           lte: createDateFromString(dataFim as string)
         }
@@ -133,7 +133,7 @@ export class RotaController extends BaseController {
         prisma.rota,
         req.query,
         ['nome', 'descricao', 'observacoes'],
-        { entregas: { include: { beneficiario: true } } },
+        { atendimentos: { include: { beneficiario: true } } },
         dateFilter
       )
 

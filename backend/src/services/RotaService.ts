@@ -29,7 +29,7 @@ export class RotaService extends BaseService<
   }
   
   /**
-   * Sobrescreve o método delete para verificar se há entregas associadas
+   * Sobrescreve o método delete para verificar se há atendimentos associadas
    */
   async delete(id: string): Promise<Rota> {
     if (!id) {
@@ -41,10 +41,10 @@ export class RotaService extends BaseService<
       throw CommonErrors.NOT_FOUND("Rota não encontrada");
     }
     
-    const rotaWithRelations = rota as Rota & { entregas: any[] };
-    if (rotaWithRelations.entregas && rotaWithRelations.entregas.length > 0) {
+    const rotaWithRelations = rota as Rota & { atendimentos: any[] };
+    if (rotaWithRelations.atendimentos && rotaWithRelations.atendimentos.length > 0) {
       throw CommonErrors.BAD_REQUEST(
-        "Não é possível excluir a rota pois existem entregas associadas a ela. Remova as entregas primeiro."
+        "Não é possível excluir a rota pois existem atendimentos associadas a ela. Remova as atendimentos primeiro."
       );
     }
     
@@ -66,7 +66,7 @@ export class RotaService extends BaseService<
         skip,
         take: limit,
         where: filters,
-        orderBy: { dataEntrega: 'desc' },
+        orderBy: { dataAtendimento: 'desc' },
       }),
       this.rotaRepository.count({ where: filters }),
     ]);

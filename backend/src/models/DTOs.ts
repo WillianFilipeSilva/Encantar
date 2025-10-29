@@ -92,38 +92,38 @@ export interface ItemResponseDTO {
   };
 }
 
-export interface CreateEntregaItemDTO {
+export interface CreateAtendimentoItemDTO {
   itemId: string;
   quantidade: number;
 }
 
-export interface CreateEntregaDTO {
+export interface CreateAtendimentoDTO {
   beneficiarioId: string;
   rotaId: string;
   observacoes?: string;
-  items: CreateEntregaItemDTO[];
+  items: CreateAtendimentoItemDTO[];
 }
 
-export interface UpdateEntregaItemDTO {
+export interface UpdateAtendimentoItemDTO {
   itemId: string;
   quantidade: number;
 }
 
-export interface UpdateEntregaDTO {
+export interface UpdateAtendimentoDTO {
   beneficiarioId?: string;
   rotaId?: string;
   observacoes?: string;
   status?: string;
-  items?: UpdateEntregaItemDTO[];
+  items?: UpdateAtendimentoItemDTO[];
 }
 
-export interface EntregaItemResponseDTO {
+export interface AtendimentoItemResponseDTO {
   id: string;
   quantidade: number;
   item: ItemResponseDTO;
 }
 
-export interface EntregaResponseDTO {
+export interface AtendimentoResponseDTO {
   id: string;
   observacoes?: string | null;
   criadoEm: Date;
@@ -133,7 +133,7 @@ export interface EntregaResponseDTO {
     id: string;
     nome: string;
   };
-  entregaItems: EntregaItemResponseDTO[];
+  atendimentoItems: AtendimentoItemResponseDTO[];
   criadoPor: {
     id: string;
     nome: string;
@@ -147,28 +147,28 @@ export interface EntregaResponseDTO {
 export interface CreateRotaDTO {
   nome: string;
   descricao?: string;
-  dataEntrega?: Date;
+  dataAtendimento?: Date;
   observacoes?: string;
-  entregaIds?: string[];
+  atendimentoIds?: string[];
 }
 
 export interface UpdateRotaDTO {
   nome?: string;
   descricao?: string;
-  dataEntrega?: Date;
+  dataAtendimento?: Date;
   observacoes?: string;
-  entregaIds?: string[];
+  atendimentoIds?: string[];
 }
 
 export interface RotaResponseDTO {
   id: string;
   nome: string;
   descricao?: string | null;
-  dataEntrega?: Date | null;
+  dataAtendimento?: Date | null;
   observacoes?: string | null;
   criadoEm: Date;
   atualizadoEm: Date;
-  entregas: EntregaResponseDTO[];
+  atendimentos: AtendimentoResponseDTO[];
   criadoPor: {
     id: string;
     nome: string;
@@ -179,7 +179,7 @@ export interface RotaResponseDTO {
   };
 }
 
-export interface CreateModeloEntregaDTO {
+export interface CreateModeloAtendimentoDTO {
   nome: string;
   descricao?: string;
   modeloItems: Array<{
@@ -188,7 +188,7 @@ export interface CreateModeloEntregaDTO {
   }>;
 }
 
-export interface UpdateModeloEntregaDTO {
+export interface UpdateModeloAtendimentoDTO {
   nome?: string;
   descricao?: string;
   ativo?: boolean;
@@ -236,7 +236,7 @@ export interface ItemFiltersDTO {
   dataFim?: string;
 }
 
-export interface EntregaFiltersDTO {
+export interface AtendimentoFiltersDTO {
   search?: string;
   beneficiarioId?: string;
   rotaId?: string;
@@ -248,20 +248,20 @@ export interface RotaFiltersDTO {
   search?: string;
   dataInicio?: string;
   dataFim?: string;
-  dataEntregaInicio?: string;
-  dataEntregaFim?: string;
+  dataAtendimentoInicio?: string;
+  dataAtendimentoFim?: string;
 }
 
 export interface DashboardStatsDTO {
-  totalEntregas: number;
+  totalAtendimentos: number;
   totalRotas: number;
   totalItems: number;
   totalBeneficiarios: number;
-  entregasPorMes: Array<{
+  atendimentosPorMes: Array<{
     mes: string;
     quantidade: number;
   }>;
-  itemsMaisEntregues: Array<{
+  itemsMaisAtendidos: Array<{
     item: string;
     quantidade: number;
   }>;

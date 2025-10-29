@@ -1,14 +1,14 @@
-import { ModeloEntrega } from "@prisma/client";
+import { ModeloAtendimento } from "@prisma/client";
 import { BaseController } from "./BaseController";
-import { ModeloEntregaService } from "../services/ModeloEntregaService";
-import { CreateModeloEntregaDTO, UpdateModeloEntregaDTO } from "../models/DTOs";
+import { ModeloAtendimentoService } from "../services/ModeloAtendimentoService";
+import { CreateModeloAtendimentoDTO, UpdateModeloAtendimentoDTO } from "../models/DTOs";
 
-export class ModeloEntregaController extends BaseController<
-  ModeloEntrega,
-  CreateModeloEntregaDTO,
-  UpdateModeloEntregaDTO
+export class ModeloAtendimentoController extends BaseController<
+  ModeloAtendimento,
+  CreateModeloAtendimentoDTO,
+  UpdateModeloAtendimentoDTO
 > {
-  constructor(service: ModeloEntregaService) {
+  constructor(service: ModeloAtendimentoService) {
     super(service);
   }
 
