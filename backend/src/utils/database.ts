@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { execSync } from "child_process";
 
 /**
  * Cliente Prisma singleton para toda a aplicação
@@ -6,6 +7,32 @@ import { PrismaClient } from "@prisma/client";
  */
 class DatabaseClient {
   private static instance: PrismaClient;
+  private static migrationsApplied = false;
+
+  private static async runMigrations(): Promise<void> {
+    if (DatabaseClient.migrationsApplied) {
+      return;
+    }
+
+    const autoApply = (process.env.AUTO_APPLY_MIGRATIONS || "true").toLowerCase();
+    if (autoApply === "false") {
+      console.log("Auto apply de migrations desabilitado via AUTO_APPLY_MIGRATIONS=false.");
+      DatabaseClient.migrationsApplied = true;
+      return;
+    }
+
+    try {
+      console.log("Executando migrations Prisma antes de conectar ao banco...");
+      execSync("npx prisma migrate deploy", {
+        stdio: "inherit",
+        cwd: process.cwd(),
+      });
+      DatabaseClient.migrationsApplied = true;
+    } catch (error) {
+      console.error("Falha ao executar migrations automaticamente.", error);
+      process.exit(1);
+    }
+  }
 
   public static getInstance(): PrismaClient {
     if (!DatabaseClient.instance) {
@@ -42,6 +69,7 @@ class DatabaseClient {
    */
   public static async connect(): Promise<void> {
     try {
+      await DatabaseClient.runMigrations();
       const prisma = DatabaseClient.getInstance();
       await prisma.$connect();
       console.log("✅ Conectado ao banco de dados PostgreSQL");

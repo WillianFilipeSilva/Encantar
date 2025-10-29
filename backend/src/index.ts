@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 
@@ -23,7 +24,16 @@ import { EnvValidator } from "./utils/envValidator";
 
 import DatabaseClient from "./utils/database";
 
-dotenv.config();
+const defaultEnvResult = dotenv.config();
+
+if (defaultEnvResult.error) {
+  const rootEnvPath = path.resolve(__dirname, "..", "..", ".env");
+  const parentResult = dotenv.config({ path: rootEnvPath });
+
+  if (parentResult.error) {
+    console.warn("Warning: nenhum arquivo .env encontrado nas pastas backend ou raiz do projeto.");
+  }
+}
 
 // Validar ambiente na inicialização
 EnvValidator.validateRequired();

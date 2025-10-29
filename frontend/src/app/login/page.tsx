@@ -59,7 +59,7 @@ export default function LoginPage() {
 
       if (error.code === "ERR_NETWORK" || error.message.includes("CORS")) {
         setError(
-          "Erro de conexão com o servidor. Verifique se o backend está funcionando."
+          "Erro de conexão com o servidor. Tente novamente mais tarde."
         );
       } else if (error.response?.status === 429) {
         setError("Muitas tentativas de login. Tente novamente mais tarde.");
@@ -79,7 +79,7 @@ export default function LoginPage() {
             <img
               src="/logo.jpg"
               alt="Encantar Logo"
-              className="w-12 h-12 object-contain"
+              className="w-20 h-20 object-contain"
             />
             <div>
               <h3 className="text-2xl font-semibold leading-none tracking-tight">
