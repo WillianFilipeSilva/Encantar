@@ -24,12 +24,10 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nodejs
 
 # Copiar standalone output (Next.js otimizado)
-COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
+# O standalone gera tudo dentro de .next/standalone, incluindo server.js
+COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone/. ./
 COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nodejs:nodejs /app/public ./public
-
-# Copiar arquivos de configuração
-COPY --chown=nodejs:nodejs next.config.js ./
 
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
