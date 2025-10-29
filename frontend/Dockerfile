@@ -23,13 +23,13 @@ WORKDIR /app
 # Criar usuário não-root para segurança
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nodejs
 
-# Copiar apenas production dependencies do builder
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/.next ./.next
+# Copiar standalone output (Next.js otimizado)
+COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nodejs:nodejs /app/public ./public
 
-# Copiar package.json apenas (para versão e scripts)
-COPY --chown=nodejs:nodejs package*.json ./
+# Copiar arquivos de configuração
+COPY --chown=nodejs:nodejs next.config.js ./
 
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
@@ -45,5 +45,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
 
 EXPOSE 3000
 
-# Comando para produção
-CMD ["npm", "run", "start"]
+# Comando para produção (standalone usa server.js)
+CMD ["node", "server.js"]

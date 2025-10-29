@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  output: 'standalone', // Railway optimization
   images: {
     formats: ['image/webp', 'image/avif'],
   },
