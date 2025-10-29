@@ -1,3 +1,209 @@
+export const authRoutes = {
+  "/auth/login": {
+    post: {
+      tags: ["Autenticação"],
+      summary: "Realiza login do administrador",
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["login", "senha"],
+              properties: {
+                login: {
+                  type: "string",
+                  description: "Login do administrador",
+                  example: "WillianAdmin"
+                },
+                senha: {
+                  type: "string",
+                  minLength: 6,
+                  description: "Senha do administrador",
+                  example: "Batman"
+                }
+              }
+            }
+          }
+        }
+      },
+      responses: {
+        200: {
+          description: "Login realizado com sucesso",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: true
+                  },
+                  data: {
+                    type: "object",
+                    properties: {
+                      user: {
+                        type: "object",
+                        properties: {
+                          id: {
+                            type: "string",
+                            format: "uuid"
+                          },
+                          nome: {
+                            type: "string"
+                          },
+                          login: {
+                            type: "string"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  message: {
+                    type: "string",
+                    example: "Login realizado com sucesso"
+                  }
+                }
+              }
+            }
+          },
+          headers: {
+            "Set-Cookie": {
+              description: "Cookies HttpOnly com tokens JWT",
+              schema: {
+                type: "string"
+              }
+            }
+          }
+        },
+        400: {
+          description: "Dados inválidos",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/ValidationError"
+              }
+            }
+          }
+        },
+        401: {
+          description: "Login ou senha inválidos",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error"
+              }
+            }
+          }
+        },
+        429: {
+          description: "Muitas tentativas de login",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: false
+                  },
+                  error: {
+                    type: "string",
+                    example: "Muitas tentativas de login. Tente novamente em 1 hora."
+                  },
+                  code: {
+                    type: "string",
+                    example: "AUTH_RATE_LIMIT_EXCEEDED"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/auth/me": {
+    get: {
+      tags: ["Autenticação"],
+      summary: "Obtém informações do usuário autenticado",
+      security: [{ cookieAuth: [] }],
+      responses: {
+        200: {
+          description: "Informações do usuário",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: true
+                  },
+                  data: {
+                    type: "object",
+                    properties: {
+                      id: {
+                        type: "string",
+                        format: "uuid"
+                      },
+                      nome: {
+                        type: "string"
+                      },
+                      login: {
+                        type: "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        401: {
+          description: "Não autorizado",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/Error"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/auth/logout": {
+    post: {
+      tags: ["Autenticação"],
+      summary: "Realiza logout do usuário",
+      security: [{ cookieAuth: [] }],
+      responses: {
+        200: {
+          description: "Logout realizado com sucesso",
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                properties: {
+                  success: {
+                    type: "boolean",
+                    example: true
+                  },
+                  message: {
+                    type: "string",
+                    example: "Logout realizado com sucesso"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
 export const beneficiariosRoutes = {
   "/beneficiarios": {
     get: {

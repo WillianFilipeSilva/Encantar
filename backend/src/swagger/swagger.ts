@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
-import { beneficiariosRoutes, itensRoutes, atendimentosRoutes, rotasRoutes } from "./routes";
+import { authRoutes, beneficiariosRoutes, itensRoutes, atendimentosRoutes, rotasRoutes } from "./routes";
 
 const swaggerDocument = {
   openapi: "3.0.0",
@@ -15,7 +15,11 @@ const swaggerDocument = {
   },
   servers: [
     {
-      url: "https://projeto-encantarfront.up.railway.app",
+      url: "https://projeto-encantarback.up.railway.app",
+      description: "Servidor de Produção"
+    },
+    {
+      url: "http://localhost:8080",
       description: "Servidor Local"
     }
   ],
@@ -51,6 +55,12 @@ const swaggerDocument = {
         type: "http",
         scheme: "bearer",
         bearerFormat: "JWT"
+      },
+      cookieAuth: {
+        type: "apiKey",
+        in: "cookie",
+        name: "accessToken",
+        description: "Token JWT armazenado em cookie HttpOnly"
       }
     },
     schemas: {
@@ -156,6 +166,7 @@ const swaggerDocument = {
     }
   ],
   paths: {
+    ...authRoutes,
     ...beneficiariosRoutes,
     ...itensRoutes,
     ...atendimentosRoutes,

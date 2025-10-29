@@ -21,6 +21,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import { formatBrazilDateTime } from "./utils/dateUtils";
 import { notFound } from "./middleware/notFound";
 import { EnvValidator } from "./utils/envValidator";
+import { setupSwagger } from "./swagger/swagger";
 
 import DatabaseClient from "./utils/database";
 
@@ -70,25 +71,56 @@ app.use(
 );
 
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutos
   max: 100,
   message: {
+    success: false,
     error: "Muitas tentativas. Tente novamente em 15 minutos.",
     code: "RATE_LIMIT_EXCEEDED",
   },
   standardHeaders: true,
   legacyHeaders: false,
+  statusCode: 429, // Garantir que retorna 429
+  handler: (req, res) => {
+    console.log("🚫 Rate limit global atingido:", {
+      ip: req.ip,
+      url: req.url,
+      method: req.method,
+      timestamp: new Date().toISOString(),
+    });
+    res.status(429).json({
+      success: false,
+      error: "Muitas tentativas. Tente novamente em 15 minutos.",
+      code: "RATE_LIMIT_EXCEEDED",
+    });
+  },
 });
 
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
+  windowMs: 60 * 60 * 1000, // 1 hora
   max: 5,
   message: {
+    success: false,
     error: "Muitas tentativas de login. Tente novamente em 1 hora.",
     code: "AUTH_RATE_LIMIT_EXCEEDED",
   },
   standardHeaders: true,
   legacyHeaders: false,
+  statusCode: 429, // Garantir que retorna 429
+  handler: (req, res) => {
+    console.log("🚫 Rate limit de autenticação atingido:", {
+      ip: req.ip,
+      url: req.url,
+      method: req.method,
+      body: req.body,
+      timestamp: new Date().toISOString(),
+    });
+    res.status(429).json({
+      success: false,
+      error: "Muitas tentativas de login. Tente novamente em 1 hora.",
+      code: "AUTH_RATE_LIMIT_EXCEEDED",
+    });
+  },
 });
 
 app.use(globalLimiter);
@@ -178,6 +210,9 @@ app.use("/api/modelos-atendimento", modeloAtendimentoRoutes);
 app.use("/api/atendimentos", atendimentoRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/templates", templatePDFRoutes);
+
+// Configurar Swagger para documentação da API
+setupSwagger(app);
 
 app.use(notFound);
 
