@@ -1,5 +1,5 @@
 export const authRoutes = {
-  "/auth/login": {
+  "/api/auth/login": {
     post: {
       tags: ["Autenticação"],
       summary: "Realiza login do administrador",
@@ -123,7 +123,7 @@ export const authRoutes = {
       }
     }
   },
-  "/auth/me": {
+  "/api/auth/me": {
     get: {
       tags: ["Autenticação"],
       summary: "Obtém informações do usuário autenticado",
@@ -173,7 +173,7 @@ export const authRoutes = {
       }
     }
   },
-  "/auth/logout": {
+  "/api/auth/logout": {
     post: {
       tags: ["Autenticação"],
       summary: "Realiza logout do usuário",
@@ -205,7 +205,7 @@ export const authRoutes = {
 };
 
 export const beneficiariosRoutes = {
-  "/beneficiarios": {
+  "/api/beneficiarios": {
     get: {
       tags: ["Beneficiários"],
       summary: "Lista todos os beneficiários",
@@ -316,7 +316,7 @@ export const beneficiariosRoutes = {
 };
 
 export const itensRoutes = {
-  "/itens": {
+  "/api/items": {
     get: {
       tags: ["Itens"],
       summary: "Lista todos os itens",
@@ -408,7 +408,7 @@ export const itensRoutes = {
 };
 
 export const atendimentosRoutes = {
-  "/atendimentos": {
+  "/api/atendimentos": {
     get: {
       tags: ["Atendimentos"],
       summary: "Lista todas as atendimentos",
@@ -516,7 +516,7 @@ export const atendimentosRoutes = {
 };
 
 export const rotasRoutes = {
-  "/rotas": {
+  "/api/rotas": {
     get: {
       tags: ["Rotas"],
       summary: "Lista todas as rotas",
