@@ -102,8 +102,8 @@ switch ($cmd) {
         Set-Location ..
         docker-compose up -d
         Write-Host "`nContainers rodando!" -ForegroundColor Green
-        Write-Host "Backend:  http://localhost:3001" -ForegroundColor White
-        Write-Host "Frontend: http://localhost:3000`n" -ForegroundColor White
+        Write-Host "Backend:  https://projeto-encantarback.up.railway.app/" -ForegroundColor White
+        Write-Host "Frontend: https://projeto-encantar.up.railway.app`n" -ForegroundColor White
         exit 0
     }
     
@@ -282,8 +282,8 @@ switch ($cmd) {
             $nodeEnv = "development"
             $logLevel = "debug"
             $enableSeed = "true"
-            $frontendUrl = "http://localhost:3000"
-            $apiUrl = "http://localhost:3001/api"
+            $frontendUrl = "https://projeto-encantar.up.railway.app"
+            $apiUrl = "https://projeto-encantarback.up.railway.app//api"
         }
         
         $envContent = @"

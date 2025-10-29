@@ -114,7 +114,7 @@ chmod +x setup-ubuntu.sh
 
 
 
-# Comandos adicionais**Pronto!** Acesse: http://localhost:3000  
+# Comandos adicionais**Pronto!** Acesse: https://projeto-encantar.up.railway.app  
 
 ./scripts/start.sh logs
 
@@ -152,7 +152,7 @@ npm run dev
 
 ```| `RAILWAY_DEPLOY.md` | Deploy na nuvem (Railway) |
 
-A API sobe em `http://localhost:3001`.
+A API sobe em `https://projeto-encantarback.up.railway.app/`.
 
 | `setup-windows.ps1` | Setup automático Windows |
 
@@ -166,15 +166,15 @@ npm install
 
 npm run dev
 
-```---- **Frontend**: http://localhost:3000
+```---- **Frontend**: https://projeto-encantar.up.railway.app
 
-A aplicação web fica em `http://localhost:3000`.
+A aplicação web fica em `https://projeto-encantar.up.railway.app`.
 
 
 
 ---
 
-## 🏗️ Arquitetura- **Backend**: http://localhost:3001### Iniciar- **JWT + Refresh Token** - Autenticação segura
+## 🏗️ Arquitetura- **Backend**: https://projeto-encantarback.up.railway.app/### Iniciar- **JWT + Refresh Token** - Autenticação segura
 
 ## 🌐 Deploy (Railway)
 
@@ -270,7 +270,7 @@ Encantar/
 
 │   │   ├── services/
 
-│   │   ├── repositories/### Frontend- **Frontend**: http://localhost:3000- **TypeScript** - Tipagem forte
+│   │   ├── repositories/### Frontend- **Frontend**: https://projeto-encantar.up.railway.app- **TypeScript** - Tipagem forte
 
 │   │   ├── middleware/
 
@@ -286,7 +286,7 @@ Encantar/
 
 │   │   ├── migrations/
 
-│   │   └── seed.ts- React Query + Axios- **Backend**: http://localhost:3001- **Tailwind CSS** - Framework CSS utilitário
+│   │   └── seed.ts- React Query + Axios- **Backend**: https://projeto-encantarback.up.railway.app/- **Tailwind CSS** - Framework CSS utilitário
 
 │   ├── Dockerfile
 
@@ -900,9 +900,9 @@ JWT_REFRESH_SECRET="outra_chave_64_caracteres_aqui"netstat -ano | findstr :3000c
 
 # URLstaskkill /PID <PID> /F
 
-FRONTEND_URL="http://localhost:3000"  # Ou IP/DNS em produção
+FRONTEND_URL="https://projeto-encantar.up.railway.app"  # Ou IP/DNS em produção
 
-NEXT_PUBLIC_API_URL="http://localhost:3001/api"npm install
+NEXT_PUBLIC_API_URL="https://projeto-encantarback.up.railway.app//api"npm install
 
 
 
@@ -1005,15 +1005,15 @@ PUT    /api/beneficiarios/:id       # Atualizar
 
 5. **Produção**: `docker-compose -f docker-compose.prod.yml up -d`
 
-GET    /api/items                   # Listar itens- **Frontend**: http://localhost:3000
+GET    /api/items                   # Listar itens- **Frontend**: https://projeto-encantar.up.railway.app
 
 ---
 
-POST   /api/items                   # Criar item- **Backend API**: http://localhost:3001
+POST   /api/items                   # Criar item- **Backend API**: https://projeto-encantarback.up.railway.app/
 
 ## 📦 Dados Iniciais (Seed)
 
-PUT    /api/items/:id               # Atualizar- **Health Check**: http://localhost:3001/health
+PUT    /api/items/:id               # Atualizar- **Health Check**: https://projeto-encantarback.up.railway.app//health
 
 Ao iniciar com `ENABLE_SEED=true` no `.env`:
 

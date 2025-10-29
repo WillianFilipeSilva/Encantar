@@ -90,9 +90,9 @@ export class EnvValidator {
   static logConfiguration(): void {
     logger.info('📋 Configuração de ambiente:');
     logger.info(`  NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
-    logger.info(`  PORT: ${process.env.PORT || 3001}`);
+    logger.info(`  PORT: ${process.env.PORT || 8080}`);
     logger.info(`  DATABASE_URL: ${process.env.DATABASE_URL ? '✓ configurado' : '✗ não configurado'}`);
     logger.info(`  JWT_SECRET: ${process.env.JWT_SECRET ? '✓ configurado' : '✗ não configurado'}`);
-    logger.info(`  FRONTEND_URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+    logger.info(`  FRONTEND_URL: ${process.env.FRONTEND_URL || 'https://projeto-encantarfront.up.railway.app'}`);
   }
 }

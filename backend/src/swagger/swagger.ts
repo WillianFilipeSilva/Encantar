@@ -15,7 +15,7 @@ const swaggerDocument = {
   },
   servers: [
     {
-      url: "http://localhost:3000",
+      url: "https://projeto-encantarfront.up.railway.app",
       description: "Servidor Local"
     }
   ],
