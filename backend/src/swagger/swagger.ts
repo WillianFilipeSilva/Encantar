@@ -15,11 +15,11 @@ const swaggerDocument = {
   },
   servers: [
     {
-      url: "https://projeto-encantarback.up.railway.app",
+      url: "https://projeto-encantarback.up.railway.app/api",
       description: "Servidor de Produção"
     },
     {
-      url: "http://localhost:8080",
+      url: "http://localhost:8080/api",
       description: "Servidor Local"
     }
   ],
