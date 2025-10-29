@@ -285,6 +285,10 @@ EOF
         echo -e "${GREEN}✅ Prisma Client gerado${NC}"
         cd ..
         
+        echo -e "${CYAN}🔧 Sincronizando schema com o banco de dados...${NC}"
+        npx prisma db push
+        echo -e "${GREEN}✅ Banco de dados sincronizado${NC}"
+
         # 5. Build Docker
         echo -e "\n${YELLOW}[5/5] Construindo imagens Docker...${NC}"
         if [ "$MODE" = "prod" ]; then
