@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Administrador {
+  id                       String         @id @default(cuid())
+  nome                     String
+  login                    String         @unique
+  senha                    String
+  ativo                    Boolean        @default(true)
+  criadoEm                 DateTime       @default(now())
+  atualizadoEm             DateTime       @updatedAt
+  atendimentosCriados      Atendimento[]  @relation("AtendimentoCriadoPor")
+  atendimentosModificados  Atendimento[]  @relation("AtendimentoModificadoPor")
+  beneficiariosCriados     Beneficiario[] @relation("BeneficiarioCriadoPor")
+  beneficiariosModificados Beneficiario[] @relation("BeneficiarioModificadoPor")
+  convitesEnviados         Convite[]      @relation("ConviteEnviadoPor")
+  itemsCriados             Item[]         @relation("ItemCriadoPor")
+  itemsModificados         Item[]         @relation("ItemModificadoPor")
+  rotasCriadas             Rota[]         @relation("RotaCriadaPor")
+  rotasModificadas         Rota[]         @relation("RotaModificadaPor")
+
+  @@map("administradores")
+}
+
+model Convite {
+  id           String        @id @default(cuid())
+  email        String?
+  telefone     String?
+  token        String        @unique
+  expiraEm     DateTime
+  usado        Boolean       @default(false)
+  usadoEm      DateTime?
+  criadoEm     DateTime      @default(now())
+  enviadoPorId String
+  enviadoPor   Administrador @relation("ConviteEnviadoPor", fields: [enviadoPorId], references: [id])
+
+  @@map("convites")
+}
+
+model Beneficiario {
+  id              String         @id @default(cuid())
+  nome            String
+  endereco        String
+  telefone        String?
+  email           String?
+  dataNascimento  DateTime?
+  observacoes     String?
+  ativo           Boolean        @default(true)
+  criadoEm        DateTime       @default(now())
+  atualizadoEm    DateTime       @updatedAt
+  criadoPorId     String
+  modificadoPorId String?
+  atendimentos    Atendimento[]
+  criadoPor       Administrador  @relation("BeneficiarioCriadoPor", fields: [criadoPorId], references: [id])
+  modificadoPor   Administrador? @relation("BeneficiarioModificadoPor", fields: [modificadoPorId], references: [id])
+
+  @@map("beneficiarios")
+}
+
+model Item {
+  id               String                  @id @default(cuid())
+  nome             String
+  descricao        String?
+  criadoEm         DateTime                @default(now())
+  atualizadoEm     DateTime                @updatedAt
+  criadoPorId      String
+  modificadoPorId  String?
+  ativo            Boolean                 @default(true)
+  unidade          UnidadeItem             @default(UN)
+  atendimentoItems AtendimentoItem[]
+  criadoPor        Administrador           @relation("ItemCriadoPor", fields: [criadoPorId], references: [id])
+  modificadoPor    Administrador?          @relation("ItemModificadoPor", fields: [modificadoPorId], references: [id])
+  modeloItems      ModeloAtendimentoItem[]
+
+  @@map("items")
+}
+
+model Atendimento {
+  id               String            @id @default(cuid())
+  observacoes      String?
+  criadoEm         DateTime          @default(now())
+  atualizadoEm     DateTime          @updatedAt
+  beneficiarioId   String
+  rotaId           String
+  criadoPorId      String
+  modificadoPorId  String?
+  status           StatusAtendimento @default(PENDENTE)
+  atendimentoItems AtendimentoItem[]
+  beneficiario     Beneficiario      @relation(fields: [beneficiarioId], references: [id])
+  criadoPor        Administrador     @relation("AtendimentoCriadoPor", fields: [criadoPorId], references: [id])
+  modificadoPor    Administrador?    @relation("AtendimentoModificadoPor", fields: [modificadoPorId], references: [id])
+  rota             Rota              @relation(fields: [rotaId], references: [id])
+
+  @@map("atendimentos")
+}
+
+model AtendimentoItem {
+  id            String      @id @default(cuid())
+  quantidade    Int
+  atendimentoId String
+  itemId        String
+  atendimento   Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  item          Item        @relation(fields: [itemId], references: [id])
+
+  @@unique([atendimentoId, itemId])
+  @@map("atendimento_items")
+}
+
+model Rota {
+  id              String         @id @default(cuid())
+  nome            String
+  descricao       String?
+  criadoEm        DateTime       @default(now())
+  atualizadoEm    DateTime       @updatedAt
+  criadoPorId     String
+  modificadoPorId String?
+  dataAtendimento DateTime?      @db.Date
+  atendimentos    Atendimento[]
+  criadoPor       Administrador  @relation("RotaCriadaPor", fields: [criadoPorId], references: [id])
+  modificadoPor   Administrador? @relation("RotaModificadaPor", fields: [modificadoPorId], references: [id])
+
+  @@map("rotas")
+}
+
+model TemplatePDF {
+  id           String   @id @default(cuid())
+  nome         String
+  descricao    String?
+  conteudo     String
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  @@map("templates_pdf")
+}
+
+model ModeloAtendimento {
+  id           String                  @id @default(cuid())
+  nome         String                  @unique
+  descricao    String?
+  ativo        Boolean                 @default(true)
+  criadoEm     DateTime                @default(now())
+  atualizadoEm DateTime                @updatedAt
+  modeloItems  ModeloAtendimentoItem[]
+
+  @@map("modelos_atendimento")
+}
+
+model ModeloAtendimentoItem {
+  id         String            @id @default(cuid())
+  quantidade Int
+  modeloId   String
+  itemId     String
+  item       Item              @relation(fields: [itemId], references: [id])
+  modelo     ModeloAtendimento @relation(fields: [modeloId], references: [id], onDelete: Cascade)
+
+  @@unique([modeloId, itemId])
+  @@map("modelos_atendimento_items")
+}
+
+enum UnidadeItem {
+  KG
+  G
+  L
+  ML
+  UN
+  CX
+  PCT
+  LATA
+}
+
+enum StatusAtendimento {
+  PENDENTE
+  CONCLUIDO
+  CANCELADO
+}

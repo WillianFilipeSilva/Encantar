@@ -1,0 +1,168 @@
+'use client'
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { api } from "@/lib/axios"
+import { useQuery } from "@tanstack/react-query"
+
+interface DashboardData {
+  totalBeneficiarios: number
+  totalAtendimentos: number
+  totalRotas: number
+  atendimentosPorStatus: {
+    status: string
+    total: number
+  }[]
+  atendimentosRecentes: Array<{
+    id: string
+    beneficiario: {
+      nome: string
+    }
+    modeloAtendimento: {
+      nome: string
+    }
+    status: string
+    dataAtendimento: string
+  }>
+}
+
+const statusMap = {
+  PENDENTE: 'Pendente',
+  CONCLUIDO: 'Concluído',
+  CANCELADO: 'Cancelado',
+}
+
+const statusColorMap = {
+  PENDENTE: 'text-yellow-500',
+  CONCLUIDO: 'text-green-500',
+  CANCELADO: 'text-red-500',
+}
+
+export default function DashboardPage() {
+  const { data, isLoading, error } = useQuery<DashboardData>({
+    queryKey: ['dashboard'],
+    queryFn: async () => {
+      const response = await api.get('/dashboard')
+      return response.data.data
+    },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
+  })
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Visão geral das nossas atividades ❤️
+          </p>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+          <p className="text-red-600">Erro ao carregar dados do dashboard. Tente novamente.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">
+          Visão geral das nossas atividades ❤️
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-3 gap-4">
+          <div className="rounded-lg border p-6">
+            <p className="text-sm text-muted-foreground">Beneficiários</p>
+            <div className="mt-2 h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+          </div>
+          <div className="rounded-lg border p-6">
+            <p className="text-sm text-muted-foreground">Atendimentos</p>
+            <div className="mt-2 h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+          </div>
+          <div className="rounded-lg border p-6">
+            <p className="text-sm text-muted-foreground">Rotas</p>
+            <div className="mt-2 h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="rounded-lg border p-6">
+              <p className="text-sm text-muted-foreground">Beneficiários</p>
+              <p className="mt-2 text-3xl font-bold">{data?.totalBeneficiarios || 0}</p>
+            </div>
+
+            <div className="rounded-lg border p-6">
+              <p className="text-sm text-muted-foreground">Atendimentos</p>
+              <p className="mt-2 text-3xl font-bold">{data?.totalAtendimentos || 0}</p>
+            </div>
+
+            <div className="rounded-lg border p-6">
+              <p className="text-sm text-muted-foreground">Rotas</p>
+              <p className="mt-2 text-3xl font-bold">{data?.totalRotas || 0}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-lg border p-6">
+              <h2 className="text-lg font-medium">Atendimentos por status</h2>
+
+              <div className="mt-4 space-y-2">
+                {data?.atendimentosPorStatus?.map((item) => (
+                  <div key={item.status} className="flex items-center justify-between">
+                    <span className={statusColorMap[item.status as keyof typeof statusColorMap]}>
+                      {statusMap[item.status as keyof typeof statusMap]}
+                    </span>
+                    <span>{item.total}</span>
+                  </div>
+                )) || <p className="text-sm text-muted-foreground">Nenhum dado disponível</p>}
+              </div>
+            </div>
+
+            <div className="rounded-lg border p-6">
+              <h2 className="text-lg font-medium">Atendimentos recentes</h2>
+
+              <div className="mt-4">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Beneficiário</TableHead>
+                      <TableHead>Modelo</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data?.atendimentosRecentes?.length ? (
+                      data.atendimentosRecentes.map((atendimento) => (
+                        <TableRow key={atendimento.id}>
+                          <TableCell>{atendimento.beneficiario.nome}</TableCell>
+                          <TableCell>{atendimento.modeloAtendimento.nome}</TableCell>
+                          <TableCell>
+                            <span className={statusColorMap[atendimento.status as keyof typeof statusColorMap]}>
+                              {statusMap[atendimento.status as keyof typeof statusMap]}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-muted-foreground">
+                          Nenhum atendimento recente
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

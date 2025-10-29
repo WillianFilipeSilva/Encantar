@@ -1,0 +1,56 @@
+services:
+  # Backend API - Desenvolvimento
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: encantar-backend-dev
+    env_file:
+      - .env
+    environment:
+      # Banco PostgreSQL na máquina host
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      PORT: 3001
+      FRONTEND_URL: ${FRONTEND_URL}
+      NODE_ENV: "development"
+      ENABLE_SEED: ${ENABLE_SEED:-true}
+    ports:
+      - "3001:3001"
+    extra_hosts:
+      # Permite acesso ao PostgreSQL na máquina host
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - ./backend/logs:/app/logs
+    networks:
+      - encantar-network
+    restart: unless-stopped
+
+  # Frontend Next.js - Desenvolvimento
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: encantar-frontend-dev
+    env_file:
+      - .env
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NODE_ENV: "development"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    networks:
+      - encantar-network
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+networks:
+  encantar-network:
+    driver: bridge
