@@ -88,10 +88,6 @@ ENV PORT=3001
 # Mudar para usuário não-root
 USER nodejs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
 EXPOSE 3001
 
 # Comando para produção

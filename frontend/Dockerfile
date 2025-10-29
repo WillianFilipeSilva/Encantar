@@ -39,10 +39,6 @@ ENV NEXT_PUBLIC_API_URL=http://backend:3001/api
 # Mudar para usuário não-root
 USER nodejs
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
 EXPOSE 3000
 
 # Comando para produção (standalone usa server.js)
