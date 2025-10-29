@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { execSync } from "child_process";
+import path from "path";
 
 /**
  * Cliente Prisma singleton para toda a aplicação
@@ -23,10 +24,14 @@ class DatabaseClient {
 
     try {
       console.log("Executando migrations Prisma antes de conectar ao banco...");
-      execSync("npx prisma migrate deploy", {
+      const backendRoot = path.resolve(__dirname, "..", "..");
+      const schemaPath = path.resolve(__dirname, "..", "..", "prisma", "schema.prisma");
+
+      execSync(`npx prisma migrate deploy --schema "${schemaPath}"`, {
         stdio: "inherit",
-        cwd: process.cwd(),
+        cwd: backendRoot,
       });
+      console.log("Migrations Prisma aplicadas com sucesso.");
       DatabaseClient.migrationsApplied = true;
     } catch (error) {
       console.error("Falha ao executar migrations automaticamente.", error);
