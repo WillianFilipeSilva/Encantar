@@ -19,7 +19,7 @@ const processQueue = (error: any, token: string | null = null) => {
 }
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://encantarback-production.up.railway.app/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'localhost:3001/api',
   withCredentials: true,
 })
 

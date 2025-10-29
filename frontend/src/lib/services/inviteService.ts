@@ -76,7 +76,7 @@ export const inviteService = {
   generateInviteLink(token: string): string {
     const baseUrl = typeof window !== 'undefined' 
       ? window.location.origin 
-      : process.env.NEXT_PUBLIC_APP_URL || 'https://encantarback-production.up.railway.app/api'
+      : process.env.NEXT_PUBLIC_APP_URL || 'localhost:3001/api'
     
     return `${baseUrl}/register/${token}`
   }
