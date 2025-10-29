@@ -104,7 +104,7 @@ app.use(
         imgSrc: ["'self'", "data:", "https:"],
         connectSrc: ["'self'", 
           isProduction 
-            ? process.env.FRONTEND_URL || "https://seu-dominio.com"
+            ? process.env.FRONTEND_URL || "https://encantarfront-production.up.railway.app"
             : "http://localhost:3000"
         ],
         fontSrc: ["'self'", "https:", "data:"],

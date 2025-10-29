@@ -15,6 +15,9 @@ COPY . .
 # Build do Next.js
 RUN npm run build
 
+# Remover dependências de desenvolvimento após o build
+RUN npm prune --omit=dev
+
 # ==================== PRODUCTION STAGE ====================
 FROM node:18-bullseye-slim
 
@@ -23,11 +26,12 @@ WORKDIR /app
 # Criar usuário não-root para segurança
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nodejs
 
-# Copiar standalone output (Next.js otimizado)
-# O standalone gera tudo dentro de .next/standalone, incluindo server.js
-COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone/. ./
-COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
+# Copiar artefatos de build e dependências
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nodejs:nodejs /app/public ./public
+COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/package-lock.json ./package-lock.json
 
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
@@ -39,5 +43,5 @@ USER nodejs
 
 EXPOSE 3000
 
-# Comando para produção (standalone usa server.js)
-CMD ["node", "server.js"]
+# Comando para produção
+CMD ["npm", "run", "start"]
