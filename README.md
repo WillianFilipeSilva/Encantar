@@ -40,7 +40,7 @@ Use quando quiser executar servicos isolados ou sem Docker.
 cd backend
 npm install
 npx prisma migrate dev
-npm run dev            # http://localhost:3001
+npm run dev            # https://projeto-encantar.sytes.net
 ```
 > Garanta um PostgreSQL disponivel em `postgresql://postgres:postgres@localhost:5432/encantar` ou ajuste `DATABASE_URL`.
 
@@ -48,7 +48,7 @@ npm run dev            # http://localhost:3001
 ```bash
 cd frontend
 npm install
-npm run dev            # http://localhost:3000
+npm run dev            # https://projeto-encantar.sytes.net
 ```
 
 ## Variaveis de Ambiente
@@ -60,14 +60,14 @@ npm run dev            # http://localhost:3000
 | JWT_REFRESH_SECRET | Chave do refresh token | `a7c4...` |
 | JWT_EXPIRES_IN | Tempo de vida do access token | `15m` |
 | JWT_REFRESH_EXPIRES_IN | Tempo de vida do refresh token | `7d` |
-| FRONTEND_URL | Origem permitida para CORS/cookies | `https://projeto-encantar.up.railway.app` |
+| FRONTEND_URL | Origem permitida para CORS/cookies | `https://projeto-encantar.sytes.net/` |
 | NODE_ENV | Ambiente atual | `development` ou `production` |
 | ENABLE_SEED | Controla execucao das seeds | `true` (dev) / `false` (prod) |
 
 ### `frontend/.env.local`
 | Nome | Descricao | Exemplo |
 | --- | --- | --- |
-| NEXT_PUBLIC_API_URL | Endpoint do backend com `/api` | `https://projeto-encantarback.up.railway.app/api` |
+| NEXT_PUBLIC_API_URL | Endpoint do backend com `/api` | `https://projeto-encantar.sytes.net/api` |
 
 ## Seeds e Credenciais (desenvolvimento)
 - Credencial padrao: usuario `admin`, senha `admin123`.

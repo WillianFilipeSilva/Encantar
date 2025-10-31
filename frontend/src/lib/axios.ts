@@ -19,7 +19,7 @@ const processQueue = (error: any, token: string | null = null) => {
 }
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://projeto-encantarback.up.railway.app/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://projeto-encantar.sytes.net/api',
   withCredentials: true,
 })
 
@@ -57,7 +57,7 @@ api.interceptors.response.use(
 
       try {
         const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://projeto-encantarback.up.railway.app//api'}/auth/refresh`,
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         )

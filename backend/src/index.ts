@@ -49,11 +49,7 @@ app.set('trust proxy', 1);
 
 app.use(
   cors({
-    origin: [
-      "https://projeto-encantar.up.railway.app",
-      "http://localhost:3000",
-      process.env.FRONTEND_URL || "https://projeto-encantar.up.railway.app"
-    ],
+    origin: [process.env.FRONTEND_URL],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
@@ -135,8 +131,6 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        // Em produção: sem unsafe-inline/unsafe-eval
-        // Em desenvolvimento: permitir para hot-reload
         styleSrc: isProduction 
           ? ["'self'"] 
           : ["'self'", "'unsafe-inline'"],
@@ -144,11 +138,7 @@ app.use(
           ? ["'self'"] 
           : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", 
-          isProduction 
-            ? process.env.FRONTEND_URL || "https://projeto-encantar.up.railway.app"
-            : "http://localhost:3000"
-        ],
+        connectSrc: ["'self'", process.env.FRONTEND_URL],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
