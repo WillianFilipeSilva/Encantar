@@ -93,6 +93,6 @@ export class EnvValidator {
     logger.info(`  PORT: ${process.env.PORT || 8080}`);
     logger.info(`  DATABASE_URL: ${process.env.DATABASE_URL ? '✓ configurado' : '✗ não configurado'}`);
     logger.info(`  JWT_SECRET: ${process.env.JWT_SECRET ? '✓ configurado' : '✗ não configurado'}`);
-    logger.info(`  FRONTEND_URL: ${process.env.FRONTEND_URL || 'https://projeto-encantarfront.up.railway.app'}`);
+    logger.info(`  FRONTEND_URL: ${process.env.FRONTEND_URL}`);
   }
 }

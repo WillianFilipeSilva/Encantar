@@ -15,7 +15,7 @@ const swaggerDocument = {
   },
   servers: [
     {
-      url: "https://projeto-encantarback.up.railway.app/api",
+      url: "https://projeto-encantar.sytes.net/api",
       description: "Servidor de Produção"
     },
     {

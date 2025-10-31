@@ -45,8 +45,8 @@ switch ($cmd) {
         Write-Host "Iniciando containers...`n" -ForegroundColor Cyan
         docker compose up -d
         Write-Host "`nContainers rodando!" -ForegroundColor Green
-        Write-Host "Backend:  http://localhost:3001"
-        Write-Host "Frontend: http://localhost:3000`n"
+        Write-Host "Backend:  https://projeto-encantar.sytes.net"
+        Write-Host "Frontend: https://projeto-encantar.sytes.net`n"
         exit 0
     }
     
