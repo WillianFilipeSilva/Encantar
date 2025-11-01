@@ -36,16 +36,12 @@ if (defaultEnvResult.error) {
   }
 }
 
-// Validar ambiente na inicialização
 EnvValidator.validateRequired();
 EnvValidator.validateTypes();
 EnvValidator.logConfiguration();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Trust proxy para Railway/Heroku/etc (lê X-Forwarded-* headers)
-app.set('trust proxy', 1);
+const PORT = process.env.PORT;
 
 app.use(
   cors({
