@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label"
 import { CheckCircle, AlertCircle, UserPlus, Loader2, Lock, Mail, User } from "lucide-react"
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { inviteService } from "@/lib/services/inviteService"
+
+export const dynamic = 'force-dynamic'
 import { useAuth } from "@/hooks/useAuth"
 import toast from 'react-hot-toast'
 import Image from 'next/image'

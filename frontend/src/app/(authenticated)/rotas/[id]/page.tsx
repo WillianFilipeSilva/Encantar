@@ -9,6 +9,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+
+export const dynamic = 'force-dynamic';
 import {
   Table,
   TableBody,

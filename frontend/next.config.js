@@ -10,6 +10,8 @@ const nextConfig = {
     optimizeCss: true,
   },
   output: 'standalone',
+  generateBuildId: async () => 'build-' + Date.now(),
+  trailingSlash: true,
 }
 
 module.exports = nextConfig
