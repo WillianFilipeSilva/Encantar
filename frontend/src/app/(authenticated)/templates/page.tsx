@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TemplateDialog } from './TemplateDialog'
+
+export const dynamic = 'force-dynamic'
 import { TemplatePreviewDialog } from './TemplatePreviewDialog'
 import { templateService } from '@/lib/services/templateService'
 import { TemplatePDF } from '@/lib/types'

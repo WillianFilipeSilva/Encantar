@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/lib/axios";
 import { useAuth } from "@/hooks/useAuth";
 
+export const dynamic = 'force-dynamic'
+
 export default function LoginPage() {
   const { user, isLoading: authLoading, login: authLogin } = useAuth();
   const [login, setLogin] = useState("");

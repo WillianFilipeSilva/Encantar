@@ -9,6 +9,8 @@ import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
 import { usePagination } from "@/hooks/usePagination"
 import { api } from "@/lib/axios"
 import { logError } from "@/lib/errorUtils"
+
+export const dynamic = 'force-dynamic'
 import { showErrorToast } from "@/components/ErrorToast"
 import { PenLine, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"

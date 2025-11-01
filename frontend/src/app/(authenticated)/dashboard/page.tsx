@@ -4,6 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { api } from "@/lib/axios"
 import { useQuery } from "@tanstack/react-query"
 
+export const dynamic = 'force-dynamic'
+
 interface DashboardData {
   totalBeneficiarios: number
   totalAtendimentos: number
