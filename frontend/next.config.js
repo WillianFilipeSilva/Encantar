@@ -18,9 +18,6 @@ const nextConfig = {
       serverComponentsExternalPackages: [],
     },
   }),
-  generateBuildId: async () => 'build-' + Date.now(),
 }
-
-module.exports = nextConfig
 
 module.exports = nextConfig

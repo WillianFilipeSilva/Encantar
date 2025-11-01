@@ -3,6 +3,9 @@ FROM node:18-bullseye-slim AS builder
 
 WORKDIR /app
 
+# Definir NODE_ENV para production durante o build
+ENV NODE_ENV=production
+
 # Copiar package files
 COPY package*.json ./
 
@@ -12,7 +15,7 @@ RUN npm ci
 # Copiar código fonte
 COPY . .
 
-# Build do Next.js
+# Build do Next.js com configurações otimizadas
 RUN npm run build
 
 # Remover dependências de desenvolvimento após o build

@@ -6,7 +6,6 @@ cmds = ["npm ci"]
 
 [phases.build]
 cmds = ["npm run build"]
-env = { NODE_ENV = "production" }
 
 [start]
-cmd = "npm run start"
+cmd = ["npm", "run", "start"]
