@@ -45,7 +45,6 @@ const PORT = process.env.PORT;
 
 app.use(
   cors({
-    // CORREÇÃO 1: Adicionado '!' para garantir ao TypeScript que a variável não é undefined.
     origin: [process.env.FRONTEND_URL!],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
