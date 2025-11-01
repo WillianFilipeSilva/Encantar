@@ -12,12 +12,6 @@ const nextConfig = {
   output: 'standalone',
   generateBuildId: async () => 'build-' + Date.now(),
   trailingSlash: true,
-  ...(process.env.NODE_ENV === 'development' && {
-    experimental: {
-      optimizeCss: true,
-      serverComponentsExternalPackages: [],
-    },
-  }),
 }
 
 module.exports = nextConfig
