@@ -45,12 +45,13 @@ const PORT = process.env.PORT;
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL],
+    // CORREÇÃO 1: Adicionado '!' para garantir ao TypeScript que a variável não é undefined.
+    origin: [process.env.FRONTEND_URL!],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: [
-      "Content-Type", 
-      "Authorization", 
+      "Content-Type",
+      "Authorization",
       "X-Requested-With",
       "Accept",
       "Origin",
@@ -127,14 +128,15 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: isProduction 
-          ? ["'self'"] 
+        styleSrc: isProduction
+          ? ["'self'"]
           : ["'self'", "'unsafe-inline'"],
-        scriptSrc: isProduction 
-          ? ["'self'"] 
+        scriptSrc: isProduction
+          ? ["'self'"]
           : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         imgSrc: ["'self'", "data:", "https:"],
-        connectSrc: ["'self'", process.env.FRONTEND_URL],
+        // CORREÇÃO 2: Adicionado '!' aqui também.
+        connectSrc: ["'self'", process.env.FRONTEND_URL!],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
         mediaSrc: ["'self'"],
@@ -148,7 +150,7 @@ app.use(
     frameguard: { action: "deny" },
     hidePoweredBy: true,
     // Em produção: ativar HSTS (apenas com TLS/HTTPS válido)
-    hsts: isProduction 
+    hsts: isProduction
       ? { maxAge: 31536000, includeSubDomains: true, preload: true }
       : false,
     ieNoOpen: true,
