@@ -116,8 +116,9 @@ const authLimiter = rateLimit({
 });
 
 app.use(globalLimiter);
-app.use("/api/auth/login", authLimiter);
-app.use("/api/auth/register", authLimiter);
+// Rate limiters sem /api porque o Traefik já removeu o prefixo
+app.use("/auth/login", authLimiter);
+app.use("/auth/register", authLimiter);
 
 // Configuração de segurança baseada no ambiente
 const isProduction = process.env.NODE_ENV === "production";
@@ -188,15 +189,17 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/invite", inviteRoutes);
-app.use("/api/beneficiarios", beneficiarioRoutes);
-app.use("/api/items", itemRoutes);
-app.use("/api/rotas", rotaRoutes);
-app.use("/api/modelos-atendimento", modeloAtendimentoRoutes);
-app.use("/api/atendimentos", atendimentoRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/templates", templatePDFRoutes);
+// Rotas sem prefixo /api porque o Traefik já faz o roteamento com PathPrefix
+// e o stripprefix remove o /api antes de chegar aqui
+app.use("/auth", authRoutes);
+app.use("/invite", inviteRoutes);
+app.use("/beneficiarios", beneficiarioRoutes);
+app.use("/items", itemRoutes);
+app.use("/rotas", rotaRoutes);
+app.use("/modelos-atendimento", modeloAtendimentoRoutes);
+app.use("/atendimentos", atendimentoRoutes);
+app.use("/dashboard", dashboardRoutes);
+app.use("/templates", templatePDFRoutes);
 
 // Configurar Swagger para documentação da API
 setupSwagger(app);
