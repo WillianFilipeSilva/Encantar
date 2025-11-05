@@ -163,7 +163,7 @@ import logger, { httpLogger } from './utils/logger';
 app.use(httpLogger);
 app.use(morgan('combined', {
   stream: {
-    write: (message) => logger.http(message.trim()),
+    write: (message: string) => logger.http(message.trim()),
   },
 }));
 
