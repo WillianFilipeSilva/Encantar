@@ -171,23 +171,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-app.get("/", (_req, res) => {
-  res.json({
-    status: "OK",
-    message: "Encantar API online",
-    health: "https endpoint available at /health",
-  });
-});
-
 const buildHealthPayload = () => ({
   status: "OK",
   timestamp: formatBrazilDateTime(new Date()),
   environment: process.env.NODE_ENV || "development",
   version: "1.0.0",
-});
-
-app.get("/health", (_req, res) => {
-  res.json(buildHealthPayload());
 });
 
 app.get("/api/health", (_req, res) => {
@@ -218,7 +206,7 @@ async function startServer() {
 
     app.listen(PORT, () => {
       logger.info(`🚀 Servidor Encantar rodando na porta ${PORT}`);
-      logger.info(`📊 Health check: http://localhost:${PORT}/health`);
+  logger.info(`📊 Health check: http://localhost:${PORT}/api/health`);
       logger.info(`🌍 Ambiente: ${process.env.NODE_ENV || "development"}`);
       logger.info(`🔐 Rotas de autenticação: http://localhost:${PORT}/api/auth`);
     });

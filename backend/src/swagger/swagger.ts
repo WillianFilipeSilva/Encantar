@@ -175,9 +175,9 @@ const swaggerDocument = {
 };
 
 export function setupSwagger(app: Express) {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  
-  app.get("/api-docs.json", (req: Request, res: Response) => {
+  app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+  app.get("/api/docs.json", (req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");
     res.send(swaggerDocument);
   });
