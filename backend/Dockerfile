@@ -77,6 +77,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 # Copiar package.json apenas (para versão)
 COPY --chown=nodejs:nodejs backend/package*.json ./
 
+# Gerar cliente Prisma novamente para garantir compatibilidade
+RUN npx prisma generate
+
 # Copiar script de entrypoint para garantir migrations
 COPY --chown=nodejs:nodejs backend/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
