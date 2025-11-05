@@ -179,13 +179,19 @@ app.get("/", (_req, res) => {
   });
 });
 
-app.get("/health", (req, res) => {
-  res.json({
-    status: "OK",
-    timestamp: formatBrazilDateTime(new Date()),
-    environment: process.env.NODE_ENV || "development",
-    version: "1.0.0",
-  });
+const buildHealthPayload = () => ({
+  status: "OK",
+  timestamp: formatBrazilDateTime(new Date()),
+  environment: process.env.NODE_ENV || "development",
+  version: "1.0.0",
+});
+
+app.get("/health", (_req, res) => {
+  res.json(buildHealthPayload());
+});
+
+app.get("/api/health", (_req, res) => {
+  res.json(buildHealthPayload());
 });
 
 // Rotas com prefixo /api
