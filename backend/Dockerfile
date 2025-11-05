@@ -65,6 +65,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libxss1 \
     libxtst6 \
+    curl \
     wget \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
@@ -83,6 +84,9 @@ RUN npx prisma generate
 # Copiar script de entrypoint para garantir migrations
 COPY --chown=nodejs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
+
+# Garantir diretório de logs com permissões corretas
+RUN mkdir -p logs && chown -R nodejs:nodejs /app
 
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
