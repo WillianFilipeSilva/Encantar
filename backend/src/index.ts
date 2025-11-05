@@ -63,7 +63,7 @@ app.use(
 );
 
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
+  windowMs: 10 * 60 * 1000, // 10 minutos
   max: 100,
   message: {
     success: false,
@@ -113,6 +113,13 @@ const authLimiter = rateLimit({
       code: "AUTH_RATE_LIMIT_EXCEEDED",
     });
   },
+});
+
+const healthLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 app.use(globalLimiter);
@@ -178,7 +185,7 @@ const buildHealthPayload = () => ({
   version: "1.0.0",
 });
 
-app.get("/api/health", (_req, res) => {
+app.get("/api/health", healthLimiter, (_req, res) => {
   res.json(buildHealthPayload());
 });
 
