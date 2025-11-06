@@ -8,6 +8,7 @@ import { ItemService } from "../services/ItemService";
 import { ItemRepository } from "../repositories/ItemRepository";
 import { authenticateToken } from "../middleware/auth";
 import { prisma } from "../utils/database";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get("/beneficiarios/search", async (req, res) => {
     const beneficiarios = await beneficiarioService.search(q, true);
     return res.json({ data: beneficiarios });
   } catch (error) {
-    console.error('Erro ao buscar beneficiários:', error);
+    logger.error('Erro ao buscar beneficiários:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
@@ -48,7 +49,7 @@ router.get("/itens/search", async (req, res) => {
     const itens = await itemService.search(q, true);
     return res.json({ data: itens });
   } catch (error) {
-    console.error('Erro ao buscar itens:', error);
+    logger.error('Erro ao buscar itens:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
@@ -78,7 +79,7 @@ router.patch("/:id/status", async (req, res) => {
     
     return res.json({ data: updatedAtendimento });
   } catch (error) {
-    console.error('Erro ao atualizar status da atendimento:', error);
+    logger.error('Erro ao atualizar status da atendimento:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

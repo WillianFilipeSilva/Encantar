@@ -55,14 +55,21 @@ class DatabaseClient {
           $on(event: 'error', listener: (event: { message: string }) => void): void;
         };
         
-        client.$on('query', (e) => {
-          console.log("🔍 Query:", e.query);
-          console.log("⏱️  Duration:", e.duration + "ms");
-        });
-
-        client.$on('error', (e) => {
-          console.error("❌ Database Error:", e);
-        });
+        query: {
+        $on: ['query'],
+        event: (e: any) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('🔍 Query:', e.query);
+            console.log('⏱️  Duration:', e.duration + 'ms');
+          }
+        },
+      },
+      error: {
+        $on: ['error'],
+        event: (e: any) => {
+          console.error('❌ Database Error:', e);
+        },
+      },
       }
     }
 

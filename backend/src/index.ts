@@ -73,14 +73,8 @@ const globalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  statusCode: 429, // Garantir que retorna 429
+  statusCode: 429,
   handler: (req, res) => {
-    console.log("🚫 Rate limit global atingido:", {
-      ip: req.ip,
-      url: req.url,
-      method: req.method,
-      timestamp: new Date().toISOString(),
-    });
     res.status(429).json({
       success: false,
       error: "Muitas tentativas. Tente novamente em 15 minutos.",
@@ -88,25 +82,15 @@ const globalLimiter = rateLimit({
     });
   },
 });
+});
 
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 10,
-  message: {
-    success: false,
-    error: "Muitas tentativas de login. Tente novamente em 1 hora.",
-    code: "AUTH_RATE_LIMIT_EXCEEDED",
-  },
   standardHeaders: true,
   legacyHeaders: false,
-  statusCode: 429, // Garantir que retorna 429
+  statusCode: 429,
   handler: (req, res) => {
-    console.log("🚫 Rate limit de autenticação atingido:", {
-      ip: req.ip,
-      url: req.url,
-      method: req.method,
-      timestamp: new Date().toISOString(),
-    });
     res.status(429).json({
       success: false,
       error: "Muitas tentativas de login. Tente novamente em 1 hora.",
@@ -186,7 +170,14 @@ const csrfProtection = csrf({
   }
 });
 
-app.get("/api/csrf-token", csrfProtection, (req: any, res: any) => {
+const csrfLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.get("/api/csrf-token", csrfLimiter, csrfProtection, (req: any, res: any) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 

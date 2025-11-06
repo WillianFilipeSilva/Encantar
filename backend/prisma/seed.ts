@@ -80,13 +80,13 @@ const TEMPLATE_CLEAN = `<!DOCTYPE html>
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
 
-  const senhaHash = await bcrypt.hash('Batman', 10)
+  const senhaHash = await bcrypt.hash('admin', 10)
   const admin = await prisma.administrador.upsert({
-    where: { login: 'WillianAdmin' },
+    where: { login: 'admin' },
     update: {},
     create: {
-      nome: 'Willian Filipe Silva',
-      login: 'WillianAdmin',
+      nome: '',
+      login: 'admin',
       senha: senhaHash,
       ativo: true,
     },

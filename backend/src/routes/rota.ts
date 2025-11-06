@@ -6,6 +6,7 @@ import { AtendimentoRepository } from "../repositories/AtendimentoRepository";
 import { AtendimentoService } from "../services/AtendimentoService";
 import { authenticateToken } from "../middleware/auth";
 import { prisma } from "../utils/database";
+import logger from "../utils/logger";
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.patch("/:id/atendimentos/status", async (req, res) => {
     
     return res.json({ message: 'Status dos atendimentos atualizado com sucesso' });
   } catch (error) {
-    console.error('Erro ao atualizar status das atendimentos:', error);
+    logger.error('Erro ao atualizar status das atendimentos:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
