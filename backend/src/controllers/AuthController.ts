@@ -18,15 +18,6 @@ export class AuthController {
    */
   login = asyncHandler(
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      console.log("🔐 Iniciando processo de login:", {
-        url: req.url,
-        method: req.method,
-        ip: req.ip,
-        timestamp: new Date().toISOString(),
-        hasBody: !!req.body,
-        bodyKeys: req.body ? Object.keys(req.body) : [],
-      });
-
       await body("login")
         .notEmpty()
         .withMessage("Login é obrigatório")
@@ -38,10 +29,6 @@ export class AuthController {
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.log("❌ Erro de validação no login:", {
-          errors: errors.array(),
-          body: req.body,
-        });
         res.status(400).json({
           success: false,
           error: "Dados inválidos",
@@ -50,50 +37,31 @@ export class AuthController {
         });
         return;
       }
-
-      console.log("✅ Validação passou, chamando AuthService.login");
       
-      try {
-        const loginData: LoginData = req.body;
-        const result = await this.authService.login(loginData);
+      const loginData: LoginData = req.body;
+      const result = await this.authService.login(loginData);
 
-        console.log("✅ Login bem-sucedido, configurando cookies");
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 15 * 60 * 1000
+      });
 
-        // Configurar cookies HttpOnly para tokens
-        res.cookie('accessToken', result.accessToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: 15 * 60 * 1000 // 15 minutos
-        });
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
 
-        res.cookie('refreshToken', result.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 dias
-        });
-
-        res.json({
-          success: true,
-          data: {
-            user: result.user
-            // Não enviar tokens no body - estão nos cookies
-          },
-          message: "Login realizado com sucesso",
-        });
-      } catch (error) {
-        console.error("💥 Erro no AuthController.login:", {
-          error: error instanceof Error ? {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-          } : error,
-          loginData: req.body,
-          timestamp: new Date().toISOString(),
-        });
-        throw error; // Re-throw para o asyncHandler tratar
-      }
+      res.json({
+        success: true,
+        data: {
+          user: result.user
+        },
+        message: "Login realizado com sucesso",
+      });
     }
   );
 

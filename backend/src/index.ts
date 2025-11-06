@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import path from "path";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import csrf from "csurf";
 
 import authRoutes from "./routes/auth";
 import inviteRoutes from "./routes/invite";
@@ -89,8 +90,8 @@ const globalLimiter = rateLimit({
 });
 
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hora
-  max: 5,
+  windowMs: 60 * 60 * 1000,
+  max: 10,
   message: {
     success: false,
     error: "Muitas tentativas de login. Tente novamente em 1 hora.",
@@ -104,7 +105,6 @@ const authLimiter = rateLimit({
       ip: req.ip,
       url: req.url,
       method: req.method,
-      body: req.body,
       timestamp: new Date().toISOString(),
     });
     res.status(429).json({
@@ -177,6 +177,18 @@ app.use(morgan('combined', {
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+const csrfProtection = csrf({
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  }
+});
+
+app.get("/api/csrf-token", csrfProtection, (req: any, res: any) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 const buildHealthPayload = () => ({
   status: "OK",
