@@ -50,18 +50,17 @@ export class AuthService {
       where: { login },
     });
 
-    if (!administrador) {
+    const dummyHash = "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYFn.TZ0OLu";
+    const hashParaComparar = administrador?.senha || dummyHash;
+    
+    const senhaValida = await bcrypt.compare(senha, hashParaComparar);
+
+    if (!administrador || !senhaValida) {
       throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
     }
 
     if (!administrador.ativo) {
       throw CommonErrors.UNAUTHORIZED("Conta desativada");
-    }
-
-    const senhaValida = await bcrypt.compare(senha, administrador.senha);
-    
-    if (!senhaValida) {
-      throw CommonErrors.UNAUTHORIZED("Login ou senha inválidos");
     }
 
     const tokens = this.generateTokens({
