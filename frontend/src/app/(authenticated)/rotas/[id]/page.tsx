@@ -28,8 +28,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CheckCircle,
-  Package,
-  PenLine,
   Plus,
   Printer,
   Trash2,
@@ -147,7 +145,6 @@ export default function RotaDetalhesPage() {
     refetchOnWindowFocus: true,
   });
 
-  // Query de beneficiários corrigida com limit máximo de 500
   const { data: beneficiarios, isLoading: isLoadingBeneficiarios } = useQuery<
     Beneficiario[]
   >({
@@ -192,17 +189,15 @@ export default function RotaDetalhesPage() {
     refetchOnWindowFocus: true,
   });
 
-  // Query para templates ativos
   const { data: templatesAtivos } = useQuery({
     queryKey: ["templates-ativos"],
     queryFn: async () => {
       const response = await templateService.findActive();
       return response.data || [];
     },
-    staleTime: 30000, // Cache por 30 segundos
+    staleTime: 30000,
   });
 
-  // Funções de busca para autocomplete
   const searchBeneficiarios = async (searchTerm: string) => {
     if (searchTerm.length < 1) return [];
     setIsSearchingBeneficiarios(true);
@@ -244,7 +239,6 @@ export default function RotaDetalhesPage() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalida queries relacionadas à rota específica
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "rota" || query.queryKey[0] === "/rotas",
@@ -276,7 +270,6 @@ export default function RotaDetalhesPage() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalida queries relacionadas à rota específica
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "rota" || query.queryKey[0] === "/rotas",
@@ -297,7 +290,6 @@ export default function RotaDetalhesPage() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalida queries relacionadas à rota específica
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "rota" || query.queryKey[0] === "/rotas",
@@ -311,10 +303,6 @@ export default function RotaDetalhesPage() {
       showErrorToast("Erro ao excluir atendimento", error);
     },
   });
-
-  useEffect(() => {
-    // Não precisamos mais inicializar itemsSelecionados
-  }, []);
 
   const resetForm = () => {
     setFormData({ beneficiarioId: "", observacoes: "" });
@@ -356,8 +344,8 @@ export default function RotaDetalhesPage() {
       }
     }
 
-    if (formData.observacoes && formData.observacoes.trim().length > 500) {
-      toast.error("Observações deve ter no máximo 500 caracteres");
+    if (formData.observacoes && formData.observacoes.trim().length > 2000) {
+      toast.error("Observações deve ter no máximo 2000 caracteres");
       return;
     }
 
@@ -386,7 +374,6 @@ export default function RotaDetalhesPage() {
     }
   };
 
-  // Funções para gerenciar itens do atendimento
   const addAtendimentoItem = () => {
     setAtendimentoItems((prev) => [...prev, { itemId: "", quantidade: 1 }]);
   };
@@ -410,7 +397,6 @@ export default function RotaDetalhesPage() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalida queries relacionadas à rota específica
       queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === "rota" || query.queryKey[0] === "/rotas",
@@ -455,8 +441,14 @@ export default function RotaDetalhesPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          title="Voltar"
+          aria-label="Voltar"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold tracking-tight">{rota.nome}</h1>
@@ -505,8 +497,8 @@ export default function RotaDetalhesPage() {
       <div className="flex items-center gap-4">
         <Dialog open={dialogOpen} onOpenChange={(open) => setDialogOpen(open)}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button title="Cadastrar novo atendimento" aria-label="Cadastrar novo atendimento">
+              <Plus className="mr-2 h-4 w-4" title="Cadastrar atendimento" aria-hidden="true" />
               Cadastrar Atendimento
             </Button>
           </DialogTrigger>
@@ -573,7 +565,7 @@ export default function RotaDetalhesPage() {
               <div className="space-y-2">
                 <label htmlFor="beneficiario">Beneficiário *</label>
                 <AutocompleteInput
-                  placeholder="Digite pelo menos 1 letra para buscar beneficiários..."
+                  placeholder="Buscar por nome ou endereço..."
                   value={selectedBeneficiario ? selectedBeneficiario.nome : ""}
                   onSearch={async (searchTerm) => {
                     if (searchTerm.length < 1) return [];
@@ -625,21 +617,22 @@ export default function RotaDetalhesPage() {
                     onClick={addAtendimentoItem}
                     size="sm"
                     disabled={isLoadingItens}
+                    title="Adicionar item"
+                    aria-label="Adicionar item"
                   >
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="mr-2 h-4 w-4" title="Adicionar" aria-hidden="true" />
                     Adicionar Item
                   </Button>
                 </div>
                 <div className="space-y-2">
                   {atendimentoItems.map((atendimentoItem, index) => {
-                    // Filtrar itens disponíveis excluindo os já selecionados (exceto o atual)
                     const itensDisponiveis = Array.isArray(itens)
                       ? itens.filter(
                           (item) =>
-                            item.id === atendimentoItem.itemId || // Manter o item atual selecionado
+                            item.id === atendimentoItem.itemId ||
                             !atendimentoItems.some(
                               (ei) => ei.itemId === item.id
-                            ) // Excluir itens já selecionados
+                            )
                         )
                       : [];
 
@@ -692,8 +685,10 @@ export default function RotaDetalhesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeAtendimentoItem(index)}
+                          title={`Remover item ${index + 1}`}
+                          aria-label={`Remover item ${index + 1}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" title="Remover" aria-hidden="true" />
                         </Button>
                       </div>
                     );
@@ -744,15 +739,22 @@ export default function RotaDetalhesPage() {
             updateAllAtendimentosStatusMutation.mutate("CONCLUIDO")
           }
           disabled={updateAllAtendimentosStatusMutation.isPending}
+          title="Marcar todos como concluídos"
+          aria-label="Marcar todos como concluídos"
         >
-          <CheckCircle className="mr-2 h-4 w-4" />
+          <CheckCircle className="mr-2 h-4 w-4" title="Concluir todos" aria-hidden="true" />
           {updateAllAtendimentosStatusMutation.isPending
             ? "Atualizando..."
             : "Marcar Todos como Concluídos"}
         </Button>
 
-        <Button variant="outline" onClick={handleGerarPDF}>
-          <Printer className="mr-2 h-4 w-4" />
+        <Button
+          variant="outline"
+          onClick={handleGerarPDF}
+          title="Gerar PDF da rota"
+          aria-label="Gerar PDF da rota"
+        >
+          <Printer className="mr-2 h-4 w-4" title="Imprimir" aria-hidden="true" />
           Imprimir Rota
         </Button>
       </div>
@@ -817,7 +819,7 @@ export default function RotaDetalhesPage() {
                           })
                         }
                       >
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 text-green-600" title="Marcar como concluído" aria-hidden="true" />
                       </Button>
                     )}
                     {atendimento.status === "CONCLUIDO" && (
@@ -832,7 +834,7 @@ export default function RotaDetalhesPage() {
                           })
                         }
                       >
-                        <XCircle className="h-4 w-4 text-yellow-600" />
+                        <XCircle className="h-4 w-4 text-yellow-600" title="Marcar como cancelado" aria-hidden="true" />
                       </Button>
                     )}
                     <Button
@@ -874,7 +876,7 @@ export default function RotaDetalhesPage() {
                       }}
                       disabled={deleteAtendimentoMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" title="Excluir atendimento" aria-hidden="true" />
                     </Button>
                   </TableCell>
                 </TableRow>

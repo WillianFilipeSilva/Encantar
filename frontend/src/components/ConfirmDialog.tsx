@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Trash2, AlertTriangle, X } from "lucide-react"
+import { Trash2, AlertTriangle } from "lucide-react"
 
 interface ConfirmDialogProps {
   open: boolean
@@ -42,11 +42,11 @@ export function ConfirmDialog({
   const getIcon = () => {
     switch (variant) {
       case 'danger':
-        return <Trash2 className="h-8 w-8 text-red-500" />
+        return <Trash2 className="h-8 w-8 text-red-500" title="Confirmação crítica" aria-hidden="true" />
       case 'warning':
-        return <AlertTriangle className="h-8 w-8 text-yellow-500" />
+        return <AlertTriangle className="h-8 w-8 text-yellow-500" title="Atenção" aria-hidden="true" />
       default:
-        return <AlertTriangle className="h-8 w-8 text-blue-500" />
+        return <AlertTriangle className="h-8 w-8 text-blue-500" title="Confirmação" aria-hidden="true" />
     }
   }
 

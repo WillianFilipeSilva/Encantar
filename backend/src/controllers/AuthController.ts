@@ -92,7 +92,7 @@ export class AuthController {
         .run(req);
       await body("telefoneValidacao")
         .optional()
-        .isMobilePhone("pt-BR")
+        .matches(/^(\+55\s?)?(\(?\d{2}\)?[\s-]?)?(\d{4,5}[\s-]?\d{4})$/)
         .withMessage("Telefone de validação inválido")
         .run(req);
 
@@ -179,19 +179,24 @@ export class AuthController {
    */
   createInvite = asyncHandler(
     async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      // Limpa strings vazias antes da validação
+      if (req.body.email === '') req.body.email = undefined;
+      if (req.body.telefone === '') req.body.telefone = undefined;
+
       await body("email")
-        .optional()
+        .optional({ values: 'null' })
         .isEmail()
         .withMessage("Email inválido")
         .run(req);
       await body("telefone")
-        .optional()
-        .isMobilePhone("pt-BR")
-        .withMessage("Telefone inválido")
+        .optional({ values: 'null' })
+        .matches(/^(\+55\s?)?(\(?\d{2}\)?[\s-]?)?(\d{4,5}[\s-]?\d{4})$/)
+        .withMessage("Telefone inválido. Use formato: (11) 99999-9999 ou 11999999999")
         .run(req);
 
       await body().custom((value, { req }) => {
-        const { email, telefone } = req.body;
+        const email = req.body.email?.trim();
+        const telefone = req.body.telefone?.trim();
         if (!email && !telefone) {
           throw new Error('Email ou telefone é obrigatório');
         }

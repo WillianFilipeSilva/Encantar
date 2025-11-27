@@ -48,9 +48,9 @@ model Beneficiario {
   nome            String
   endereco        String
   telefone        String?
-  email           String?
+  cpf             String?        @unique
   dataNascimento  DateTime?
-  observacoes     String?
+  observacoes     String?        @db.VarChar(2000)
   ativo           Boolean        @default(true)
   criadoEm        DateTime       @default(now())
   atualizadoEm    DateTime       @updatedAt
@@ -66,7 +66,7 @@ model Beneficiario {
 model Item {
   id               String                  @id @default(cuid())
   nome             String
-  descricao        String?
+  descricao        String?                 @db.VarChar(2000)
   criadoEm         DateTime                @default(now())
   atualizadoEm     DateTime                @updatedAt
   criadoPorId      String
@@ -83,7 +83,7 @@ model Item {
 
 model Atendimento {
   id               String            @id @default(cuid())
-  observacoes      String?
+  observacoes      String?           @db.VarChar(2000)
   criadoEm         DateTime          @default(now())
   atualizadoEm     DateTime          @updatedAt
   beneficiarioId   String
@@ -115,7 +115,7 @@ model AtendimentoItem {
 model Rota {
   id              String         @id @default(cuid())
   nome            String
-  descricao       String?
+  descricao       String?        @db.VarChar(2000)
   criadoEm        DateTime       @default(now())
   atualizadoEm    DateTime       @updatedAt
   criadoPorId     String
@@ -131,7 +131,7 @@ model Rota {
 model TemplatePDF {
   id           String   @id @default(cuid())
   nome         String
-  descricao    String?
+  descricao    String?  @db.VarChar(2000)
   conteudo     String
   ativo        Boolean  @default(true)
   criadoEm     DateTime @default(now())
@@ -143,7 +143,7 @@ model TemplatePDF {
 model ModeloAtendimento {
   id           String                  @id @default(cuid())
   nome         String                  @unique
-  descricao    String?
+  descricao    String?                 @db.VarChar(2000)
   ativo        Boolean                 @default(true)
   criadoEm     DateTime                @default(now())
   atualizadoEm DateTime                @updatedAt

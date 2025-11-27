@@ -26,7 +26,7 @@ export interface CreateBeneficiarioDTO {
   nome: string;
   endereco: string;
   telefone?: string;
-  email?: string;
+  cpf?: string;
   dataNascimento?: string;
   observacoes?: string;
 }
@@ -35,7 +35,7 @@ export interface UpdateBeneficiarioDTO {
   nome?: string;
   endereco?: string;
   telefone?: string;
-  email?: string;
+  cpf?: string;
   dataNascimento?: string;
   observacoes?: string;
   ativo?: boolean;
@@ -46,7 +46,7 @@ export interface BeneficiarioResponseDTO {
   nome: string;
   endereco: string;
   telefone?: string | null;
-  email?: string | null;
+  cpf?: string | null;
   observacoes?: string | null;
   ativo: boolean;
   criadoEm: Date;

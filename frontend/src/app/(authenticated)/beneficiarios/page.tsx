@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { PaginationControls } from "@/components/PaginationControls";
 import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog";
 import { usePagination } from "@/hooks/usePagination";
@@ -36,7 +37,7 @@ interface Beneficiario {
   nome: string;
   endereco: string;
   telefone?: string;
-  email?: string;
+  cpf?: string;
   dataNascimento?: string;
   observacoes?: string;
   ativo: boolean;
@@ -50,7 +51,7 @@ export default function BeneficiariosPage() {
     nome: "",
     endereco: "",
     telefone: "",
-    email: "",
+    cpf: "",
     dataNascimento: "",
     observacoes: "",
   });
@@ -72,10 +73,11 @@ export default function BeneficiariosPage() {
     setSearch,
     setLimit,
     setFilters,
+    setSortBy,
     isLoading,
     error,
     refresh,
-  } = usePagination<Beneficiario>("/beneficiarios");
+  } = usePagination<Beneficiario>("/beneficiarios", { sortBy: 'nome', sortOrder: 'asc' });
 
   const filterConfig = [
     {
@@ -96,7 +98,7 @@ export default function BeneficiariosPage() {
       nome: string;
       endereco: string;
       telefone?: string;
-      email?: string;
+      cpf?: string;
       dataNascimento?: string;
       observacoes?: string;
     }) => {
@@ -104,7 +106,7 @@ export default function BeneficiariosPage() {
         nome: newBeneficiario.nome,
         endereco: newBeneficiario.endereco,
         telefone: newBeneficiario.telefone?.trim() || undefined,
-        email: newBeneficiario.email?.trim() || undefined,
+        cpf: newBeneficiario.cpf?.replace(/\D/g, "") || undefined,
         dataNascimento: newBeneficiario.dataNascimento?.trim() || undefined,
         observacoes: newBeneficiario.observacoes?.trim() || undefined,
       };
@@ -124,7 +126,7 @@ export default function BeneficiariosPage() {
         nome: "",
         endereco: "",
         telefone: "",
-        email: "",
+        cpf: "",
         dataNascimento: "",
         observacoes: "",
       });
@@ -143,7 +145,7 @@ export default function BeneficiariosPage() {
       nome: string;
       endereco: string;
       telefone?: string;
-      email?: string;
+      cpf?: string;
       dataNascimento?: string;
       observacoes?: string;
     }) => {
@@ -153,7 +155,7 @@ export default function BeneficiariosPage() {
         nome: data.nome,
         endereco: data.endereco,
         telefone: data.telefone?.trim() || undefined,
-        email: data.email?.trim() || undefined,
+        cpf: data.cpf?.replace(/\D/g, "") || undefined,
         dataNascimento: data.dataNascimento?.trim() || undefined,
         observacoes: data.observacoes?.trim() || undefined,
       };
@@ -173,7 +175,7 @@ export default function BeneficiariosPage() {
         nome: "",
         endereco: "",
         telefone: "",
-        email: "",
+        cpf: "",
         dataNascimento: "",
         observacoes: "",
       });
@@ -242,16 +244,15 @@ export default function BeneficiariosPage() {
       toast.error("Telefone deve ter entre 10 e 15 caracteres");
       return;
     }
-    if (
-      formData.email &&
-      formData.email.trim() &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
-    ) {
-      toast.error("Email deve ter um formato válido");
-      return;
+    if (formData.cpf && formData.cpf.trim()) {
+      const cpfLimpo = formData.cpf.replace(/\D/g, "");
+      if (cpfLimpo.length !== 11) {
+        toast.error("CPF deve ter 11 dígitos");
+        return;
+      }
     }
-    if (formData.observacoes && formData.observacoes.trim().length > 500) {
-      toast.error("Observações deve ter no máximo 500 caracteres");
+    if (formData.observacoes && formData.observacoes.trim().length > 2000) {
+      toast.error("Observações deve ter no máximo 2000 caracteres");
       return;
     }
 
@@ -291,7 +292,7 @@ export default function BeneficiariosPage() {
       nome: beneficiario.nome,
       endereco: beneficiario.endereco,
       telefone: beneficiario.telefone || "",
-      email: beneficiario.email || "",
+      cpf: beneficiario.cpf || "",
       dataNascimento: beneficiario.dataNascimento || "",
       observacoes: beneficiario.observacoes || "",
     });
@@ -323,7 +324,7 @@ export default function BeneficiariosPage() {
       nome: "",
       endereco: "",
       telefone: "",
-      email: "",
+      cpf: "",
       dataNascimento: "",
       observacoes: "",
     });
@@ -346,8 +347,8 @@ export default function BeneficiariosPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button title="Cadastrar novo beneficiário" aria-label="Cadastrar novo beneficiário">
+              <Plus className="mr-2 h-4 w-4" title="Novo beneficiário" aria-hidden="true" />
               Novo beneficiário
             </Button>
           </DialogTrigger>
@@ -400,13 +401,12 @@ export default function BeneficiariosPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="cpf">CPF</label>
                 <Input
-                  id="email"
-                  placeholder="Email para contato"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  id="cpf"
+                  placeholder="000.000.000-00"
+                  value={formData.cpf}
+                  onChange={(e) => handleInputChange("cpf", e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -467,10 +467,24 @@ export default function BeneficiariosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Endereço</TableHead>
+              <SortableTableHead
+                field="nome"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Nome
+              </SortableTableHead>
+              <SortableTableHead
+                field="endereco"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Endereço
+              </SortableTableHead>
               <TableHead>Telefone</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>CPF</TableHead>
               <TableHead>Observações</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
@@ -513,7 +527,7 @@ export default function BeneficiariosPage() {
                   </TableCell>
                   <TableCell>{beneficiario.endereco}</TableCell>
                   <TableCell>{beneficiario.telefone || "-"}</TableCell>
-                  <TableCell>{beneficiario.email || "-"}</TableCell>
+                  <TableCell>{beneficiario.cpf || "-"}</TableCell>
                   <TableCell
                     className="max-w-xs truncate"
                     title={beneficiario.observacoes || ""}
@@ -524,10 +538,11 @@ export default function BeneficiariosPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Editar beneficiário"
+                      title={`Editar beneficiário ${beneficiario.nome}`}
+                      aria-label={`Editar beneficiário ${beneficiario.nome}`}
                       onClick={() => handleEdit(beneficiario)}
                     >
-                      <PenLine className="h-4 w-4" />
+                      <PenLine className="h-4 w-4" title="Editar" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
@@ -536,6 +551,11 @@ export default function BeneficiariosPage() {
                         beneficiario.ativo
                           ? "Inativar beneficiário"
                           : "Ativar beneficiário"
+                      }
+                      aria-label={
+                        beneficiario.ativo
+                          ? `Inativar beneficiário ${beneficiario.nome}`
+                          : `Ativar beneficiário ${beneficiario.nome}`
                       }
                       onClick={() => handleToggleStatus(beneficiario)}
                       disabled={toggleBeneficiarioStatusMutation.isPending}
@@ -546,9 +566,9 @@ export default function BeneficiariosPage() {
                       }
                     >
                       {beneficiario.ativo ? (
-                        <UserX className="h-4 w-4" />
+                        <UserX className="h-4 w-4" title="Inativar" aria-hidden="true" />
                       ) : (
-                        <UserCheck className="h-4 w-4" />
+                        <UserCheck className="h-4 w-4" title="Ativar" aria-hidden="true" />
                       )}
                     </Button>
                   </TableCell>

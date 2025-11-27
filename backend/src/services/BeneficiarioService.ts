@@ -46,10 +46,19 @@ export class BeneficiarioService extends BaseService<
     if (page < 1) page = 1;
     if (limit < 1 || limit > 500) limit = 10;
 
+    // Extrai parâmetros de ordenação dos filtros
+    const sortBy = filters?.sortBy;
+    const sortOrder = filters?.sortOrder;
+    
+    // Remove sortBy e sortOrder dos filtros do where
+    const { sortBy: _, sortOrder: __, ...whereFilters } = filters || {};
+
     return this.beneficiarioRepository.findAllWithRelations(
       page,
       limit,
-      filters
+      whereFilters,
+      sortBy,
+      sortOrder
     );
   }
 
@@ -174,14 +183,14 @@ export class BeneficiarioService extends BaseService<
   }
 
   /**
-   * Busca beneficiários para autocomplete
+   * Busca beneficiários para autocomplete (por nome ou endereço)
    */
   async search(searchTerm: string, activeOnly: boolean = true): Promise<Pick<Beneficiario, 'id' | 'nome' | 'endereco' | 'telefone'>[]> {
     if (!searchTerm || searchTerm.trim().length < 1) {
       return [];
     }
 
-    return this.beneficiarioRepository.findByNome(searchTerm.trim(), 50);
+    return this.beneficiarioRepository.searchByNomeOrEndereco(searchTerm.trim(), 50);
   }
 
   /**
@@ -216,8 +225,15 @@ export class BeneficiarioService extends BaseService<
       );
     }
 
-    if (data.email && data.email.trim() !== "" && !this.isValidEmail(data.email)) {
-      throw CommonErrors.BAD_REQUEST("Email inválido");
+    if (data.cpf && data.cpf.trim() !== "" && !this.isValidCPF(data.cpf)) {
+      throw CommonErrors.BAD_REQUEST("CPF inválido");
+    }
+
+    if (data.cpf && data.cpf.trim() !== "") {
+      const existingBeneficiario = await this.beneficiarioRepository.findByCpf(data.cpf);
+      if (existingBeneficiario) {
+        throw CommonErrors.CONFLICT("Já existe um beneficiário com este CPF");
+      }
     }
 
     if (data.telefone && data.telefone.trim() !== "" && !this.isValidPhone(data.telefone)) {
@@ -233,11 +249,9 @@ export class BeneficiarioService extends BaseService<
     }
   }
 
-  /**
-   * Valida dados de atualização
-   */
   protected async validateUpdateData(
-    data: UpdateBeneficiarioDTO
+    data: UpdateBeneficiarioDTO,
+    currentId?: string
   ): Promise<void> {
     if (
       data.nome !== undefined &&
@@ -256,12 +270,19 @@ export class BeneficiarioService extends BaseService<
     }
 
     if (
-      data.email !== undefined &&
-      data.email !== null &&
-      data.email.trim() !== "" &&
-      !this.isValidEmail(data.email)
+      data.cpf !== undefined &&
+      data.cpf !== null &&
+      data.cpf.trim() !== "" &&
+      !this.isValidCPF(data.cpf)
     ) {
-      throw CommonErrors.BAD_REQUEST("Email inválido");
+      throw CommonErrors.BAD_REQUEST("CPF inválido");
+    }
+
+    if (data.cpf && data.cpf.trim() !== "" && currentId) {
+      const existingBeneficiario = await this.beneficiarioRepository.findByCpf(data.cpf, currentId);
+      if (existingBeneficiario) {
+        throw CommonErrors.CONFLICT("Já existe um beneficiário com este CPF");
+      }
     }
 
     if (
@@ -282,9 +303,6 @@ export class BeneficiarioService extends BaseService<
     }
   }
 
-  /**
-   * Transforma dados do beneficiário para resposta
-   */
   private transformBeneficiarioData(
     beneficiario: Beneficiario & {
       criadoPor?: { id: string; nome: string };
@@ -296,7 +314,7 @@ export class BeneficiarioService extends BaseService<
       nome: beneficiario.nome,
       endereco: beneficiario.endereco,
       telefone: beneficiario.telefone,
-      email: beneficiario.email,
+      cpf: (beneficiario as any).cpf,
       observacoes: beneficiario.observacoes,
       ativo: beneficiario.ativo,
       criadoEm: beneficiario.criadoEm,
@@ -314,17 +332,32 @@ export class BeneficiarioService extends BaseService<
     };
   }
 
-  /**
-   * Valida formato de email
-   */
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  private isValidCPF(cpf: string): boolean {
+    const cleanCPF = cpf.replace(/\D/g, "");
+    
+    if (cleanCPF.length !== 11) return false;
+    
+    if (/^(\d)\1+$/.test(cleanCPF)) return false;
+    
+    let sum = 0;
+    for (let i = 0; i < 9; i++) {
+      sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
+    }
+    let digit = 11 - (sum % 11);
+    if (digit > 9) digit = 0;
+    if (parseInt(cleanCPF.charAt(9)) !== digit) return false;
+    
+    sum = 0;
+    for (let i = 0; i < 10; i++) {
+      sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
+    }
+    digit = 11 - (sum % 11);
+    if (digit > 9) digit = 0;
+    if (parseInt(cleanCPF.charAt(10)) !== digit) return false;
+    
+    return true;
   }
 
-  /**
-   * Valida formato de telefone brasileiro
-   */
   private isValidPhone(phone: string): boolean {
     if (!phone || phone.trim() === "") {
       return true;

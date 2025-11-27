@@ -18,7 +18,14 @@ export abstract class BaseService<T, CreateData, UpdateData> {
     if (page < 1) page = 1;
     if (limit < 1 || limit > 500) limit = 10;
 
-    return this.repository.findAll(page, limit, filters);
+    // Extrai parâmetros de ordenação dos filtros
+    const sortBy = filters?.sortBy;
+    const sortOrder = filters?.sortOrder;
+    
+    // Remove sortBy e sortOrder dos filtros do where
+    const { sortBy: _, sortOrder: __, ...whereFilters } = filters || {};
+
+    return this.repository.findAll(page, limit, whereFilters, sortBy, sortOrder);
   }
 
   /**

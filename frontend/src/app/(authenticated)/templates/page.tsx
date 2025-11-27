@@ -95,8 +95,8 @@ export default function TemplatesPage() {
             Gerencie templates HTML para impressão de rotas
           </p>
         </div>
-        <Button onClick={handleCreateTemplate}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={handleCreateTemplate} title="Criar novo template" aria-label="Criar novo template">
+          <Plus className="h-4 w-4 mr-2" title="Novo template" aria-hidden="true" />
           Novo Template
         </Button>
       </div>
@@ -105,7 +105,11 @@ export default function TemplatesPage() {
         <CardHeader>
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                title="Buscar templates"
+                aria-hidden="true"
+              />
               <Input
                 placeholder="Buscar templates..."
                 value={search}
@@ -160,25 +164,31 @@ export default function TemplatesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handlePreviewTemplate(template)}
+                          title={`Visualizar template ${template.nome}`}
+                          aria-label={`Visualizar template ${template.nome}`}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4" title="Visualizar" aria-hidden="true" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEditTemplate(template)}
+                          title={`Editar template ${template.nome}`}
+                          aria-label={`Editar template ${template.nome}`}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4" title="Editar" aria-hidden="true" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleToggleAtivo(template)}
+                          title={template.ativo ? `Desativar ${template.nome}` : `Ativar ${template.nome}`}
+                          aria-label={template.ativo ? `Desativar ${template.nome}` : `Ativar ${template.nome}`}
                         >
                           {template.ativo ? (
-                            <ToggleRight className="h-4 w-4" />
+                            <ToggleRight className="h-4 w-4" title="Ativo" aria-hidden="true" />
                           ) : (
-                            <ToggleLeft className="h-4 w-4" />
+                            <ToggleLeft className="h-4 w-4" title="Inativo" aria-hidden="true" />
                           )}
                         </Button>
                         <Button
@@ -186,8 +196,10 @@ export default function TemplatesPage() {
                           size="sm"
                           onClick={() => handleDeleteTemplate(template)}
                           className="text-destructive hover:text-destructive"
+                          title={`Excluir template ${template.nome}`}
+                          aria-label={`Excluir template ${template.nome}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" title="Excluir" aria-hidden="true" />
                         </Button>
                       </div>
                     </TableCell>

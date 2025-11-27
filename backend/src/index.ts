@@ -64,7 +64,7 @@ app.use(
 );
 
 const globalLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutos
+  windowMs: 10 * 60 * 1000,
   max: 100,
   message: {
     success: false,
@@ -81,7 +81,7 @@ const globalLimiter = rateLimit({
       code: "RATE_LIMIT_EXCEEDED",
     });
   },
-});
+  skip: (req) => req.path === '/api/auth/refresh',
 });
 
 const authLimiter = rateLimit({
@@ -90,11 +90,28 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   statusCode: 429,
+  skipSuccessfulRequests: true,
   handler: (req, res) => {
     res.status(429).json({
       success: false,
       error: "Muitas tentativas de login. Tente novamente em 1 hora.",
       code: "AUTH_RATE_LIMIT_EXCEEDED",
+    });
+  },
+});
+
+// Rate limiter separado para refresh token (mais permissivo)
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  statusCode: 429,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: "Muitas tentativas de refresh. Tente novamente em 15 minutos.",
+      code: "REFRESH_RATE_LIMIT_EXCEEDED",
     });
   },
 });
@@ -109,6 +126,7 @@ const healthLimiter = rateLimit({
 app.use(globalLimiter);
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/refresh", refreshLimiter);
 
 // Configuração de segurança baseada no ambiente
 const isProduction = process.env.NODE_ENV === "production";
@@ -125,7 +143,6 @@ app.use(
           ? ["'self'"]
           : ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
         imgSrc: ["'self'", "data:", "https:"],
-        // CORREÇÃO 2: Adicionado '!' aqui também.
         connectSrc: ["'self'", process.env.FRONTEND_URL!],
         fontSrc: ["'self'", "https:", "data:"],
         objectSrc: ["'none'"],
@@ -139,7 +156,6 @@ app.use(
     dnsPrefetchControl: true,
     frameguard: { action: "deny" },
     hidePoweredBy: true,
-    // Em produção: ativar HSTS (apenas com TLS/HTTPS válido)
     hsts: isProduction
       ? { maxAge: 31536000, includeSubDomains: true, preload: true }
       : false,
@@ -216,9 +232,9 @@ async function startServer() {
 
     app.listen(PORT, () => {
       logger.info(`🚀 Servidor Encantar rodando na porta ${PORT}`);
-  logger.info(`📊 Health check: http://localhost:${PORT}/api/health`);
-      logger.info(`🌍 Ambiente: ${process.env.NODE_ENV || "development"}`);
-      logger.info(`🔐 Rotas de autenticação: http://localhost:${PORT}/api/auth`);
+      logger.info(`📊 Health check: ${process.env.NEXT_PUBLIC_API_URL}/health`);  
+      logger.info(`🌍 Ambiente: ${process.env.NODE_ENV}`);
+      logger.info(`🔐 Rotas de autenticação: ${process.env.NEXT_PUBLIC_API_URL}/auth`);
     });
   } catch (error) {
     logger.error("❌ Erro ao iniciar servidor:", error);

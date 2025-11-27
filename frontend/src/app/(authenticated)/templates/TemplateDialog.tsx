@@ -75,8 +75,8 @@ export function TemplateDialog({
       return;
     }
 
-    if (formData.descricao && formData.descricao.trim().length > 500) {
-      toast.error("Descrição deve ter no máximo 500 caracteres");
+    if (formData.descricao && formData.descricao.trim().length > 2000) {
+      toast.error("Descrição deve ter no máximo 2000 caracteres");
       setIsLoading(false);
       return;
     }

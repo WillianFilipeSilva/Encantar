@@ -196,6 +196,14 @@ export abstract class BaseController<T, CreateData, UpdateData> {
   protected buildFilters(query: any): any {
     const filters: any = {};
 
+    // Parâmetros de ordenação
+    if (query.sortBy) {
+      filters.sortBy = query.sortBy;
+    }
+    if (query.sortOrder) {
+      filters.sortOrder = query.sortOrder;
+    }
+
     if (query.ativo !== undefined && query.ativo !== 'all' && query.ativo !== '') {
       filters.ativo = query.ativo === "true";
     }

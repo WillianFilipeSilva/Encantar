@@ -117,7 +117,7 @@ export default function RegisterPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" title="Validando convite" aria-hidden="true" />
             <p className="text-muted-foreground">Validando convite...</p>
           </CardContent>
         </Card>
@@ -147,7 +147,7 @@ export default function RegisterPage() {
           <CardContent>
             <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center gap-2 text-red-800">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="h-4 w-4" title="Convite inválido" aria-hidden="true" />
                 <span className="text-sm">
                   {(error as any)?.response?.data?.error || 'Convite não encontrado ou expirado'}
                 </span>
@@ -188,7 +188,7 @@ export default function RegisterPage() {
         <CardContent>
           <div className="p-4 mb-6 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-2 text-green-800">
-              <CheckCircle className="h-4 w-4" />
+              <CheckCircle className="h-4 w-4" title="Convite válido" aria-hidden="true" />
               <span className="text-sm">
                 Convite válido! Preencha os dados abaixo para criar sua conta.
               </span>
@@ -198,7 +198,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="nome" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
+                <User className="h-4 w-4" title="Nome completo" aria-hidden="true" />
                 Nome completo
               </Label>
               <Input
@@ -213,7 +213,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="login" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
+                <Mail className="h-4 w-4" title="Login" aria-hidden="true" />
                 Login
               </Label>
               <Input
@@ -232,7 +232,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <Label htmlFor="senha" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
+                <Lock className="h-4 w-4" title="Senha" aria-hidden="true" />
                 Senha
               </Label>
               <Input
@@ -273,7 +273,7 @@ export default function RegisterPage() {
                 {inviteData.email && (
                   <div className="space-y-2">
                     <Label htmlFor="emailValidacao" className="flex items-center gap-2 text-sm">
-                      <Mail className="h-3 w-3" />
+                      <Mail className="h-3 w-3" title="Email do convite" aria-hidden="true" />
                       Email do convite
                     </Label>
                     <Input
@@ -312,12 +312,12 @@ export default function RegisterPage() {
             >
               {registerMutation.isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" title="Criando conta" aria-hidden="true" />
                   Criando conta...
                 </>
               ) : (
                 <>
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <UserPlus className="h-4 w-4 mr-2" title="Criar conta" aria-hidden="true" />
                   Criar conta
                 </>
               )}

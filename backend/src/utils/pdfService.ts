@@ -89,7 +89,7 @@ export class PDFService {
         nome: atendimento.beneficiario.nome,
         endereco: atendimento.beneficiario.endereco,
         telefone: atendimento.beneficiario.telefone || '',
-        email: atendimento.beneficiario.email || '',
+        cpf: atendimento.beneficiario.cpf || '',
         observacoes: atendimento.observacoes || '',
         status: atendimento.status,
         

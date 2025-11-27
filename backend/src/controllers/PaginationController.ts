@@ -89,7 +89,7 @@ export class BeneficiarioController extends BaseController {
       const result = await this.paginate(
         prisma.beneficiario,
         req.query,
-        ['nome', 'endereco', 'telefone', 'email', 'observacoes'],
+        ['nome', 'endereco', 'telefone', 'cpf', 'observacoes'],
         undefined,
         { ativo: true }
       )

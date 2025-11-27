@@ -64,7 +64,7 @@ export function PrintModal({ rotaId, rotaNome, isOpen, onClose }: PrintModalProp
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Printer className="h-5 w-5" />
+            <Printer className="h-5 w-5" title="Imprimir rota" aria-hidden="true" />
             Imprimir Rota: {rotaNome}
           </DialogTitle>
         </DialogHeader>
@@ -75,7 +75,7 @@ export function PrintModal({ rotaId, rotaNome, isOpen, onClose }: PrintModalProp
             
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
+                <Loader2 className="h-6 w-6 animate-spin" title="Carregando templates" aria-label="Carregando templates" />
                 <span className="ml-2 text-sm text-muted-foreground">Carregando templates...</span>
               </div>
             ) : (
@@ -92,7 +92,7 @@ export function PrintModal({ rotaId, rotaNome, isOpen, onClose }: PrintModalProp
                       onClick={() => handleTemplateSelect(template.id)}
                     >
                       <div className="flex items-start gap-3">
-                        <FileText className="h-4 w-4 mt-1 text-gray-500" />
+                        <FileText className="h-4 w-4 mt-1 text-gray-500" title="Template disponível" aria-hidden="true" />
                         <div className="flex-1">
                           <div className="font-medium text-sm">{template.nome}</div>
                           {template.descricao && (
@@ -109,7 +109,7 @@ export function PrintModal({ rotaId, rotaNome, isOpen, onClose }: PrintModalProp
                   ))
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" title="Sem templates" aria-hidden="true" />
                     <p className="text-sm">Nenhum template disponível</p>
                   </div>
                 )}
@@ -133,12 +133,12 @@ export function PrintModal({ rotaId, rotaNome, isOpen, onClose }: PrintModalProp
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" title="Gerando PDF" aria-label="Gerando PDF" />
                   Gerando...
                 </>
               ) : (
                 <>
-                  <Printer className="h-4 w-4 mr-2" />
+                  <Printer className="h-4 w-4 mr-2" title="Gerar PDF" aria-hidden="true" />
                   Gerar PDF
                 </>
               )}

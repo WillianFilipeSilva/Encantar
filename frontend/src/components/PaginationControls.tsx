@@ -133,7 +133,11 @@ export function PaginationControls({
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              title="Campo de busca"
+              aria-hidden="true"
+            />
             <Input
               placeholder={searchPlaceholder}
               value={localSearch}
@@ -152,7 +156,7 @@ export function PaginationControls({
                 title="Filtros"
                 className="h-10 w-10"
               >
-                <Filter className="h-4 w-4" />
+                <Filter className="h-4 w-4" aria-hidden="true" />
               </Button>
 
               {isFiltersOpen && (
@@ -228,7 +232,7 @@ export function PaginationControls({
             onClick={() => onPageChange((pagination?.page || 1) - 1)}
             disabled={!(pagination?.hasPrevious) || isLoading}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
             Anterior
           </Button>
 
@@ -258,7 +262,7 @@ export function PaginationControls({
             disabled={!(pagination?.hasNext) || isLoading}
           >
             Próxima
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
       </div>

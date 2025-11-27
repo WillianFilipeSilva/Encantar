@@ -37,14 +37,11 @@ export class ItemService extends BaseService<
       throw CommonErrors.VALIDATION_ERROR("Unidade deve ser uma das opções válidas: " + validUnidades.join(', '));
     }
 
-    if (data.descricao && data.descricao.length > 500) {
-      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
+    if (data.descricao && data.descricao.length > 2000) {
+      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 2000 caracteres");
     }
   }
 
-  /**
-   * Valida dados para atualização
-   */
   protected async validateUpdateData(data: UpdateItemDTO): Promise<void> {
     if (data.nome !== undefined) {
       if (!data.nome || data.nome.trim().length === 0) {
@@ -70,9 +67,9 @@ export class ItemService extends BaseService<
     if (
       data.descricao !== undefined &&
       data.descricao &&
-      data.descricao.length > 500
+      data.descricao.length > 2000
     ) {
-      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 500 caracteres");
+      throw CommonErrors.VALIDATION_ERROR("Descrição deve ter no máximo 2000 caracteres");
     }
   }  /**
    * Transforma dados antes da criação
@@ -163,6 +160,10 @@ export class ItemService extends BaseService<
   ) {
     const where: any = {};
 
+    // Extrai parâmetros de ordenação dos filtros
+    const sortBy = filters?.sortBy;
+    const sortOrder = filters?.sortOrder;
+
     if (filters.nome) {
       where.nome = {
         contains: filters.nome,
@@ -181,7 +182,7 @@ export class ItemService extends BaseService<
       where.ativo = filters.ativo;
     }
 
-    return this.itemRepository.findAllWithRelations(page, limit, where);
+    return this.itemRepository.findAllWithRelations(page, limit, where, sortBy, sortOrder);
   }
 
   /**

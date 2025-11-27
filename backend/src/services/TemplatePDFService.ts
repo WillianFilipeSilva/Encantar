@@ -67,8 +67,8 @@ export class TemplatePDFService extends BaseService<
       }
     }
 
-    if ('descricao' in data && data.descricao && data.descricao.trim().length > 500) {
-      throw CommonErrors.BAD_REQUEST("Descrição deve ter no máximo 500 caracteres");
+    if ('descricao' in data && data.descricao && data.descricao.trim().length > 2000) {
+      throw CommonErrors.BAD_REQUEST("Descrição deve ter no máximo 2000 caracteres");
     }
 
     if ('conteudo' in data && data.conteudo) {

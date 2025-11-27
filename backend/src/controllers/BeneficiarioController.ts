@@ -140,10 +140,10 @@ export class BeneficiarioController extends BaseController<
         .isLength({ min: 10, max: 15 })
         .withMessage("Telefone deve ter entre 10 e 15 caracteres")
         .run(req);
-      await body("email")
+      await body("cpf")
         .optional({ checkFalsy: true })
-        .isEmail()
-        .withMessage("Email inválido")
+        .matches(/^\d{11}$/)
+        .withMessage("CPF deve ter 11 dígitos numéricos")
         .run(req);
       await body("dataNascimento")
         .optional({ checkFalsy: true })
@@ -152,8 +152,8 @@ export class BeneficiarioController extends BaseController<
         .run(req);
       await body("observacoes")
         .optional({ checkFalsy: true })
-        .isLength({ max: 500 })
-        .withMessage("Observações deve ter no máximo 500 caracteres")
+        .isLength({ max: 2000 })
+        .withMessage("Observações deve ter no máximo 2000 caracteres")
         .run(req);
 
       const errors = validationResult(req);
@@ -209,10 +209,10 @@ export class BeneficiarioController extends BaseController<
         .isLength({ min: 10, max: 15 })
         .withMessage("Telefone deve ter entre 10 e 15 caracteres")
         .run(req);
-      await body("email")
+      await body("cpf")
         .optional({ checkFalsy: true })
-        .isEmail()
-        .withMessage("Email inválido")
+        .matches(/^\d{11}$/)
+        .withMessage("CPF deve ter 11 dígitos numéricos")
         .run(req);
       await body("dataNascimento")
         .optional({ checkFalsy: true })
@@ -221,8 +221,8 @@ export class BeneficiarioController extends BaseController<
         .run(req);
       await body("observacoes")
         .optional({ checkFalsy: true })
-        .isLength({ max: 500 })
-        .withMessage("Observações deve ter no máximo 500 caracteres")
+        .isLength({ max: 2000 })
+        .withMessage("Observações deve ter no máximo 2000 caracteres")
         .run(req);
       await body("ativo")
         .optional({ checkFalsy: true })
@@ -399,7 +399,7 @@ export class BeneficiarioController extends BaseController<
         { observacoes: { contains: query.search, mode: "insensitive" } },
         { endereco: { contains: query.search, mode: "insensitive" } },
         { telefone: { contains: query.search, mode: "insensitive" } },
-        { email: { contains: query.search, mode: "insensitive" } },
+        { cpf: { contains: query.search, mode: "insensitive" } },
       ];
     }
 

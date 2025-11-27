@@ -80,7 +80,7 @@ export default function AuthenticatedLayout({
                   className={'flex items-center gap-3 rounded-lg px-3 py-2 text-white hover:bg-white/10 ' + 
                     (isActive ? 'bg-white/10' : '')}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="h-5 w-5" title={item.label} aria-hidden="true" />
                   <span className="font-medium">{item.label}</span>
                 </Link>
               )
@@ -98,7 +98,7 @@ export default function AuthenticatedLayout({
                 className="text-white hover:bg-white/10 px-2 py-1 border border-white/20"
                 title="Convidar usuário"
               >
-                <UserPlus className="h-4 w-4" />
+                <UserPlus className="h-4 w-4" title="Enviar convite" aria-hidden="true" />
                 <span className="ml-1 text-xs">Convite</span>
               </Button>
             </div>
@@ -107,8 +107,10 @@ export default function AuthenticatedLayout({
               variant="ghost" 
               size="sm"
               className="w-full justify-start text-white hover:bg-white/10"
+              title="Sair da conta"
+              aria-label="Sair da conta"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4 mr-2" title="Sair" aria-hidden="true" />
               Sair
             </Button>
           </div>

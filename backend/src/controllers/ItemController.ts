@@ -36,14 +36,11 @@ export class ItemController extends BaseController<
       .withMessage("Unidade deve ser uma das opções válidas: KG, G, L, ML, UN, CX, PCT, LATA"),
     body("descricao")
       .optional()
-      .isLength({ max: 500 })
-      .withMessage("Descrição deve ter no máximo 500 caracteres")
+      .isLength({ max: 2000 })
+      .withMessage("Descrição deve ter no máximo 2000 caracteres")
       .trim(),
   ];
 
-  /**
-   * Validação para atualização de item
-   */
   private validateUpdate = [
     param("id").matches(/^[a-z0-9-]+$/).withMessage("ID inválido"),
     body("nome")
@@ -61,8 +58,8 @@ export class ItemController extends BaseController<
       .withMessage("Unidade deve ser uma das opções válidas: KG, G, L, ML, UN, CX, PCT, LATA"),
     body("descricao")
       .optional()
-      .isLength({ max: 500 })
-      .withMessage("Descrição deve ter no máximo 500 caracteres")
+      .isLength({ max: 2000 })
+      .withMessage("Descrição deve ter no máximo 2000 caracteres")
       .trim(),
     body("ativo")
       .optional()
@@ -70,9 +67,6 @@ export class ItemController extends BaseController<
       .withMessage("Ativo deve ser um valor booleano"),
   ];
 
-  /**
-   * Validação para parâmetros de busca
-   */
   private validateSearch = [
     query("page")
       .optional()
@@ -114,16 +108,10 @@ export class ItemController extends BaseController<
       }),
   ];
 
-  /**
-   * Validação para ID
-   */
   private validateId = [
     param("id").matches(/^[a-z0-9-]+$/).withMessage("ID inválido"),
   ];
 
-  /**
-   * Validação para busca por nome
-   */
   private validateSearchByName = [
     query("nome")
       .custom((value) => {

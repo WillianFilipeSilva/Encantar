@@ -101,7 +101,7 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
+            <UserPlus className="h-5 w-5" title="Convidar usuário" aria-hidden="true" />
             Convidar Novo Usuário
           </DialogTitle>
         </DialogHeader>
@@ -109,14 +109,14 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
         <div className="space-y-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin" title="Carregando convites" aria-hidden="true" />
               <span className="ml-2 text-sm text-muted-foreground">Verificando convites...</span>
             </div>
           ) : activeInvite ? (
             <div className="space-y-4">
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-green-600" title="Convite ativo" aria-hidden="true" />
                   <span className="text-sm font-medium text-green-800">Convite Ativo</span>
                   <Button
                     onClick={() => refetch()}
@@ -128,7 +128,7 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
                   </Button>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-green-700">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4" title="Tempo restante" aria-hidden="true" />
                   <span>Expira em: {getTimeRemaining()}</span>
                 </div>
               </div>
@@ -146,11 +146,13 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
                     variant="outline"
                     size="icon"
                     className="flex-shrink-0"
+                    title={copied ? "Link copiado" : "Copiar link"}
+                    aria-label={copied ? "Link copiado" : "Copiar link"}
                   >
                     {copied ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 text-green-600" title="Link copiado" aria-hidden="true" />
                     ) : (
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-4 w-4" title="Copiar link" aria-hidden="true" />
                     )}
                   </Button>
                 </div>
@@ -172,7 +174,7 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                  <Mail className="h-4 w-4" title="Email" aria-hidden="true" />
                   Email da pessoa
                 </Label>
                 <Input
@@ -186,7 +188,7 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="telefone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
+                  <Phone className="h-4 w-4" title="Telefone" aria-hidden="true" />
                   Telefone da pessoa
                 </Label>
                 <Input
@@ -219,12 +221,12 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
                 >
                   {createInviteMutation.isPending ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" title="Criando convite" aria-hidden="true" />
                       Criando...
                     </>
                   ) : (
                     <>
-                      <UserPlus className="h-4 w-4 mr-2" />
+                      <UserPlus className="h-4 w-4 mr-2" title="Criar convite" aria-hidden="true" />
                       Criar Convite
                     </>
                   )}

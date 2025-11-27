@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { PaginationControls } from "@/components/PaginationControls";
 import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog";
 import { usePagination } from "@/hooks/usePagination";
@@ -86,9 +87,10 @@ export default function RotasPage() {
     setSearch,
     setLimit,
     setFilters,
+    setSortBy,
     isLoading,
     error,
-  } = usePagination<Rota>("/rotas");
+  } = usePagination<Rota>("/rotas", { sortBy: 'dataAtendimento', sortOrder: 'desc' });
 
   const filterConfig = [
     {
@@ -175,8 +177,8 @@ export default function RotasPage() {
       return;
     }
 
-    if (formData.descricao && formData.descricao.trim().length > 500) {
-      toast.error("Descrição deve ter no máximo 500 caracteres");
+    if (formData.descricao && formData.descricao.trim().length > 2000) {
+      toast.error("Descrição deve ter no máximo 2000 caracteres");
       return;
     }
 
@@ -247,8 +249,8 @@ export default function RotasPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button title="Cadastrar nova rota" aria-label="Cadastrar nova rota">
+              <Plus className="mr-2 h-4 w-4" title="Nova rota" aria-hidden="true" />
               Nova rota
             </Button>
           </DialogTrigger>
@@ -331,9 +333,23 @@ export default function RotasPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
+              <SortableTableHead
+                field="nome"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Nome
+              </SortableTableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Data de atendimento</TableHead>
+              <SortableTableHead
+                field="dataAtendimento"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Data de atendimento
+              </SortableTableHead>
               <TableHead>Qtd. Atendimentos</TableHead>
               <TableHead className="w-[150px]">Ações</TableHead>
             </TableRow>
@@ -385,35 +401,43 @@ export default function RotasPage() {
                   </TableCell>
                   <TableCell className="flex items-center gap-2">
                     <Link href={`/rotas/${rota.id}`}>
-                      <Button variant="ghost" size="icon" title="Ver detalhes">
-                        <Eye className="h-4 w-4" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={`Ver rota ${rota.nome}`}
+                        aria-label={`Ver rota ${rota.nome}`}
+                      >
+                        <Eye className="h-4 w-4" title="Visualizar" aria-hidden="true" />
                       </Button>
                     </Link>
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Imprimir"
+                      title={`Imprimir rota ${rota.nome}`}
+                      aria-label={`Imprimir rota ${rota.nome}`}
                       onClick={() => handlePrint(rota)}
                     >
-                      <Printer className="h-4 w-4" />
+                      <Printer className="h-4 w-4" title="Imprimir" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Editar"
+                      title={`Editar rota ${rota.nome}`}
+                      aria-label={`Editar rota ${rota.nome}`}
                       onClick={() => handleEdit(rota)}
                     >
-                      <PenLine className="h-4 w-4" />
+                      <PenLine className="h-4 w-4" title="Editar" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Excluir"
+                      title={`Excluir rota ${rota.nome}`}
+                      aria-label={`Excluir rota ${rota.nome}`}
                       onClick={() => handleDelete(rota)}
                       disabled={deleteRotaMutation.isPending || isDeleting}
                       className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" title="Excluir" aria-hidden="true" />
                     </Button>
                   </TableCell>
                 </TableRow>

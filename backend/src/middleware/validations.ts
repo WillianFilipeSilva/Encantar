@@ -1,8 +1,5 @@
 import { body, param, query } from 'express-validator';
 
-/**
- * Validações comuns reutilizáveis
- */
 export const commonValidations = {
   id: param('id')
     .matches(/^[a-z0-9-]+$/)
@@ -49,8 +46,8 @@ export const commonValidations = {
   observacoes: body('observacoes')
     .optional()
     .trim()
-    .isLength({ max: 500 })
-    .withMessage('Observações deve ter no máximo 500 caracteres'),
+    .isLength({ max: 2000 })
+    .withMessage('Observações deve ter no máximo 2000 caracteres'),
 
   sanitizeString: (field: string) => 
     body(field)

@@ -169,6 +169,13 @@ export class RotaRepository extends BaseRepository<
   }> {
     const skip = (page - 1) * limit;
     const where = this.buildWhereClause(filters);
+    
+    // Extrai parâmetros de ordenação dos filtros
+    const sortBy = filters?.sortBy;
+    const sortOrder = filters?.sortOrder || 'desc';
+    
+    // Define ordenação padrão ou usa a fornecida
+    const orderBy = sortBy ? { [sortBy]: sortOrder } : { criadoEm: 'desc' as const };
 
     const [data, total] = await Promise.all([
       this.prisma.rota.findMany({
@@ -184,7 +191,7 @@ export class RotaRepository extends BaseRepository<
           criadoPor: true,
           modificadoPor: true,
         },
-        orderBy: { criadoEm: 'desc' }
+        orderBy
       }),
       this.prisma.rota.count({ where })
     ]);

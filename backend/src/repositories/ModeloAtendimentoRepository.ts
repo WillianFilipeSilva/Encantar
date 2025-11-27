@@ -152,6 +152,13 @@ export class ModeloAtendimentoRepository extends BaseRepository<
   }> {
     const skip = (page - 1) * limit;
     const where = this.buildWhereClause(filters);
+    
+    // Extrai parâmetros de ordenação dos filtros
+    const sortBy = filters?.sortBy;
+    const sortOrder = filters?.sortOrder || 'asc';
+    
+    // Define ordenação padrão ou usa a fornecida
+    const orderBy = sortBy ? { [sortBy]: sortOrder } : { criadoEm: 'desc' as const };
 
     const [data, total] = await Promise.all([
       this.prisma.modeloAtendimento.findMany({
@@ -183,7 +190,7 @@ export class ModeloAtendimentoRepository extends BaseRepository<
             },
           },
         },
-        orderBy: { criadoEm: 'desc' }
+        orderBy
       }),
       this.prisma.modeloAtendimento.count({ where })
     ]);

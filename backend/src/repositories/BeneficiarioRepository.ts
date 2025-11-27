@@ -17,16 +17,21 @@ export class BeneficiarioRepository extends BaseRepository<
   async findAllWithRelations(
     page: number = 1,
     limit: number = 10,
-    where?: any
+    where?: any,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ) {
     const skip = (page - 1) * limit;
+    
+    // Define ordenação padrão ou usa a fornecida
+    const orderBy = sortBy ? { [sortBy]: sortOrder || 'asc' } : { criadoEm: "desc" as const };
 
     const [data, total] = await Promise.all([
       this.prisma.beneficiario.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { criadoEm: "desc" },
+        orderBy,
         include: {
           criadoPor: {
             select: {
@@ -132,6 +137,39 @@ export class BeneficiarioRepository extends BaseRepository<
   }
 
   /**
+   * Busca beneficiários por nome ou endereço (busca parcial) - usado no autocomplete de atendimentos
+   */
+  async searchByNomeOrEndereco(searchTerm: string, limit: number = 10) {
+    return this.prisma.beneficiario.findMany({
+      where: {
+        OR: [
+          {
+            nome: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            endereco: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
+        ativo: true,
+      },
+      take: limit,
+      orderBy: { nome: "asc" },
+      select: {
+        id: true,
+        nome: true,
+        endereco: true,
+        telefone: true,
+      },
+    });
+  }
+
+  /**
    * Verifica se já existe um beneficiário com o mesmo nome e endereço
    */
   async existsByNomeAndEndereco(
@@ -205,5 +243,17 @@ export class BeneficiarioRepository extends BaseRepository<
       },
       take: limit,
     });
+  }
+
+  async findByCpf(cpf: string, excludeId?: string) {
+    const where: any = {
+      cpf: cpf.replace(/\D/g, ""),
+    };
+
+    if (excludeId) {
+      where.id = { not: excludeId };
+    }
+
+    return this.prisma.beneficiario.findFirst({ where });
   }
 }

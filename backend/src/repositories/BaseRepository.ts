@@ -14,17 +14,20 @@ export abstract class BaseRepository<T, CreateData, UpdateData> {
   }
 
   /**
-   * Busca todos os registros com paginação
+   * Busca todos os registros com paginação e ordenação
    */
-  async findAll(page: number = 1, limit: number = 10, where?: any) {
+  async findAll(page: number = 1, limit: number = 10, where?: any, sortBy?: string, sortOrder?: 'asc' | 'desc') {
     const skip = (page - 1) * limit;
+    
+    // Define ordenação padrão ou usa a fornecida
+    const orderBy = sortBy ? { [sortBy]: sortOrder || 'asc' } : { criadoEm: "desc" as const };
 
     const [data, total] = await Promise.all([
       (this.prisma as any)[this.modelName].findMany({
         where,
         skip,
         take: limit,
-        orderBy: { criadoEm: "desc" },
+        orderBy,
       }),
       (this.prisma as any)[this.modelName].count({ where }),
     ]);

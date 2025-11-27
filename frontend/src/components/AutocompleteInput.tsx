@@ -190,14 +190,12 @@ export function AutocompleteInput({
     setSearchTerm(value)
     setIsOpen(true)
     
-    // Ativar busca apenas quando o usuário digita
     if (value && value.length >= minChars) {
       setShouldSearch(true)
     } else {
       setShouldSearch(false)
     }
     
-    // Resetar seleção quando digitar algo diferente
     if (selectedOption && value !== selectedOption.label) {
       setSelectedOption(null)
       onSelect(null)
@@ -228,7 +226,11 @@ export function AutocompleteInput({
         />
         
         {searchIcon && (
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4"
+            title="Buscar opção"
+            aria-hidden="true"
+          />
         )}
         
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
@@ -239,15 +241,21 @@ export function AutocompleteInput({
               size="sm"
               className="h-6 w-6 p-0 hover:bg-muted"
               onClick={handleClear}
+              title="Limpar seleção"
+              aria-label="Limpar seleção"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3 w-3" title="Limpar seleção" aria-hidden="true" />
             </Button>
           )}
           
-          <ChevronDown className={cn(
-            "h-4 w-4 text-muted-foreground transition-transform",
-            isOpen && "rotate-180"
-          )} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 text-muted-foreground transition-transform",
+              isOpen && "rotate-180"
+            )}
+            title={isOpen ? "Recolher opções" : "Expandir opções"}
+            aria-hidden="true"
+          />
         </div>
       </div>
 
@@ -291,7 +299,7 @@ export function AutocompleteInput({
                   )}
                 </div>
                 {selectedOption?.id === option.id && (
-                  <Check className="h-4 w-4" />
+                  <Check className="h-4 w-4" title="Selecionado" aria-hidden="true" />
                 )}
               </div>
             ))

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { SortableTableHead } from "@/components/SortableTableHead"
 import { PaginationControls } from "@/components/PaginationControls"
 import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog"
 import { usePagination } from "@/hooks/usePagination"
@@ -55,10 +56,11 @@ export default function ItensPage() {
     setSearch,
     setLimit,
     setFilters,
+    setSortBy,
     isLoading,
     error,
     refresh
-  } = usePagination<Item>('/items')
+  } = usePagination<Item>('/items', { sortBy: 'ativo', sortOrder: 'desc' })
 
   const filterConfig = [
     {
@@ -176,8 +178,8 @@ export default function ItensPage() {
       toast.error('Unidade deve ser uma das opções válidas')
       return
     }
-    if (formData.descricao && formData.descricao.trim().length > 500) {
-      toast.error('Descrição deve ter no máximo 500 caracteres')
+    if (formData.descricao && formData.descricao.trim().length > 2000) {
+      toast.error('Descrição deve ter no máximo 2000 caracteres')
       return
     }
     if (editingItem) {
@@ -221,8 +223,8 @@ export default function ItensPage() {
           setDialogOpen(open);
         }}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button title="Cadastrar novo item" aria-label="Cadastrar novo item">
+              <Plus className="mr-2 h-4 w-4" title="Novo item" aria-hidden="true" />
               Novo item
             </Button>
           </DialogTrigger>
@@ -290,10 +292,31 @@ export default function ItensPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
+              <SortableTableHead
+                field="nome"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Nome
+              </SortableTableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Unidade</TableHead>
-              <TableHead>Status</TableHead>
+              <SortableTableHead
+                field="unidade"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Unidade
+              </SortableTableHead>
+              <SortableTableHead
+                field="ativo"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Status
+              </SortableTableHead>
               <TableHead className="w-[120px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -337,30 +360,38 @@ export default function ItensPage() {
                     </span>
                   </TableCell>
                   <TableCell className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" title="Editar item" onClick={() => handleEdit(item)}>
-                      <PenLine className="h-4 w-4" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={`Editar item ${item.nome}`}
+                      aria-label={`Editar item ${item.nome}`}
+                      onClick={() => handleEdit(item)}
+                    >
+                      <PenLine className="h-4 w-4" title="Editar" aria-hidden="true" />
                     </Button>
                     {item.ativo ? (
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        title="Inativar item" 
+                        title={`Inativar item ${item.nome}`}
+                        aria-label={`Inativar item ${item.nome}`}
                         onClick={() => openInactivateDialog(() => inactivateItemMutation.mutate(item.id))}
                         disabled={inactivateItemMutation.isPending}
                         className="text-orange-600 hover:text-orange-800 hover:bg-orange-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" title="Inativar" aria-hidden="true" />
                       </Button>
                     ) : (
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        title="Ativar item" 
+                        title={`Ativar item ${item.nome}`}
+                        aria-label={`Ativar item ${item.nome}`}
                         onClick={() => activateItemMutation.mutate(item.id)}
                         disabled={activateItemMutation.isPending}
                         className="text-green-600 hover:text-green-800 hover:bg-green-50"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-4 w-4" title="Ativar" aria-hidden="true" />
                       </Button>
                     )}
                   </TableCell>

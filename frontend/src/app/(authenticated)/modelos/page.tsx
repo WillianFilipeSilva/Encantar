@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableTableHead } from "@/components/SortableTableHead";
 import { PaginationControls } from "@/components/PaginationControls";
 import { ConfirmDialog, useConfirmDialog } from "@/components/ConfirmDialog";
 import { usePagination } from "@/hooks/usePagination";
@@ -92,9 +93,10 @@ export default function ModelosPage() {
     setSearch,
     setLimit,
     setFilters,
+    setSortBy,
     isLoading,
     error,
-  } = usePagination<ModeloAtendimento>("/modelos-atendimento");
+  } = usePagination<ModeloAtendimento>("/modelos-atendimento", { sortBy: 'nome', sortOrder: 'asc' });
 
   const filterConfig: any[] = [];
 
@@ -213,8 +215,8 @@ export default function ModelosPage() {
       return;
     }
 
-    if (formData.descricao && formData.descricao.trim().length > 500) {
-      toast.error("Descrição deve ter no máximo 500 caracteres");
+    if (formData.descricao && formData.descricao.trim().length > 2000) {
+      toast.error("Descrição deve ter no máximo 2000 caracteres");
       return;
     }
 
@@ -313,8 +315,8 @@ export default function ModelosPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button title="Cadastrar novo modelo" aria-label="Cadastrar novo modelo">
+              <Plus className="mr-2 h-4 w-4" title="Novo modelo" aria-hidden="true" />
               Novo modelo
             </Button>
           </DialogTrigger>
@@ -380,21 +382,22 @@ export default function ModelosPage() {
                     onClick={addItem}
                     size="sm"
                     disabled={isLoadingItems}
+                    title="Adicionar item"
+                    aria-label="Adicionar item"
                   >
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="mr-2 h-4 w-4" title="Adicionar" aria-hidden="true" />
                     Adicionar Item
                   </Button>
                 </div>
                 <div className="space-y-2">
                   {modeloItems.map((modeloItem, index) => {
-                    // Filtrar itens disponíveis excluindo os já selecionados (exceto o atual)
                     const itensDisponiveisParaSelecao = Array.isArray(
                       itensDisponiveis
                     )
                       ? itensDisponiveis.filter(
                           (item) =>
-                            item.id === modeloItem.itemId || // Manter o item atual selecionado
-                            !modeloItems.some((mi) => mi.itemId === item.id) // Excluir itens já selecionados
+                            item.id === modeloItem.itemId ||
+                            !modeloItems.some((mi) => mi.itemId === item.id)
                         )
                       : [];
 
@@ -448,8 +451,10 @@ export default function ModelosPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => removeItem(index)}
+                          title={`Remover item ${index + 1}`}
+                          aria-label={`Remover item ${index + 1}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" title="Remover" aria-hidden="true" />
                         </Button>
                       </div>
                     );
@@ -498,7 +503,14 @@ export default function ModelosPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
+              <SortableTableHead
+                field="nome"
+                currentSortBy={params.sortBy}
+                currentSortOrder={params.sortOrder}
+                onSort={setSortBy}
+              >
+                Nome
+              </SortableTableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Qtd. Itens</TableHead>
               <TableHead>Itens</TableHead>
@@ -563,20 +575,22 @@ export default function ModelosPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Editar modelo"
+                      title={`Editar modelo ${modelo.nome}`}
+                      aria-label={`Editar modelo ${modelo.nome}`}
                       onClick={() => handleEdit(modelo)}
                     >
-                      <PenLine className="h-4 w-4" />
+                      <PenLine className="h-4 w-4" title="Editar" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      title="Excluir modelo"
+                      title={`Excluir modelo ${modelo.nome}`}
+                      aria-label={`Excluir modelo ${modelo.nome}`}
                       onClick={() => handleDelete(modelo)}
                       disabled={deleteModeloMutation.isPending || isDeleting}
                       className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" title="Excluir" aria-hidden="true" />
                     </Button>
                   </TableCell>
                 </TableRow>

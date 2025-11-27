@@ -17,16 +17,21 @@ export class ItemRepository extends BaseRepository<
   async findAllWithRelations(
     page: number = 1,
     limit: number = 10,
-    where?: any
+    where?: any,
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ) {
     const skip = (page - 1) * limit;
+    
+    // Define ordenação padrão ou usa a fornecida
+    const orderBy = sortBy ? { [sortBy]: sortOrder || 'asc' } : { criadoEm: "desc" as const };
 
     const [data, total] = await Promise.all([
       this.prisma.item.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { criadoEm: "desc" },
+        orderBy,
         include: {
           criadoPor: {
             select: {

@@ -75,7 +75,10 @@ export function TableFilters({
   return (
     <div className="flex items-center gap-2">
       <div className="relative flex-1">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search
+          className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"
+          title="Pesquisar"
+        />
         <Input
           placeholder={searchPlaceholder}
           value={searchValue}
@@ -93,8 +96,10 @@ export function TableFilters({
               size="icon"
               className={hasActiveFilters ? "border-primary" : ""}
               disabled={isLoading}
+              aria-label="Abrir filtros"
+              title="Abrir filtros"
             >
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4" title="Abrir filtros" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80" align="end">

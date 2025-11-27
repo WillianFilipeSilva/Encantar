@@ -115,8 +115,8 @@ export class TemplatePDFController extends BaseController<
         .run(req);
       await body("descricao")
         .optional({ checkFalsy: true })
-        .isLength({ max: 500 })
-        .withMessage("Descrição deve ter no máximo 500 caracteres")
+        .isLength({ max: 2000 })
+        .withMessage("Descrição deve ter no máximo 2000 caracteres")
         .run(req);
       await body("conteudo")
         .notEmpty()
@@ -165,8 +165,8 @@ export class TemplatePDFController extends BaseController<
         .run(req);
       await body("descricao")
         .optional({ checkFalsy: true })
-        .isLength({ max: 500 })
-        .withMessage("Descrição deve ter no máximo 500 caracteres")
+        .isLength({ max: 2000 })
+        .withMessage("Descrição deve ter no máximo 2000 caracteres")
         .run(req);
       await body("conteudo")
         .optional({ checkFalsy: true })

@@ -18,6 +18,17 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = []
 }
 
+// Função para limpar estado de autenticação e redirecionar
+const handleAuthFailure = () => {
+  isRefreshing = false
+  failedQueue = []
+  
+  // Só redireciona se estiver no browser e não já estiver na página de login
+  if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+    window.location.href = '/login'
+  }
+}
+
 export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://projeto-encantar.sytes.net/api',
   withCredentials: true,
@@ -32,47 +43,65 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
+    // Se estiver no servidor (SSR), rejeita imediatamente
     if (typeof window === 'undefined') {
       return Promise.reject(error)
     }
 
-    if (error.response?.status === 401 && 
-        !originalRequest._retry && 
-        !originalRequest.url?.includes('/auth/login') &&
-        !originalRequest.url?.includes('/auth/refresh') &&
-        !originalRequest.url?.includes('/auth/me')) {
-      
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        }).then(() => {
-          return api(originalRequest)
-        }).catch(err => {
-          return Promise.reject(err)
-        })
-      }
+    // Lista de rotas que NÃO devem tentar refresh
+    const noRefreshRoutes = ['/auth/login', '/auth/refresh', '/auth/register', '/auth/logout']
+    const isNoRefreshRoute = noRefreshRoutes.some(route => originalRequest.url?.includes(route))
 
-      originalRequest._retry = true
-      isRefreshing = true
-
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        )
-
-        processQueue(null, null)
-        
-        return api(originalRequest)
-      } catch (refreshError) {
-        processQueue(refreshError, null)
-        return Promise.reject(refreshError)
-      } finally {
-        isRefreshing = false
-      }
+    // Se não for 401 ou for uma rota que não deve fazer refresh, rejeita
+    if (error.response?.status !== 401 || isNoRefreshRoute) {
+      return Promise.reject(error)
     }
 
-    return Promise.reject(error)
+    // Se já tentou retry, não tenta novamente (evita loop infinito)
+    if (originalRequest._retry) {
+      handleAuthFailure()
+      return Promise.reject(error)
+    }
+
+    // Se já está refreshing, adiciona à fila
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({ resolve, reject })
+      }).then(() => {
+        return api(originalRequest)
+      }).catch(err => {
+        return Promise.reject(err)
+      })
+    }
+
+    originalRequest._retry = true
+    isRefreshing = true
+
+    try {
+      // Usa axios puro para evitar interceptor recursivo
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        {},
+        { withCredentials: true }
+      )
+
+      // Refresh bem-sucedido, processa a fila
+      processQueue(null, null)
+      isRefreshing = false
+      
+      // Retenta a requisição original
+      return api(originalRequest)
+    } catch (refreshError: any) {
+      // Refresh falhou
+      processQueue(refreshError, null)
+      isRefreshing = false
+      
+      // Se o refresh falhou com 401 ou 429, redireciona para login
+      if (refreshError.response?.status === 401 || refreshError.response?.status === 429) {
+        handleAuthFailure()
+      }
+      
+      return Promise.reject(refreshError)
+    }
   },
 )

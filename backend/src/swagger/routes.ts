@@ -283,13 +283,13 @@ export const beneficiariosRoutes = {
                   type: "string",
                   pattern: "^[0-9]{10,11}$"
                 },
-                email: {
+                cpf: {
                   type: "string",
-                  format: "email"
+                  pattern: "^[0-9]{11}$"
                 },
                 observacoes: {
                   type: "string",
-                  maxLength: 500
+                  maxLength: 2000
                 }
               }
             }
@@ -377,7 +377,7 @@ export const itensRoutes = {
                 },
                 descricao: {
                   type: "string",
-                  maxLength: 500
+                  maxLength: 2000
                 },
                 unidade: {
                   type: "string",
@@ -472,7 +472,7 @@ export const atendimentosRoutes = {
                 },
                 observacoes: {
                   type: "string",
-                  maxLength: 500
+                  maxLength: 2000
                 },
                 items: {
                   type: "array",
@@ -571,7 +571,7 @@ export const rotasRoutes = {
                 },
                 descricao: {
                   type: "string",
-                  maxLength: 500
+                  maxLength: 2000
                 },
                 dataAtendimento: {
                   type: "string",
@@ -579,7 +579,7 @@ export const rotasRoutes = {
                 },
                 observacoes: {
                   type: "string",
-                  maxLength: 500
+                  maxLength: 2000
                 },
                 atendimentoIds: {
                   type: "array",

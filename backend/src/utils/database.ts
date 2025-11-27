@@ -50,26 +50,7 @@ class DatabaseClient {
       });
 
       if (process.env.NODE_ENV === "development") {
-        const client = DatabaseClient.instance as PrismaClient & {
-          $on(event: 'query', listener: (event: { query: string; duration: number }) => void): void;
-          $on(event: 'error', listener: (event: { message: string }) => void): void;
-        };
-        
-        query: {
-        $on: ['query'],
-        event: (e: any) => {
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('🔍 Query:', e.query);
-            console.log('⏱️  Duration:', e.duration + 'ms');
-          }
-        },
-      },
-      error: {
-        $on: ['error'],
-        event: (e: any) => {
-          console.error('❌ Database Error:', e);
-        },
-      },
+        // Logging de queries em desenvolvimento já configurado via opções do PrismaClient
       }
     }
 

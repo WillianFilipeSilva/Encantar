@@ -45,10 +45,12 @@ const ToastClose = React.forwardRef<
       "absolute right-1 top-1 rounded-md p-1 text-gray-950/50 opacity-0 transition-opacity hover:text-gray-950 focus:opacity-100 focus:outline-none focus:ring-1 group-hover:opacity-100",
       className
     )}
+    aria-label="Fechar notificação"
+    title="Fechar notificação"
     toast-close=""
     {...props}
   >
-    <X className="h-4 w-4" />
+    <X className="h-4 w-4" title="Fechar notificação" />
   </ToastPrimitives.Close>
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName
