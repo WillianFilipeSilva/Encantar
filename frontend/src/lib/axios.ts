@@ -1,5 +1,15 @@
 import axios from 'axios'
 
+const rawApiBaseURL = process.env.NEXT_PUBLIC_API_URL
+
+if (!rawApiBaseURL) {
+  throw new Error('NEXT_PUBLIC_API_URL não configurada. Defina a variável de ambiente para apontar para o backend.')
+}
+
+const apiBaseURL = rawApiBaseURL.replace(/\/$/, '')
+
+const buildApiUrl = (path: string) => `${apiBaseURL}${path}`
+
 let isRefreshing = false
 let failedQueue: Array<{
   resolve: (value: any) => void
@@ -30,7 +40,7 @@ const handleAuthFailure = () => {
 }
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://projeto-encantar.sytes.net/api',
+  baseURL: apiBaseURL,
   withCredentials: true,
 })
 
@@ -50,7 +60,11 @@ api.interceptors.response.use(
 
     // Lista de rotas que NÃO devem tentar refresh
     const noRefreshRoutes = ['/auth/login', '/auth/refresh', '/auth/register', '/auth/logout']
-    const isNoRefreshRoute = noRefreshRoutes.some(route => originalRequest.url?.includes(route))
+    const originalUrl = originalRequest.url || ''
+    const normalizedUrl = originalUrl.startsWith('http')
+      ? originalUrl.replace(apiBaseURL, '')
+      : originalUrl
+    const isNoRefreshRoute = noRefreshRoutes.some(route => normalizedUrl.includes(route))
 
     // Se não for 401 ou for uma rota que não deve fazer refresh, rejeita
     if (error.response?.status !== 401 || isNoRefreshRoute) {
@@ -80,7 +94,7 @@ api.interceptors.response.use(
     try {
       // Usa axios puro para evitar interceptor recursivo
       await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        buildApiUrl('/auth/refresh'),
         {},
         { withCredentials: true }
       )

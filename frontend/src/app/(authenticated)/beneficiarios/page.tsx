@@ -458,7 +458,7 @@ export default function BeneficiariosPage() {
         onPageChange={setPage}
         onLimitChange={setLimit}
         onSearchChange={setSearch}
-        searchPlaceholder="Buscar por nome, observações, endereço, telefone ou email..."
+        searchPlaceholder="Buscar por nome, observações, endereço, telefone ou CPF..."
         isLoading={isLoading}
         filters={filterConfig}
         onFiltersChange={setFilters}

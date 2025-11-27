@@ -44,6 +44,9 @@ EnvValidator.logConfiguration();
 const app = express();
 const PORT = process.env.PORT;
 
+const trustProxyConfig = process.env.TRUST_PROXY ?? '1';
+app.set('trust proxy', trustProxyConfig === 'false' ? false : trustProxyConfig);
+
 app.use(
   cors({
     origin: [process.env.FRONTEND_URL!],
