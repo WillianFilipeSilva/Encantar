@@ -31,6 +31,11 @@ router.get("/beneficiarios/search", async (req, res) => {
       return res.status(400).json({ error: 'Parâmetro de busca é obrigatório' });
     }
 
+    // Validação de tamanho máximo
+    if (q.length > 200) {
+      return res.status(400).json({ error: 'Parâmetro de busca deve ter no máximo 200 caracteres' });
+    }
+
     const beneficiarios = await beneficiarioService.search(q, true);
     return res.json({ data: beneficiarios });
   } catch (error) {
@@ -44,6 +49,11 @@ router.get("/itens/search", async (req, res) => {
     const { q } = req.query;
     if (!q || typeof q !== 'string') {
       return res.status(400).json({ error: 'Parâmetro de busca é obrigatório' });
+    }
+
+    // Validação de tamanho máximo
+    if (q.length > 200) {
+      return res.status(400).json({ error: 'Parâmetro de busca deve ter no máximo 200 caracteres' });
     }
 
     const itens = await itemService.search(q, true);

@@ -235,6 +235,10 @@ export default function ModelosPage() {
         toast.error(`Item ${i + 1}: Quantidade deve ser maior que zero`);
         return;
       }
+      if (item.quantidade > 9999) {
+        toast.error(`Item ${i + 1}: Quantidade deve ser no máximo 9999`);
+        return;
+      }
     }
 
     const submitData = {

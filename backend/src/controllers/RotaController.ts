@@ -4,7 +4,7 @@ import { BaseController } from "./BaseController";
 import { RotaService } from "../services/RotaService";
 import { CreateRotaDTO, UpdateRotaDTO } from "../models/DTOs";
 import { CommonErrors } from "../middleware/errorHandler";
-import { query, validationResult } from "express-validator";
+import { body, query, validationResult } from "express-validator";
 import { createDateFromString, serializeDateForAPI, serializeDateTimeForAPI } from "../utils/dateUtils";
 import { PDFService } from "../utils/pdfService";
 import { TemplatePDFService } from "../services/TemplatePDFService";
@@ -41,12 +41,8 @@ export class RotaController extends BaseController<
         .run(req);
       await query("search")
         .optional()
-        .custom((value) => {
-          if (value && value.trim().length > 0 && value.trim().length < 1) {
-            throw new Error("Busca deve ter pelo menos 1 caracter");
-          }
-          return true;
-        })
+        .isLength({ max: 200 })
+        .withMessage("Busca deve ter no máximo 200 caracteres")
         .run(req);
 
       const errors = validationResult(req);
@@ -105,6 +101,146 @@ export class RotaController extends BaseController<
       res.json({
         success: true,
         data: serializedResult,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * POST / - Cria uma nova rota com validação
+   */
+  create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      await body("nome")
+        .notEmpty()
+        .withMessage("Nome é obrigatório")
+        .isLength({ min: 3, max: 100 })
+        .withMessage("Nome deve ter entre 3 e 100 caracteres")
+        .run(req);
+      
+      await body("descricao")
+        .optional({ checkFalsy: true })
+        .isLength({ max: 2000 })
+        .withMessage("Descrição deve ter no máximo 2000 caracteres")
+        .run(req);
+      
+      await body("dataAtendimento")
+        .optional({ checkFalsy: true })
+        .custom((value) => {
+          if (value === null) return true;
+          // Aceita formato ISO ou YYYY-MM-DD
+          const dateRegex = /^\d{4}-\d{2}-\d{2}(T.*)?$/;
+          if (!dateRegex.test(value)) {
+            throw new Error("Data de atendimento deve estar no formato YYYY-MM-DD");
+          }
+          const date = new Date(value);
+          if (isNaN(date.getTime())) {
+            throw new Error("Data de atendimento inválida");
+          }
+          return true;
+        })
+        .run(req);
+      
+      await body("observacoes")
+        .optional({ checkFalsy: true })
+        .isLength({ max: 2000 })
+        .withMessage("Observações deve ter no máximo 2000 caracteres")
+        .run(req);
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        throw CommonErrors.VALIDATION_ERROR(`Dados inválidos: ${errors.array()[0].msg}`);
+      }
+
+      const data: CreateRotaDTO = req.body;
+      const userId = (req as any).user?.id;
+
+      const result = await this.rotaService.create(data, userId);
+
+      const serializedResult = {
+        ...result,
+        dataAtendimento: serializeDateForAPI(result?.dataAtendimento),
+        criadoEm: serializeDateTimeForAPI(result?.criadoEm),
+        atualizadoEm: serializeDateTimeForAPI(result?.atualizadoEm)
+      };
+
+      res.status(201).json({
+        success: true,
+        data: serializedResult,
+        message: "Rota criada com sucesso",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * PUT /:id - Atualiza uma rota com validação
+   */
+  update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        throw CommonErrors.BAD_REQUEST("ID é obrigatório");
+      }
+
+      await body("nome")
+        .optional()
+        .isLength({ min: 3, max: 100 })
+        .withMessage("Nome deve ter entre 3 e 100 caracteres")
+        .run(req);
+      
+      await body("descricao")
+        .optional({ checkFalsy: true })
+        .isLength({ max: 2000 })
+        .withMessage("Descrição deve ter no máximo 2000 caracteres")
+        .run(req);
+      
+      await body("dataAtendimento")
+        .optional({ checkFalsy: true })
+        .custom((value) => {
+          if (value === null) return true;
+          const dateRegex = /^\d{4}-\d{2}-\d{2}(T.*)?$/;
+          if (!dateRegex.test(value)) {
+            throw new Error("Data de atendimento deve estar no formato YYYY-MM-DD");
+          }
+          const date = new Date(value);
+          if (isNaN(date.getTime())) {
+            throw new Error("Data de atendimento inválida");
+          }
+          return true;
+        })
+        .run(req);
+      
+      await body("observacoes")
+        .optional({ checkFalsy: true })
+        .isLength({ max: 2000 })
+        .withMessage("Observações deve ter no máximo 2000 caracteres")
+        .run(req);
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        throw CommonErrors.VALIDATION_ERROR(`Dados inválidos: ${errors.array()[0].msg}`);
+      }
+
+      const data: UpdateRotaDTO = req.body;
+      const userId = (req as any).user?.id;
+
+      const result = await this.rotaService.update(id, data, userId);
+
+      const serializedResult = {
+        ...result,
+        dataAtendimento: serializeDateForAPI(result?.dataAtendimento),
+        criadoEm: serializeDateTimeForAPI(result?.criadoEm),
+        atualizadoEm: serializeDateTimeForAPI(result?.atualizadoEm)
+      };
+
+      res.json({
+        success: true,
+        data: serializedResult,
+        message: "Rota atualizada com sucesso",
       });
     } catch (error) {
       next(error);

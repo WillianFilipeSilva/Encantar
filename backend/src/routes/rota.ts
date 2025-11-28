@@ -36,6 +36,11 @@ router.patch("/:id/atendimentos/status", async (req, res) => {
       return res.status(400).json({ error: 'Status é obrigatório' });
     }
 
+    const validStatuses = ['PENDENTE', 'CONCLUIDO', 'CANCELADO'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Status inválido. Use: PENDENTE, CONCLUIDO ou CANCELADO' });
+    }
+
     await atendimentoService.updateStatusByRota(id, status);
     
     return res.json({ message: 'Status dos atendimentos atualizado com sucesso' });
