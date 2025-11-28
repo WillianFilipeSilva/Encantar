@@ -75,7 +75,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     xdg-utils \
     chromium \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /usr/lib/chromium/chrome_crashpad_handler || true
 
 # Copiar apenas production dependencies do builder
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules

@@ -14,8 +14,8 @@ export class PDFService {
 
   private static async getBrowser(): Promise<Browser> {
     if (!this.browser) {
-      // Usar Chromium do sistema ou Chrome do Puppeteer
-      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+      // Usar Chromium do sistema
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium';
       
       this.browser = await puppeteer.launch({
         headless: true,
@@ -37,7 +37,10 @@ export class PDFService {
           '--no-first-run',
           '--safebrowsing-disable-auto-update',
           '--single-process',
-          '--no-zygote'
+          '--no-zygote',
+          '--disable-breakpad',
+          '--disable-crash-reporter',
+          '--crash-dumps-dir=/tmp'
         ]
       });
     }
