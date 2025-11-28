@@ -97,6 +97,7 @@ RUN mkdir -p logs && chown -R nodejs:nodejs /app
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
 ENV PORT=3001
+ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
 
 # Mudar para usuário não-root
 USER nodejs
