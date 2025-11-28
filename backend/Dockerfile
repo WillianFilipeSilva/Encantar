@@ -78,6 +78,12 @@ COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 # Copiar package.json apenas (para versão)
 COPY --chown=nodejs:nodejs package*.json ./
 
+# Instalar Chrome para Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
+ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
+RUN mkdir -p /app/.cache/puppeteer
+RUN npx puppeteer browsers install chrome
+
 # Gerar cliente Prisma novamente para garantir compatibilidade
 RUN npx prisma generate
 
@@ -85,7 +91,7 @@ RUN npx prisma generate
 COPY --chown=nodejs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
-# Garantir diretório de logs com permissões corretas
+# Garantir diretório de logs e cache com permissões corretas
 RUN mkdir -p logs && chown -R nodejs:nodejs /app
 
 # Variáveis de ambiente padrão
