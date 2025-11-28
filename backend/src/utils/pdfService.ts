@@ -17,6 +17,7 @@ export class PDFService {
       this.browser = await puppeteer.launch({
         headless: true,
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        pipe: true, // Usar pipe ao invés de WebSocket para evitar problemas de conexão
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -37,9 +38,15 @@ export class PDFService {
           '--disable-breakpad',
           '--disable-component-update',
           '--disable-domain-reliability',
-          '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process',
-          '--single-process'
-        ]
+          '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process,Crashpad',
+          '--single-process',
+          '--no-zygote'
+        ],
+        env: {
+          ...process.env,
+          CHROME_CRASHPAD_PIPE_NAME: '',
+          CRASHPAD_DISABLE: '1'
+        }
       });
     }
     return this.browser;
