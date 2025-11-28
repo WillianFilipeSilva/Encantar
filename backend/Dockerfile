@@ -18,8 +18,14 @@ RUN npx prisma generate
 # Compilar TypeScript
 RUN npm run build
 
+# Salvar cliente Prisma gerado antes do prune
+RUN cp -r node_modules/.prisma /tmp/.prisma-backup
+
 # Remover dependências de desenvolvimento antes de exportar
 RUN npm prune --omit=dev
+
+# Restaurar cliente Prisma após prune
+RUN cp -r /tmp/.prisma-backup node_modules/.prisma
 
 # ==================== PRODUCTION STAGE ====================
 FROM node:18-bullseye-slim
@@ -75,6 +81,9 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 
+# Copiar cliente Prisma gerado do builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+
 # Copiar package.json apenas (para versão)
 COPY --chown=nodejs:nodejs package*.json ./
 
@@ -83,9 +92,6 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
 RUN mkdir -p /app/.cache/puppeteer
 RUN npx puppeteer browsers install chrome
-
-# Gerar cliente Prisma novamente para garantir compatibilidade
-RUN npx prisma generate
 
 # Copiar script de entrypoint para garantir migrations
 COPY --chown=nodejs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
