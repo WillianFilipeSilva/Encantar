@@ -244,12 +244,14 @@ export default function BeneficiariosPage() {
       toast.error("Telefone deve ter entre 10 e 15 caracteres");
       return;
     }
-    if (formData.cpf && formData.cpf.trim()) {
-      const cpfLimpo = formData.cpf.replace(/\D/g, "");
-      if (cpfLimpo.length !== 11) {
-        toast.error("CPF deve ter 11 dígitos");
-        return;
-      }
+    if (!formData.cpf || !formData.cpf.trim()) {
+      toast.error("CPF é obrigatório");
+      return;
+    }
+    const cpfLimpo = formData.cpf.replace(/\D/g, "");
+    if (cpfLimpo.length !== 11) {
+      toast.error("CPF deve ter 11 dígitos");
+      return;
     }
     if (formData.observacoes && formData.observacoes.trim().length > 2000) {
       toast.error("Observações deve ter no máximo 2000 caracteres");
@@ -401,12 +403,13 @@ export default function BeneficiariosPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="cpf">CPF</label>
+                <label htmlFor="cpf">CPF *</label>
                 <Input
                   id="cpf"
                   placeholder="000.000.000-00"
                   value={formData.cpf}
                   onChange={(e) => handleInputChange("cpf", e.target.value)}
+                  required
                 />
               </div>
               <div className="space-y-2">
