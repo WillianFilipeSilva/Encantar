@@ -111,6 +111,13 @@ export class BeneficiarioService extends BaseService<
       );
     }
 
+    if (data.cpf) {
+      const cpfExists = await this.beneficiarioRepository.findByCpf(data.cpf);
+      if (cpfExists) {
+        throw CommonErrors.CONFLICT("Já existe um beneficiário cadastrado com este CPF");
+      }
+    }
+
     const processedData = this.processDataForPrisma(data);
     const createData = await this.addAuditData(processedData, userId, "create");
     return this.beneficiarioRepository.create(createData);
@@ -163,6 +170,13 @@ export class BeneficiarioService extends BaseService<
         throw CommonErrors.CONFLICT(
           "Já existe um beneficiário com este nome e endereço"
         );
+      }
+    }
+
+    if (data.cpf) {
+      const cpfExists = await this.beneficiarioRepository.findByCpf(data.cpf, id);
+      if (cpfExists) {
+        throw CommonErrors.CONFLICT("Já existe um beneficiário cadastrado com este CPF");
       }
     }
 
