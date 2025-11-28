@@ -74,6 +74,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     xdg-utils \
+    chromium \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiar apenas production dependencies do builder
@@ -87,23 +88,20 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules/.prisma ./node_modul
 # Copiar package.json apenas (para versão)
 COPY --chown=nodejs:nodejs package*.json ./
 
-# Instalar Chrome para Puppeteer
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
-ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
-RUN mkdir -p /app/.cache/puppeteer
-RUN npx puppeteer browsers install chrome
+# Configurar Puppeteer para usar Chromium do sistema
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Copiar script de entrypoint para garantir migrations
 COPY --chown=nodejs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
-# Garantir diretório de logs e cache com permissões corretas
+# Garantir diretório de logs com permissões corretas
 RUN mkdir -p logs && chown -R nodejs:nodejs /app
 
 # Variáveis de ambiente padrão
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV PUPPETEER_CACHE_DIR=/app/.cache/puppeteer
 
 # Mudar para usuário não-root
 USER nodejs

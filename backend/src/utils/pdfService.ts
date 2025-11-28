@@ -14,10 +14,12 @@ export class PDFService {
 
   private static async getBrowser(): Promise<Browser> {
     if (!this.browser) {
+      // Usar Chromium do sistema ou Chrome do Puppeteer
+      const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+      
       this.browser = await puppeteer.launch({
         headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-        pipe: true, // Usar pipe ao invés de WebSocket para evitar problemas de conexão
+        executablePath,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
@@ -34,19 +36,9 @@ export class PDFService {
           '--mute-audio',
           '--no-first-run',
           '--safebrowsing-disable-auto-update',
-          '--disable-crash-reporter',
-          '--disable-breakpad',
-          '--disable-component-update',
-          '--disable-domain-reliability',
-          '--disable-features=AudioServiceOutOfProcess,IsolateOrigins,site-per-process,Crashpad',
           '--single-process',
           '--no-zygote'
-        ],
-        env: {
-          ...process.env,
-          CHROME_CRASHPAD_PIPE_NAME: '',
-          CRASHPAD_DISABLE: '1'
-        }
+        ]
       });
     }
     return this.browser;
