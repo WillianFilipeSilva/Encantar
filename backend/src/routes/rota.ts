@@ -21,6 +21,7 @@ router.use(authenticateToken);
 
 router.get("/", controller.findAll.bind(controller));
 router.get("/:id", controller.findById.bind(controller));
+router.get("/:id/pdf-data", controller.getPDFData.bind(controller));
 router.get("/:id/pdf/:templateId", controller.generatePDF.bind(controller));
 router.get("/:id/pdf/preview/:templateId", controller.previewPDF.bind(controller));
 router.post("/", controller.create.bind(controller));

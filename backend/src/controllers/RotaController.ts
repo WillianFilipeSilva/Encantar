@@ -127,7 +127,7 @@ export class RotaController extends BaseController<
       
       await body("dataAtendimento")
         .optional({ checkFalsy: true })
-        .custom((value) => {
+        .custom((value: string | null) => {
           if (value === null) return true;
           // Aceita formato ISO ou YYYY-MM-DD
           const dateRegex = /^\d{4}-\d{2}-\d{2}(T.*)?$/;
@@ -200,7 +200,7 @@ export class RotaController extends BaseController<
       
       await body("dataAtendimento")
         .optional({ checkFalsy: true })
-        .custom((value) => {
+        .custom((value: string | null) => {
           if (value === null) return true;
           const dateRegex = /^\d{4}-\d{2}-\d{2}(T.*)?$/;
           if (!dateRegex.test(value)) {
@@ -379,4 +379,99 @@ export class RotaController extends BaseController<
       next(error);
     }
   };
+
+  /**
+   * GET /:id/pdf-data - Retorna dados formatados para geração de PDF no frontend
+   * Os atendimentos são retornados na ordem de criação (ordem da rota)
+   */
+  getPDFData = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        throw CommonErrors.BAD_REQUEST("ID da rota é obrigatório");
+      }
+
+      // Busca a rota com todas as informações necessárias
+      const rota = await this.rotaService.findByIdWithRelations(id);
+      if (!rota) {
+        throw CommonErrors.NOT_FOUND("Rota não encontrada");
+      }
+
+      // Formata os dados para o PDF (mantendo a ordem dos atendimentos)
+      const pdfData = {
+        // Informações da rota
+        nomeRota: rota.nome,
+        descricaoRota: rota.descricao || '',
+        dataAtendimento: rota.dataAtendimento 
+          ? new Date(rota.dataAtendimento).toLocaleDateString('pt-BR') 
+          : 'Não definida',
+        
+        // Estatísticas
+        totalBeneficiarios: rota.atendimentos?.length || 0,
+        totalItens: rota.atendimentos?.reduce((total: number, atendimento: any) => 
+          total + (atendimento.atendimentoItems?.reduce((sum: number, item: any) => sum + item.quantidade, 0) || 0), 0
+        ) || 0,
+        
+        // Data de geração
+        dataGeracao: new Date().toLocaleString('pt-BR'),
+        
+        // Lista de beneficiários com seus atendimentos (mantendo a ordem original)
+        beneficiarios: rota.atendimentos?.map((atendimento: any, index: number) => ({
+          ordem: index + 1,
+          id: atendimento.beneficiario.id,
+          nome: atendimento.beneficiario.nome,
+          endereco: atendimento.beneficiario.endereco,
+          telefone: atendimento.beneficiario.telefone || '',
+          cpf: atendimento.beneficiario.cpf || '',
+          observacoes: atendimento.observacoes || '',
+          status: atendimento.status,
+          
+          // Itens para este beneficiário
+          itens: atendimento.atendimentoItems?.map((atendimentoItem: any) => ({
+            nome: atendimentoItem.item.nome,
+            quantidade: atendimentoItem.quantidade,
+            unidade: atendimentoItem.item.unidade
+          })) || [],
+          
+          // Total de itens para este beneficiário
+          totalItens: atendimento.atendimentoItems?.reduce((sum: number, item: any) => sum + item.quantidade, 0) || 0
+        })) || [],
+        
+        // Resumo de itens (agrupado)
+        resumoItens: this.getResumoItens(rota.atendimentos || [])
+      };
+
+      res.json({
+        success: true,
+        data: pdfData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Agrupa itens de todos os atendimentos
+   */
+  private getResumoItens(atendimentos: any[]) {
+    const resumo = new Map<string, { nome: string; quantidade: number; unidade: string }>();
+    
+    atendimentos.forEach((atendimento: any) => {
+      atendimento.atendimentoItems?.forEach((atendimentoItem: any) => {
+        const key = atendimentoItem.item.nome;
+        if (resumo.has(key)) {
+          resumo.get(key)!.quantidade += atendimentoItem.quantidade;
+        } else {
+          resumo.set(key, {
+            nome: atendimentoItem.item.nome,
+            quantidade: atendimentoItem.quantidade,
+            unidade: atendimentoItem.item.unidade
+          });
+        }
+      });
+    });
+    
+    return Array.from(resumo.values()).sort((a, b) => a.nome.localeCompare(b.nome));
+  }
 }
