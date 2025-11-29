@@ -1,25 +1,39 @@
 import { api } from '../axios'
 import { TemplatePDF, ApiResponse, PaginatedResponse } from '../types'
+import { generatePDF, PDFData } from '../pdfGenerator'
 
 export const rotaService = {
   /**
-   * Gera e baixa o PDF da rota usando o template selecionado (via backend)
+   * Busca dados da rota formatados para PDF
+   */
+  async getPDFData(rotaId: string): Promise<PDFData> {
+    const response = await api.get(`/rotas/${rotaId}/pdf-data`)
+    return response.data.data
+  },
+
+  /**
+   * Busca template pelo ID
+   */
+  async getTemplate(templateId: string): Promise<TemplatePDF> {
+    const response = await api.get(`/templates/${templateId}`)
+    return response.data.data
+  },
+
+  /**
+   * Gera e baixa o PDF da rota usando o template selecionado (geração no frontend)
    */
   async downloadPDF(rotaId: string, templateId: string, filename?: string): Promise<void> {
-    const response = await api.get(`/rotas/${rotaId}/pdf/${templateId}`, {
-      responseType: 'blob'
-    })
-    
-    // Cria URL e baixa o arquivo
-    const blob = new Blob([response.data], { type: 'application/pdf' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename || `rota-${new Date().toISOString().split('T')[0]}.pdf`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
+    // Busca dados e template em paralelo
+    const [pdfData, template] = await Promise.all([
+      this.getPDFData(rotaId),
+      this.getTemplate(templateId)
+    ])
+
+    // Gera o nome do arquivo
+    const finalFilename = filename || `rota-${pdfData.nomeRota.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
+
+    // Gera o PDF no frontend
+    await generatePDF(pdfData, template.conteudo, finalFilename)
   },
 
   async previewPDF(rotaId: string, templateId: string): Promise<string> {

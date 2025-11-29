@@ -432,7 +432,8 @@ export class RotaController extends BaseController<
           endereco: atendimento.beneficiario.endereco,
           telefone: atendimento.beneficiario.telefone || '',
           cpf: atendimento.beneficiario.cpf || '',
-          observacoes: atendimento.observacoes || '',
+          observacoes: atendimento.beneficiario.observacoes || '',
+          observacoesAtendimento: atendimento.observacoes || '',
           status: atendimento.status,
           
           // Itens para este beneficiário
