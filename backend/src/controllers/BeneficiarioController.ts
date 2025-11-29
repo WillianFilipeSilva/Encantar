@@ -64,7 +64,13 @@ export class BeneficiarioController extends BaseController<
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
+      const sortBy = req.query.sortBy as string || undefined;
+      const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || undefined;
       const filters = this.buildFilters(req.query);
+      
+      // Adiciona sortBy e sortOrder aos filtros para o service processar
+      if (sortBy) filters.sortBy = sortBy;
+      if (sortOrder) filters.sortOrder = sortOrder;
 
       const result = await this.beneficiarioService.findAllWithRelations(
         page,

@@ -34,8 +34,8 @@ export const commonValidations = {
     .withMessage('Telefone deve ter 10 ou 11 dígitos numéricos'),
 
   password: body('senha')
-    .isLength({ min: 6 })
-    .withMessage('Senha deve ter pelo menos 6 caracteres')
+    .isLength({ min: 5 })
+    .withMessage('Senha deve ter pelo menos 5 caracteres')
     .matches(/[A-Z]/)
     .withMessage('Senha deve conter pelo menos uma letra maiúscula')
     .matches(/[0-9]/)

@@ -3,6 +3,118 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+// Template Simples - Lista vertical compacta e elegante
+const TEMPLATE_SIMPLES = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>{{nomeRota}}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Georgia', serif; font-size: 10px; line-height: 1.4; margin: 12px 16px; color: #000; }
+        
+        .cabecalho { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; padding-bottom: 6px; border-bottom: 1px solid #000; }
+        .titulo-rota { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; }
+        .info-header { font-size: 9px; display: flex; gap: 12px; }
+        
+        .entregas-lista { }
+        
+        .entrega { 
+            padding: 10px 0; 
+            break-inside: avoid; 
+            page-break-inside: avoid;
+            border-bottom: 1px dotted #aaa;
+        }
+        .entrega:last-child { border-bottom: none; }
+        
+        .linha-principal { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            margin-bottom: 4px;
+        }
+        .info-beneficiario { flex: 1; }
+        .nome { font-size: 11px; font-weight: bold; letter-spacing: 0.3px; }
+        .telefone { font-size: 9px; color: #444; margin-left: 10px; }
+        .checkbox { width: 10px; height: 10px; border: 1px solid #000; margin-left: 8px; flex-shrink: 0; }
+        
+        .endereco { font-size: 9px; color: #333; margin-bottom: 3px; }
+        
+        .observacoes { 
+            font-size: 9px; 
+            font-style: italic; 
+            color: #444; 
+            margin: 4px 0;
+            padding-left: 8px;
+            border-left: 1.5px solid #999;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.3;
+        }
+        
+        .itens { 
+            margin: 6px 0 4px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px 12px;
+        }
+        .item { 
+            font-size: 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .item-qtd { font-weight: bold; }
+        
+        .anotacoes { margin-top: 6px; }
+        .anotacoes-label { font-size: 7px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .linha { height: 14px; border-bottom: 1px dotted #bbb; }
+        
+        @media print {
+            body { margin: 8mm 10mm; }
+            .entrega { break-inside: avoid; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cabecalho">
+        <span class="titulo-rota">{{nomeRota}}</span>
+        <div class="info-header">
+            <span>{{dataAtendimento}}</span>
+            <span>{{totalBeneficiarios}} atend.</span>
+            <span>{{totalItens}} itens</span>
+        </div>
+    </div>
+    
+    <div class="entregas-lista">
+        {{#each beneficiarios}}
+        <div class="entrega">
+            <div class="linha-principal">
+                <div class="info-beneficiario">
+                    <span class="nome">{{nome}}</span>{{#if telefone}}<span class="telefone">{{telefone}}</span>{{/if}}
+                </div>
+                <div class="checkbox"></div>
+            </div>
+            <div class="endereco">{{endereco}}</div>
+            {{#if observacoes}}<div class="observacoes">{{observacoes}}</div>{{/if}}
+            {{#if itens}}
+            <div class="itens">
+                {{#each itens}}
+                <span class="item"><span class="item-qtd">{{quantidade}}</span> {{nome}}</span>
+                {{/each}}
+            </div>
+            {{/if}}
+            <div class="anotacoes">
+                <div class="anotacoes-label">Obs:</div>
+                <div class="linha"></div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</body>
+</html>`;
+
+// Template Clean - Lista vertical minimalista
 const TEMPLATE_CLEAN = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,70 +122,130 @@ const TEMPLATE_CLEAN = `<!DOCTYPE html>
     <title>{{nomeRota}}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 12px; line-height: 1.4; margin: 20px; color: #2c3e50; background: #fff; }
-        .info-rota { background: #f8f9fa; padding: 15px; margin-bottom: 25px; border-left: 4px solid #3498db; }
-        .nome-rota { font-size: 18px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
-        .detalhes-rota { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; font-size: 11px; color: #5a6c7d; }
-        .detalhe-item { display: flex; flex-direction: column; }
-        .detalhe-label { font-weight: 600; color: #34495e; margin-bottom: 2px; }
-        .detalhe-valor { font-size: 13px; color: #2c3e50; }
-        .atendimento-card { border: 1px solid #e1e8ed; margin-bottom: 20px; background: #fff; page-break-inside: avoid; }
-        .atendimento-numero { background: #34495e; color: #fff; padding: 10px 15px; font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-        .checkbox { width: 16px; height: 16px; border: 2px solid #fff; border-radius: 2px; }
-        .beneficiario-dados { padding: 20px; }
-        .nome-beneficiario { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #ecf0f1; }
-        .dados-pessoais { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 15px; }
-        .campo { margin-bottom: 8px; }
-        .campo-label { font-size: 10px; text-transform: uppercase; color: #7f8c8d; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 3px; }
-        .campo-valor { font-size: 12px; color: #2c3e50; font-weight: 400; }
-        .observacoes { background: #fff3cd; border-left: 3px solid #ffc107; padding: 10px; margin-bottom: 15px; }
-        .observacoes-label { font-size: 10px; text-transform: uppercase; color: #856404; font-weight: 600; margin-bottom: 4px; }
-        .observacoes-texto { font-size: 11px; color: #856404; line-height: 1.3; }
-        .secao-itens { border-top: 1px solid #ecf0f1; padding-top: 15px; }
-        .titulo-itens { font-size: 12px; font-weight: 600; color: #34495e; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .lista-itens { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
-        .item { background: #f8f9fa; padding: 8px 12px; border-left: 3px solid #3498db; display: flex; justify-content: space-between; align-items: center; }
-        .item-info { flex: 1; }
-        .item-nome { font-size: 11px; color: #2c3e50; font-weight: 500; }
-        .item-detalhes { font-size: 10px; color: #7f8c8d; margin-top: 1px; }
-        .item-quantidade { font-size: 14px; font-weight: 700; color: #2980b9; min-width: 40px; text-align: right; }
-        .rodape { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e1e8ed; text-align: center; font-size: 10px; color: #95a5a6; }
-        @media print { body { margin: 15px; } .atendimento-card { page-break-inside: avoid; margin-bottom: 15px; } }
+        body { font-family: 'Arial', sans-serif; font-size: 11px; line-height: 1.4; margin: 15px 20px; color: #000; }
+        
+        .cabecalho { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 18px; padding-bottom: 10px; font-size: 9px; }
+        .titulo-rota { font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .entregas-lista { margin-top: 10px; }
+        
+        .entrega { 
+            padding: 12px 0; 
+            margin-bottom: 8px; 
+            break-inside: avoid; 
+            page-break-inside: avoid;
+            border-bottom: 1px dotted #999;
+        }
+        
+        .entrega-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .nome-telefone { display: flex; align-items: center; gap: 10px; }
+        .beneficiario-nome { font-size: 12px; font-weight: bold; }
+        .telefone-header { font-size: 10px; color: #333; }
+        .checkbox { width: 11px; height: 11px; border: 1px solid #000; }
+        
+        .info-linha { margin-bottom: 3px; font-size: 10px; }
+        
+        .observacao-beneficiario { 
+            margin: 3px 0; 
+            padding-left: 8px; 
+            font-size: 10px;
+            font-style: italic;
+            color: #333;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.3;
+        }
+        .obs-titulo { font-weight: bold; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; font-style: normal; }
+        
+        .itens-section { 
+            margin: 10px 0; 
+            padding-left: 5px;
+        }
+        .itens-titulo { font-weight: bold; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+        
+        .item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 2px 0;
+            font-size: 10px;
+        }
+        .item-nome { }
+        .item-qtd { font-weight: bold; text-align: right; min-width: 50px; }
+        
+        .campo-anotacoes { 
+            margin-top: 10px;
+        }
+        .campo-anotacoes-label { 
+            font-size: 8px; 
+            color: #666; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .linha-anotacao { 
+            height: 18px; 
+            border-bottom: 1px dotted #999;
+        }
+        
+        @media print {
+            body { margin: 10mm 12mm; }
+            .entrega { break-inside: avoid; page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
-    <div class="info-rota">
-        <div class="nome-rota">{{nomeRota}}</div>
-        <div class="detalhes-rota">
-            <div class="detalhe-item"><div class="detalhe-label">Data da Atendimento</div><div class="detalhe-valor">{{dataAtendimento}}</div></div>
-            <div class="detalhe-item"><div class="detalhe-label">Total de Beneficiários</div><div class="detalhe-valor">{{totalBeneficiarios}}</div></div>
-            <div class="detalhe-item"><div class="detalhe-label">Total de Itens</div><div class="detalhe-valor">{{totalItens}}</div></div>
-        </div>
+    <div class="cabecalho">
+        <span class="titulo-rota">{{nomeRota}}</span>
+        <span>{{dataAtendimento}}</span>
+        <span>{{totalBeneficiarios}} Atendimentos</span>
+        <span>{{totalItens}} Itens</span>
     </div>
-    {{#each beneficiarios}}
-    <div class="atendimento-card">
-        <div class="atendimento-numero"><span>ATENDIMENTO {{@index_1}}</span><div class="checkbox"></div></div>
-        <div class="beneficiario-dados">
-            <div class="nome-beneficiario">{{nome}}</div>
-            <div class="dados-pessoais">
-                <div>
-                    <div class="campo"><div class="campo-label">Endereço</div><div class="campo-valor">{{endereco}}</div></div>
-                    {{#if email}}<div class="campo"><div class="campo-label">E-mail</div><div class="campo-valor">{{email}}</div></div>{{/if}}
+    
+    <div class="entregas-lista">
+        {{#each beneficiarios}}
+        <div class="entrega">
+            <div class="entrega-header">
+                <div class="nome-telefone">
+                    <span class="beneficiario-nome">{{nome}}</span>
+                    {{#if telefone}}<span class="telefone-header">{{telefone}}</span>{{/if}}
                 </div>
-                <div>{{#if telefone}}<div class="campo"><div class="campo-label">Telefone</div><div class="campo-valor">{{telefone}}</div></div>{{/if}}</div>
+                <div class="checkbox"></div>
             </div>
-            {{#if observacoes}}<div class="observacoes"><div class="observacoes-label">Observações</div><div class="observacoes-texto">{{observacoes}}</div></div>{{/if}}
-            {{#if itens}}
-            <div class="secao-itens">
-                <div class="titulo-itens">Itens para Atendimento</div>
-                <div class="lista-itens">
-                    {{#each itens}}<div class="item"><div class="item-info"><div class="item-nome">{{nome}}</div><div class="item-detalhes">{{unidade}}</div></div><div class="item-quantidade">{{quantidade}}</div></div>{{/each}}
-                </div>
+            <div class="info-linha">{{endereco}}</div>
+            
+            {{#if observacoes}}
+            <div class="observacao-beneficiario">
+                <div class="obs-titulo">Observações</div>
+                {{observacoes}}
             </div>
             {{/if}}
+            
+            {{#if itens}}
+            <div class="itens-section">
+                <div class="itens-titulo">Itens</div>
+                {{#each itens}}
+                <div class="item">
+                    <span class="item-nome">• {{nome}}</span>
+                    <span class="item-qtd">{{quantidade}} {{unidade}}</span>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+            
+            <div class="campo-anotacoes">
+                <div class="campo-anotacoes-label">Anotações</div>
+                <div class="linha-anotacao"></div>
+                <div class="linha-anotacao"></div>
+            </div>
         </div>
+        {{/each}}
     </div>
-    {{/each}}
 </body>
 </html>`;
 
@@ -94,13 +266,33 @@ async function main() {
 
   console.log('👤 Administrador criado:', admin.login)
 
+  // Template Simples - Grid compacto 2 colunas
+  const templateSimples = await prisma.templatePDF.upsert({
+    where: { id: 'template-simples' },
+    update: {
+      conteudo: TEMPLATE_SIMPLES,
+    },
+    create: {
+      id: 'template-simples',
+      nome: 'Simples',
+      descricao: 'Layout em grid de 2 colunas - mais entregas por página',
+      conteudo: TEMPLATE_SIMPLES,
+      ativo: true
+    }
+  })
+
+  console.log('📄 Template Simples criado:', templateSimples.nome)
+
+  // Template Clean - Lista vertical limpa
   const templateClean = await prisma.templatePDF.upsert({
     where: { id: 'template-clean' },
-    update: {},
+    update: {
+      conteudo: TEMPLATE_CLEAN,
+    },
     create: {
       id: 'template-clean',
       nome: 'Clean',
-      descricao: 'Template limo com foco na organização das informações',
+      descricao: 'Layout em lista vertical - maior legibilidade',
       conteudo: TEMPLATE_CLEAN,
       ativo: true
     }

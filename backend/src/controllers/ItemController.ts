@@ -659,6 +659,14 @@ export class ItemController extends BaseController<
       };
     }
 
+    // Ordenação
+    if (query.sortBy) {
+      filters.sortBy = query.sortBy;
+    }
+    if (query.sortOrder) {
+      filters.sortOrder = query.sortOrder;
+    }
+
     return filters;
   }
 

@@ -34,8 +34,8 @@ export default function LoginPage() {
       return;
     }
 
-    if (senha.length < 6) {
-      setError("Senha deve ter pelo menos 6 caracteres");
+    if (senha.length < 5) {
+      setError("Senha deve ter pelo menos 5 caracteres");
       setIsLoading(false);
       return;
     }

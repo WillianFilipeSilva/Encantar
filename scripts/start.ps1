@@ -34,6 +34,7 @@ switch ($cmd) {
         Write-Host "  logs          Ver logs"
         Write-Host "  restart       Reiniciar containers"
         Write-Host "  build         Rebuild completo"
+        Write-Host "  clean         Rebuild limpo (remove imagens/containers antigos)"
         Write-Host "  status        Status dos containers"
         Write-Host ""
         Write-Host "  check         Verificar requisitos"
@@ -79,6 +80,30 @@ switch ($cmd) {
         exit 0
     }
     
+    "clean" {
+        Write-Host "Rebuild limpo (removendo containers e imagens antigas)...`n" -ForegroundColor Cyan
+        
+        Write-Host "Parando containers..." -ForegroundColor Yellow
+        docker compose down --remove-orphans
+        
+        Write-Host "Removendo imagens do projeto..." -ForegroundColor Yellow
+        docker rmi encantar-backend encantar-frontend 2>$null
+        
+        Write-Host "Limpando recursos nao utilizados..." -ForegroundColor Yellow
+        docker system prune -f
+        
+        Write-Host "Reconstruindo imagens..." -ForegroundColor Yellow
+        docker compose build --no-cache
+        
+        Write-Host "Subindo containers..." -ForegroundColor Yellow
+        docker compose up -d
+        
+        Write-Host "`nRebuild limpo concluido!" -ForegroundColor Green
+        Write-Host "Frontend: http://localhost:3000"
+        Write-Host "Backend:  http://localhost:3001`n"
+        exit 0
+    }
+
     "status" {
         Write-Host "Status:`n" -ForegroundColor Cyan
         docker compose ps

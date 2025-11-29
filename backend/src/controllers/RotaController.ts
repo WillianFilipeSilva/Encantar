@@ -280,6 +280,14 @@ export class RotaController extends BaseController<
       };
     }
 
+    // Ordenação
+    if (query.sortBy) {
+      filters.sortBy = query.sortBy;
+    }
+    if (query.sortOrder) {
+      filters.sortOrder = query.sortOrder;
+    }
+
     return filters;
   }
 
@@ -393,7 +401,7 @@ export class RotaController extends BaseController<
       }
 
       // Busca a rota com todas as informações necessárias
-      const rota = await this.rotaService.findByIdWithRelations(id);
+      const rota = await this.rotaService.findByIdWithRelations(id) as any;
       if (!rota) {
         throw CommonErrors.NOT_FOUND("Rota não encontrada");
       }

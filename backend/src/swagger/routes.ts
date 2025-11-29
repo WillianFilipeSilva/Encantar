@@ -18,7 +18,7 @@ export const authRoutes = {
                 },
                 senha: {
                   type: "string",
-                  minLength: 6,
+                  minLength: 5,
                   description: "Senha do administrador",
                   example: "Batman"
                 }

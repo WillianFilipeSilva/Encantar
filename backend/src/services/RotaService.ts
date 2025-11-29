@@ -61,14 +61,24 @@ export class RotaService extends BaseService<
   ): Promise<PaginationResult<Rota>> {
     const skip = (page - 1) * limit;
 
+    // Extrai parâmetros de ordenação dos filtros
+    const sortBy = filters?.sortBy || 'dataAtendimento';
+    const sortOrder = filters?.sortOrder || 'desc';
+    
+    // Remove sortBy e sortOrder dos filtros do where
+    const { sortBy: _, sortOrder: __, ...whereFilters } = filters;
+
+    // Define ordenação
+    const orderBy = { [sortBy]: sortOrder };
+
     const [rotas, total] = await Promise.all([
       this.rotaRepository.findAllWithRelations({
         skip,
         take: limit,
-        where: filters,
-        orderBy: { dataAtendimento: 'desc' },
+        where: whereFilters,
+        orderBy,
       }),
-      this.rotaRepository.count({ where: filters }),
+      this.rotaRepository.count({ where: whereFilters }),
     ]);
 
     const totalPages = Math.ceil(total / limit);

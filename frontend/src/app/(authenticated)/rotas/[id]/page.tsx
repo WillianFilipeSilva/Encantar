@@ -119,7 +119,6 @@ export default function RotaDetalhesPage() {
   });
   const [selectedBeneficiario, setSelectedBeneficiario] =
     useState<Beneficiario | null>(null);
-  const [usarModelo, setUsarModelo] = useState(false);
   const [modeloSelecionado, setModeloSelecionado] = useState<string>("");
   const [atendimentoItems, setAtendimentoItems] = useState<
     Array<{ itemId: string; quantidade: number }>
@@ -307,7 +306,6 @@ export default function RotaDetalhesPage() {
   const resetForm = () => {
     setFormData({ beneficiarioId: "", observacoes: "" });
     setSelectedBeneficiario(null);
-    setUsarModelo(false);
     setModeloSelecionado("");
     setAtendimentoItems([]);
   };
@@ -517,37 +515,22 @@ export default function RotaDetalhesPage() {
             </DialogHeader>
 
             <form className="space-y-4" onSubmit={handleSubmitAtendimento}>
-              {/* Switch para usar modelo */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h3 className="font-medium">Usar modelo de atendimento</h3>
-                  <p className="text-sm text-gray-600">
-                    Carregue automaticamente os itens de um modelo existente
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={usarModelo}
-                    onChange={(e) => setUsarModelo(e.target.checked)}
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              {/* Seleção de modelo */}
-              {usarModelo && (
+              {/* Seleção de modelo de atendimento */}
+              <div className="space-y-2">
+                <label className="font-medium">Modelo de atendimento (opcional)</label>
+                <p className="text-sm text-gray-600">
+                  Selecione um modelo para carregar automaticamente os itens
+                </p>
                 <div className="flex gap-2">
                   <select
                     className="flex-1 p-2 border rounded-md"
                     value={modeloSelecionado}
                     onChange={(e) => setModeloSelecionado(e.target.value)}
                   >
-                    <option value="">Selecione um modelo</option>
+                    <option value="">Nenhum modelo selecionado</option>
                     {modelos?.map((modelo) => (
                       <option key={modelo.id} value={modelo.id}>
-                        {modelo.nome} - {modelo.descricao}
+                        {modelo.nome}{modelo.descricao ? ` - ${modelo.descricao}` : ''}
                       </option>
                     ))}
                   </select>
@@ -559,7 +542,7 @@ export default function RotaDetalhesPage() {
                     Carregar
                   </Button>
                 </div>
-              )}
+              </div>
 
               {/* Seleção de beneficiário */}
               <div className="space-y-2">

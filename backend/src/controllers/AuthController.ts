@@ -23,8 +23,8 @@ export class AuthController {
         .withMessage("Login é obrigatório")
         .run(req);
       await body("senha")
-        .isLength({ min: 6 })
-        .withMessage("Senha deve ter pelo menos 6 caracteres")
+        .isLength({ min: 5 })
+        .withMessage("Senha deve ter pelo menos 5 caracteres")
         .run(req);
 
       const errors = validationResult(req);

@@ -1,10 +1,6 @@
 import axios from 'axios'
 
-const rawApiBaseURL = process.env.NEXT_PUBLIC_API_URL
-
-if (!rawApiBaseURL) {
-  throw new Error('NEXT_PUBLIC_API_URL não configurada. Defina a variável de ambiente para apontar para o backend.')
-}
+const rawApiBaseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
 const apiBaseURL = rawApiBaseURL.replace(/\/$/, '')
 

@@ -3,7 +3,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: encantar_back
     env_file:
       - .env
@@ -33,7 +33,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: encantar_front
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
