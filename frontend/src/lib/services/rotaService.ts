@@ -20,22 +20,22 @@ export const rotaService = {
   },
 
   /**
-   * Gera e baixa o PDF da rota usando o template selecionado (geração no frontend)
+   * Gera e baixa o PDF da rota usando o template selecionado
    */
   async downloadPDF(rotaId: string, templateId: string, filename?: string): Promise<void> {
-    // Busca dados e template em paralelo
     const [pdfData, template] = await Promise.all([
       this.getPDFData(rotaId),
       this.getTemplate(templateId)
     ])
 
-    // Gera o nome do arquivo
     const finalFilename = filename || `rota-${pdfData.nomeRota.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
 
-    // Gera o PDF no frontend
     await generatePDF(pdfData, template.conteudo, finalFilename)
   },
 
+  /**
+   * Retorna URL de preview do PDF
+   */
   async previewPDF(rotaId: string, templateId: string): Promise<string> {
     const response = await api.get(`/rotas/${rotaId}/pdf/preview/${templateId}`)
     return response.data
