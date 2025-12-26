@@ -119,8 +119,8 @@ case "$CMD" in
         echo -e "${CYAN}Iniciando containers (desenvolvimento)...${NC}\n"
         docker compose up -d
         echo -e "\n${GREEN}✅ Containers rodando!${NC}"
-        echo -e "${CYAN}Backend:  https://projeto-encantar.sytes.net${NC}"
-        echo -e "${CYAN}Frontend: https://projeto-encantar.sytes.net${NC}"
+        echo -e "${CYAN}Backend:  https://projetoencantarbnu.com.br${NC}"
+        echo -e "${CYAN}Frontend: https://projetoencantarbnu.com.br${NC}"
         echo ""
         echo -e "${YELLOW}Ver logs: ./scripts/start.sh logs${NC}\n"
         ;;
@@ -237,8 +237,8 @@ case "$CMD" in
                 NODE_ENV="development"
                 LOG_LEVEL="debug"
                 ENABLE_SEED="false"
-                FRONTEND_URL="https://projeto-encantar.sytes.net"
-                API_URL="https://projeto-encantar.sytes.net/api"
+                FRONTEND_URL="https://projetoencantarbnu.com.br"
+                API_URL="https://projetoencantarbnu.com.br/api"
             fi
             
             cat > .env << EOF

@@ -211,14 +211,14 @@ npm run dev
 | JWT_REFRESH_SECRET | Chave do refresh token | `a7c4...` |
 | JWT_EXPIRES_IN | Tempo de vida do access token | `15m` |
 | JWT_REFRESH_EXPIRES_IN | Tempo de vida do refresh token | `7d` |
-| FRONTEND_URL | Origem permitida para CORS/cookies | `https://projeto-encantar.sytes.net/` |
+| FRONTEND_URL | Origem permitida para CORS/cookies | `https://projetoencantarbnu.com.br/` |
 | NODE_ENV | Ambiente atual | `development` ou `production` |
 | ENABLE_SEED | Controla execucao das seeds | `true` (dev) / `false` (prod) |
 
 ### Frontend (`frontend/.env.local`)
 | Nome | Descrição | Exemplo |
 | --- | --- | --- |
-| NEXT_PUBLIC_API_URL | Endpoint do backend com `/api` | `http://localhost:3001/api` (dev) ou `https://projeto-encantar.sytes.net/api` (prod) |
+| NEXT_PUBLIC_API_URL | Endpoint do backend com `/api` | `http://localhost:3001/api` (dev) ou `https://projetoencantarbnu.com.br/api` (prod) |
 
 ### Exemplo de Arquivo `.env` (Backend)
 ```env
@@ -261,7 +261,7 @@ O projeto está configurado para deploy no Coolify com Traefik como reverse prox
 **Requisitos:**
 - Servidor Coolify configurado
 - Docker instalado no servidor
-- Domínio apontado para o servidor (ex: `projeto-encantar.sytes.net`)
+- Domínio apontado para o servidor (ex: `projetoencantarbnu.com.br`)
 
 **Passos:**
 
